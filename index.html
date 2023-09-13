@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sort Drawing</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/p5@1.6.0/lib/p5.min.js"></script>
+    <script src="sort_drawing.js"></script>
+</head>
+
+<body>
+    <div id="sorts">
+        <div class="sort">
+            <div class="btns">
+                <button id="sort-bubble-btn">Bubble Sort</button>
+                <button id="reset-bubble-btn">Clear</button>
+                Numbers Range
+                <input id="bubble-range" type="range" min="0" max="100" value="0" class="slider"></input>
+                Millis Between Steps
+                <input id="bubble-millis-range" type="range" min="1" max="50" value="0" class="slider"></input>
+            </div>
+            <div id="bubble-sort" class="sort">
+            </div>
+        </div>
+
+        <div class="sort">
+            <div class="btns">
+                <button id="sort-merge-btn">Merge Sort</button>
+                <button id="reset-merge-btn">Clear</button>
+                Numbers Range
+                <input id="merge-range" type="range" min="0" max="100" value="0" class="slider"></input>
+                Millis Between Steps
+                <input id="merge-millis-range" type="range" min="1" max="50" value="0" class="slider"></input>
+            </div>
+            <div id="merge-sort" class="sort">
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>
