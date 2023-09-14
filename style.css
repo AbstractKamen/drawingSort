@@ -2,47 +2,12 @@ body {
     background: #181818;
     color: white;
 }
-
-* {
-    box-sizing: border-box;
+label{
+    padding-left: 1%; 
 }
-
-.dropdown {
-    position: relative;
-    display: inline-block;
-}
-.sort{
-    padding-bottom: 5%;
-}
-.dropdown-content {
-    display: none;
-    position: absolute;
-    background-color: #f1f1f1;
-    min-width: 120px;
-    box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
-    z-index: 1;
-}
-
-.dropdown-content-a {
-    color: black;
-    padding: 6px 8px;
-    text-decoration: none;
-    display: block;
-}
-
-.dropdown-content-a:hover {
-    background-color: #ddd;
-}
-
-.show {
-    display: block;
-}
-
-.btns {
-    width: 15%;
-    float: left;
+.btns{
+    width: 75%;
 }
 .sort {
-    width: 85%;
-    float: left;
+    padding-bottom: 5%;
 }
