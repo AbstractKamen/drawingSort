@@ -2,12 +2,20 @@ body {
     background: #181818;
     color: white;
 }
-label{
-    padding-left: 1%; 
-}
-.btns{
+
+.btns {
     width: 75%;
 }
+
 .sort {
     padding-bottom: 5%;
+}
+
+p {
+    text-align: left;
+}
+
+.collapsible-content {
+    display: none;
+    overflow: hidden;
 }

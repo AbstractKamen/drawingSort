@@ -14,22 +14,30 @@
 <body>
     <ol id="sorts">
         <li>
-            <div class="btns">
-                <label><b>Sleep Sort</b> is a rather unconventional sorting algorithm that exploits the concept of time
-                    delays
-                    or "sleeping" to sort a list of numbers.
-                    For each number in the input list, create a separate thread, task, or process.
-                    In each thread, set a timer or delay that is proportional to the value of the number being sorted.
-                    For example, if a number is 5, the thread will sleep for 5 units of time.
-                    When all threads have finished sleeping, collect the numbers in the order in which they woke up.
-                    This order will be a sorted sequence.
-                    Sleep Sort is a fun and intriguing concept but is not suitable for practical sorting tasks due to
-                    its inefficiency and reliance on multithreading or asynchronous operations. It's mainly used as an
-                    educational or recreational algorithm to demonstrate the idea of concurrency and timing.<br>
-                    <b>It also can't handle negative values!</b>
-                </label><br>
-                <button id="sort-sleep-btn">Sort</button>
-                <button id="reset-sleep-btn">Clear</button><br>
+            <div class="btns"><b>Sleep Sort</b><br>
+                <button id="sort-sleep-btn" class="sort-btn">Sort</button>
+                <button id="reset-sleep-btn">Clear</button>
+                <button class="collapsible">Click for description
+                    <div class="collapsible-content">
+                        <p> A rather unconventional sorting algorithm that exploits the concept of time
+                            delays or "sleeping" to sort a list of numbers.
+                            For each number in the input list, create a separate thread, task, or process.
+                            In each thread, set a timer or delay that is proportional to the value of the number being
+                            sorted.
+                            For example, if a number is 5, the thread will sleep for 5 units of time.
+                            When all threads have finished sleeping, collect the numbers in the order in which they woke
+                            up.
+                            This order will be a sorted sequence.
+                            Sleep Sort is a fun and intriguing concept but is not suitable for practical sorting tasks
+                            due to
+                            its inefficiency and reliance on multithreading or asynchronous operations. It's mainly used
+                            as an educational or recreational algorithm to demonstrate the idea of concurrency and
+                            timing.
+                        <p><b>It also can't handle negative values!</b></p>
+                        </p>
+                    </div>
+                </button>
+                <button id="tgl-numbers-sleep-btn">View Numbers</button><br>
                 Numbers Range
                 <input id="sleep-range" type="range" min="0" max="100" value="0" class="slider"></input><br>
                 Sort Speed
@@ -40,24 +48,34 @@
         </li>
 
         <li>
-            <div class="btns">
-                <label><b>Quick Sort</b> is a highly efficient and widely used sorting algorithm known for its
-                    average-case performance.
-                    It begins by choosing a "pivot" element from the array. The choice of the pivot can be random or
-                    deterministic. Rearrange the elements in the array such that all elements less than the pivot are
-                    on theleft side, and all elements greater than the pivot are on the right side. The pivot itself is
-                    in itsfinal sorted position. Recursively apply the Quick Sort algorithm to the subarrays formed on
-                    the left and
-                    right sides of the pivot until the entire array is sorted.No additional combining step is needed
-                    because the array is sorted in place.
-                    Quick Sort is efficient because, on average, it has a time complexity of O(n log n), where "n" is
-                    the number of elements to be sorted. It has good cache performance and can be implemented in a way
-                    that uses relatively little additional memory. However, its worst-case time complexity is O(n^2) if
-                    the pivot selection and partitioning are not well-balanced, making it important to choose pivots
-                    wisely or use randomized pivot selection to avoid worst-case scenarios.
-                </label><br>
-                <button id="sort-quick-btn">Sort</button>
-                <button id="reset-quick-btn">Clear</button><br>
+            <div class="btns"><b>Quick Sort</b><br>
+                <button id="sort-quick-btn" class="sort-btn">Sort</button>
+                <button id="reset-quick-btn">Clear</button>
+                <button class="collapsible">Click for description
+                    <div class="collapsible-content">
+                        <p> A highly efficient and widely used sorting algorithm known for its
+                            average-case performance.
+                            It begins by choosing a "pivot" element from the array. The choice of the pivot can be
+                            random or deterministic (in the example the pivot is the length of the subarray -1).
+                            Rearrange the elements in the
+                            array such that all elements less than the pivot are
+                            on the left side, and all elements greater than the pivot are on the right side. The pivot
+                            itself is in its final sorted position. Recursively apply the Quick Sort algorithm to the
+                            subarrays formed on the left and right sides of the pivot until the entire array is
+                            sorted.No additional combining step is
+                            needed because the array is sorted in place.
+                            Quick Sort is efficient because, on average, it has a time complexity of O(n log n), where
+                            "n" is
+                            the number of elements to be sorted. It has good cache performance and can be implemented in
+                            a way
+                            that uses relatively little additional memory. However, its worst-case time complexity is
+                            O(n^2) if the pivot selection and partitioning are not well-balanced, making it important to
+                            choose pivots wisely or use randomized pivot selection to avoid worst-case scenarios.
+                        <p>In the example you can see the worst case if you try to sort an already sorted array.</p>
+                        </p>
+                    </div>
+                </button>
+                <button id="tgl-numbers-quick-btn">View Numbers</button><br>
                 Numbers Range
                 <input id="quick-range" type="range" min="0" max="100" value="0" class="slider"></input><br>
                 Sort Speed
@@ -68,28 +86,33 @@
         </li>
 
         <li>
-            <div class="btns">
-                <label><b>Bubble Sort</b> is a simple and elementary sorting algorithm that repeatedly steps
-                    through the list to be sorted, compares adjacent elements, and swaps them if they are in the wrong
-                    order. Starting at the beginning of the list.
-                    Compare the first two elements. If the first element is larger (in the context of sorting in
-                    ascending order), swap them.
-                    Move one position to the right and repeat step 2 for the next pair of elements.
-                    Continue this process, comparing and swapping adjacent elements as needed, until you reach the end
-                    of the list.
-                    After one pass through the list, the largest unsorted element will have "bubbled up" to the end of
-                    the list.
-                    Repeat steps 1-5 for the remaining unsorted portion of the list, which is now one element shorter.
-                    Continue these passes until no more swaps are needed, indicating that the entire list is sorted.
-                    Bubble Sort is straightforward to understand and implement, but it is generally inefficient for
-                    large lists, especially when compared to more advanced sorting algorithms like Merge Sort or Quick
-                    Sort. It has a time complexity of O(n^2) in the worst case, where n is the number of elements in the
-                    list, making it less suitable for large datasets. An 'optimised' version of bubble sort has O(n)
-                    time
-                    complexity if the dataset is already sorted.
-                </label><br>
-                <button id="sort-bubble-btn">Sort</button>
-                <button id="reset-bubble-btn">Clear</button><br>
+            <div class="btns"><b>Bubble Sort</b><br>
+                <button id="sort-bubble-btn" class="sort-btn">Sort</button>
+                <button id="reset-bubble-btn">Clear</button>
+                <button class="collapsible">Click for description
+                    <div class="collapsible-content">
+                        <p> A simple and easy to understand sorting algorithm. It repeatedly iterates
+                            through the list to be sorted, compares adjacent elements, and swaps them if they are in the
+                            wrong order. Starting at the beginning of the list.
+                            Compare the first two elements. If the first element is larger (in the context of sorting in
+                            ascending order), swap them.
+                            Move one position to the right and repeat for the next pair of elements.
+                            Continue this process, comparing and swapping adjacent elements as needed, until you reach
+                            the end of the list.
+                            After one pass through the list, the largest unsorted element will have "bubbled up" to the
+                            end of the list.
+                            Continue these passes until no more swaps are needed, indicating that the entire list is
+                            sorted.
+                            Bubble Sort is straightforward to understand and implement, but it is generally inefficient
+                            for large lists, especially when compared to more advanced sorting algorithms like Merge
+                            Sort or Quick Sort. It has a time complexity of O(n^2) in the worst case, where n is the
+                            number of elements in the list, making it less suitable for large datasets.
+                        <p>An 'optimised' version of bubble sort has O(n) time complexity if the dataset is already
+                            sorted.</p>
+                        </p>
+                    </div>
+                </button>
+                <button id="tgl-numbers-bubble-btn">View Numbers</button><br>
                 Numbers Range
                 <input id="bubble-range" type="range" min="0" max="100" value="0" class="slider"></input><br>
                 Sort Speed
@@ -101,24 +124,29 @@
 
         <li>
             <div class="btns">
-                <label><b>Merge Sort</b> is a widely used and efficient comparison-based sorting algorithm known for its
-                    stability and guaranteed time complexity. It uses the 'divide and conquer' approach and is
-                    typically recursive.
-                    Begin by taking the unsorted list and split it into two roughly equal halves. This
-                    division continues recursively until each sublist contains just one element, which is considered
-                    already sorted. The individual sublists are then merged back together, and during this merging
-                    process, the
-                    elements are sorted. This is done by comparing the elements from the two sublists and placing them
-                    in sorted order. The merging step continues until a single sorted list remains, containing all the
-                    elements
-                    from the original unsorted list.
-                    Merge Sort is highly efficient and stable, meaning it maintains the relative order of equal
-                    elements. Its time complexity is O(n log n), making it suitable for sorting large datasets. It's
-                    often used as the basis for other sorting algorithms and is a fundamental concept in computer
-                    science.
-                </label><br>
-                <button id="sort-merge-btn">Sort</button>
-                <button id="reset-merge-btn">Clear</button><br>
+                <b>Merge Sort</b><br>
+                <button id="sort-merge-btn" class="sort-btn">Sort</button>
+                <button id="reset-merge-btn">Clear</button>
+                <button class="collapsible">Click for description
+                    <div class="collapsible-content">
+                        <p>A widely used and efficient comparison-based sorting algorithm known for its
+                            stability and guaranteed time complexity. It uses the 'divide and conquer' approach and is
+                            typically recursive. Begin by taking the unsorted list and split it into two roughly equal
+                            halves. This division continues recursively until each sublist contains just one element,
+                            which is considered already sorted. The individual sublists are then merged back together,
+                            and during this
+                            merging process, the elements are sorted. This is done by comparing the elements from the
+                            two sublists and
+                            placing them in sorted order. The merging step continues until a single sorted list remains,
+                            containing
+                            all the elements from the original unsorted list. Merge Sort is highly efficient and stable,
+                            meaning that no matter what the dataset is (almost sorted, sorted, random, etc.) the time
+                            complexity will still be O(n log n). It's often used as the basis for other sorting
+                            algorithms and is a fundamental concept in computer science.
+                        </p>
+                    </div>
+                </button>
+                <button id="tgl-numbers-merge-btn">View Numbers</button><br>
                 Numbers Range
                 <input id="merge-range" type="range" min="0" max="100" value="0" class="slider"></input><br>
                 Sort Speed
@@ -129,27 +157,39 @@
         </li>
 
         <li>
-            <div class="btns">
-                <label><b>Heap Sort</b> is an efficient comparison-based sorting algorithm that operates by transforming
-                    an input array into a binary heap data structure and then repeatedly extracting the maximum (for the
-                    current max-heap example) element from the heap, placing it at the end of the array, and
-                    adjusting the heap to maintain its properties.
-                    The algorithm starts by building a heap from the given input array. This is done by
-                    iterating through the array from the bottom up and ensuring that the heap property is maintained at
-                    each step. For a max-heap, this means that the parent node is greater than or equal to its child
-                    nodes. After the heap is built, the largest element is at
-                    the root of the heap (index 0). Swap this element with the last element in the array. This
-                    effectively moves the maximum element to its correct sorted position at the end of the
-                    array. To maintain the heap property, heapify the remaining elements in the heap. This involves
-                    moving the new root element down the tree until the heap property is restored.
+            <div class="btns"><b>Heap Sort</b><br>
+                <button id="sort-heap-btn" class="sort-btn">Sort</button>
+                <button id="reset-heap-btn">Clear</button>
+                <button class="collapsible">Click for description
+                    <div class="collapsible-content">
+                        <p>An efficient comparison-based sorting algorithm that operates by transforming
+                            an input array into a binary heap data structure and then repeatedly extracting the maximum
+                            (for the
+                            current max-heap example) element from the heap, placing it at the end of the array, and
+                            adjusting the heap to maintain its properties.
+                            The algorithm starts by building a heap from the given input array. This is done by
+                            iterating through the array from the bottom up and ensuring that the heap property is
+                            maintained at
+                            each step. For a max-heap, this means that the parent node is greater than or equal to its
+                            child
+                            nodes. After the heap is built, the largest element is at
+                            the root of the heap (index 0). Swap this element with the last element in the array. This
+                            effectively moves the maximum element to its correct sorted position at the end of the
+                            array. To maintain the heap property, heapify the remaining elements in the heap. This
+                            involves
+                            moving the new root element down the tree until the heap property is restored.
 
-                    Heap Sort has a time complexity of O(n log n) for worst-case, average-case, and best-case scenarios.
-                    It's an in-place, stable, and comparison-based sorting algorithm, making it a reliable choice for
-                    sorting large datasets. However, it's less commonly used in practice compared to algorithms like
-                    Quick Sort or Merge Sort for most scenarios due to its slightly higher overhead.
-                </label><br>
-                <button id="sort-heap-btn">Sort</button>
-                <button id="reset-heap-btn">Clear</button><br>
+                            Heap Sort has a time complexity of O(n log n) for worst-case, average-case, and best-case
+                            scenarios.
+                            It's an in-place, stable, and comparison-based sorting algorithm, making it a reliable
+                            choice for
+                            sorting large datasets. However, it's less commonly used in practice compared to algorithms
+                            like
+                            Quick Sort or Merge Sort for most scenarios due to its slightly higher overhead.
+                        </p>
+                    </div>
+                </button>
+                <button id="tgl-numbers-heap-btn">View Numbers</button><br>
                 Numbers Range
                 <input id="heap-range" type="range" min="0" max="100" value="0" class="slider"></input><br>
                 Sort Speed
