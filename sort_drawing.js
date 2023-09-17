@@ -2,6 +2,7 @@ const CANVAS_SCALE = 0.8;
 const w = ((window.innerWidth > 0) ? window.innerWidth : screen.width) * CANVAS_SCALE;
 const h = ((window.innerHeight > 0) ? window.innerHeight : screen.height) * CANVAS_SCALE;
 const MAX_ELEMENTS = 50;
+const MIN_ELEMENTS = 50;
 const COLOURS = ["red", "yellow", "blue", "teal", "green"];
 const NOT_SORTED = 0;
 const SORTED = 1;
@@ -15,6 +16,9 @@ onload = () => {
     initP5SortDrawer("merge", "Merge Sort", mergeSort);
     initP5SortDrawer("sleep", "Sleep Sort", sleepSort);
     initP5SortDrawer("quick", "Quick Sort", quickSort);
+    initP5SortDrawer("selection", "Selection Sort", selectionSort);
+    initP5SortDrawer("insertion", "Insertion Sort", insertionSort);
+    initP5SortDrawer("comb", "Comb Sort", combSort);
     // collapsible descriptions
     var elements = document.getElementsByClassName("collapsible");
     for (let i = 0; i < elements.length; i++) {
@@ -47,6 +51,7 @@ class SortTask {
 
     async doSort() {
         if (this.isStarted) return;
+        this.sortStatus.fill(0);
         this.operations = 0;
         this.isStarted = true;
         await this.sortFunc.apply(this, arguments);
@@ -85,15 +90,33 @@ class SortTask {
 }
 
 function initP5SortDrawer(sortId, sortLabel, sort) {
-    const s = Math.min(MAX_ELEMENTS, w);
-    const elementsScale = w > MAX_ELEMENTS ? w / MAX_ELEMENTS : 1;
     new p5(
         (sketch) => {
+
+            const arraySize = document.getElementById(`${sortId}-elements-range`);
+            var s = Math.min(parseInt(arraySize.value), w);
+            var elementsScale = w > s ? w / s : 1;
+
             var rangePercent = 0; // 1 / 100
             var maxNumber = h - h * rangePercent;
             var minNumber = h * rangePercent;
             var elements = getRandomElementsWithZero(s, -minNumber, maxNumber * 0.90);
             var toSort = [...elements];
+
+            // array size
+            arraySize.oninput = async () => {
+                s = Math.min(parseInt(arraySize.value), w);
+                elementsScale = w > s ? w / s : 1;
+                sortTask.isStarted = false;
+                elements = getRandomElementsWithZero(s, -minNumber, maxNumber * 0.90);
+                setTimeout(() => {
+                    toSort.length = 0;
+                    toSort.push(...elements)
+                    sortTask.sortStatus.length = elements.length;
+                    sortTask.sortStatus.fill(0);
+                    sortTask.operations = 0;
+                }, 100);
+            };
 
             // millis to sleep for 'animation' effect
             const millis = document.getElementById(`${sortId}-millis-range`);
@@ -121,6 +144,7 @@ function initP5SortDrawer(sortId, sortLabel, sort) {
             document.getElementById(`tgl-numbers-${sortId}-btn`).addEventListener('click', async () => {
                 sortTask.seeNumbers = !sortTask.seeNumbers;
             });
+            // numbers range
             const range = document.getElementById(`${sortId}-range`);
             range.oninput = () => {
                 maxNumber = updateElementsRange(parseInt(range.value) / 100, toSort, elements, sortTask);
@@ -291,8 +315,8 @@ async function heapSort(toSort, sortTask) {
 
         if (largest !== i) {
             swap(arr, i, largest);
-            sortTask.sortStatus[largest] = GREATER;
-            sortTask.sortStatus[i] = LESSER;
+            sortTask.sortStatus[largest] = LESSER;
+            sortTask.sortStatus[i] = GREATER;
             sortTask.increment();
             await heapify(arr, n, largest, sortTask);
         }
@@ -336,6 +360,107 @@ async function bubbleSort(toSort, sortTask) {
         }
     }
     sortTask.sortStatus[0] = SORTED;
+}
+// INSERTION SORT
+async function insertionSort(toSort, sortTask) {
+    let i, key, j, n = toSort.length;
+    for (i = 1; i < n; i++) {
+        if (sortTask.isFinished()) return;
+        sortTask.increment();
+        await sortTask.sleep();
+
+        key = toSort[i];
+        j = i - 1;
+        while (j >= 0 && toSort[j] > key) {
+            if (sortTask.isFinished()) return;
+            sortTask.increment();
+            toSort[j + 1] = toSort[j];
+            sortTask.sortStatus[j - 1] = LESSER;
+            sortTask.sortStatus[j] = GREATER;
+            await sortTask.sleep();
+            sortTask.sortStatus[j] = SORTED;
+            sortTask.sortStatus[j - 1] = SORTED;
+            j = j - 1;
+
+        }
+        toSort[j + 1] = key;
+    }
+}
+// COMB SORT
+async function combSort(toSort, sortTask) {
+    let n = toSort.length;
+    let comb = n;
+    let swapped = true;
+    while (comb != 1 || swapped == true) {
+        if (sortTask.isFinished()) return;
+        sortTask.increment();
+        await sortTask.sleep();
+        comb = getNextComb(comb);
+        swapped = false;
+
+        for (let i = 0; i < n - comb; i++) {
+            if (sortTask.isFinished()) return;
+            sortTask.increment();
+            await sortTask.sleep();
+
+            if (toSort[i] > toSort[i + comb]) {
+                swap(toSort, i, i + comb);
+                sortTask.sortStatus[i] = LESSER;
+                sortTask.sortStatus[i + comb] = GREATER;
+
+                // Set swapped
+                swapped = true;
+            }
+            sortTask.sortStatus[i] = SORTED;
+        }
+        sortTask.sortStatus[n - 1] = SORTED;
+    }
+
+    function getNextComb(comb) {
+        // shrink comb
+        comb = parseInt(comb / 1.3, 10);
+        if (comb < 1)
+            return 1;
+        return comb;
+    }
+}
+// SELECTION SORT
+async function selectionSort(toSort, sortTask) {
+    var min_idx, j, n = toSort.length;
+    for (let i = 0; i < n - 1; i++) {
+        if (sortTask.isFinished()) return;
+        sortTask.increment();
+        await sortTask.sleep();
+
+        min_idx = i;
+        for (j = i + 1; j < n; j++) {
+            if (sortTask.isFinished()) return;
+            await sortTask.sleep();
+            sortTask.increment();
+            if (j - 1 != min_idx) {
+                sortTask.sortStatus[j - 1] = GREATER;
+            }
+
+            if (toSort[j] < toSort[min_idx]) {
+                sortTask.sortStatus[j] = LESSER;
+                if (sortTask.sortStatus[min_idx] != SORTED) {
+                    sortTask.sortStatus[min_idx] = NOT_SORTED;
+                }
+
+                min_idx = j;
+            }
+            if (j - 1 != min_idx && sortTask.sortStatus[j - 1] != SORTED) {
+                sortTask.sortStatus[j - 1] = NOT_SORTED;
+            }
+        }
+        sortTask.sortStatus[i] = SORTED;
+        sortTask.sortStatus[i + 1] = SORTED;
+        if (sortTask.sortStatus[min_idx] != SORTED) {
+            sortTask.sortStatus[min_idx] = NOT_SORTED;
+        }
+
+        swap(toSort, min_idx, i);
+    }
 }
 // MERGE SORT
 async function mergeSort(toSort, sortTask) {

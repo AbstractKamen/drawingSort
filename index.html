@@ -43,6 +43,8 @@
                 <input id="sleep-range" type="range" min="0" max="100" value="0" class="slider"></input><br>
                 Sort Speed
                 <input id="sleep-millis-range" type="range" min="1" max="50" value="0" class="slider"></input>
+                Array Size
+                <input id="sleep-elements-range" type="range" min="50" max="200" value="50" class="slider"></input>
             </div>
             <div id="sleep-sort" class="sort">
             </div>
@@ -81,48 +83,12 @@
                 <input id="quick-range" type="range" min="0" max="100" value="0" class="slider"></input><br>
                 Sort Speed
                 <input id="quick-millis-range" type="range" min="1" max="50" value="0" class="slider"></input>
+                Array Size
+                <input id="quick-elements-range" type="range" min="50" max="200" value="50" class="slider"></input>
             </div>
             <div id="quick-sort" class="sort">
             </div>
         </li>
-
-        <li>
-            <div class="btns"><b>Bubble Sort</b><br>
-                <button id="sort-bubble-btn" class="sort-btn">Sort</button>
-                <button id="reset-bubble-btn">Clear</button>
-                <button class="collapsible">Click for description
-                    <div class="collapsible-content">
-                        <p> A simple and easy to understand sorting algorithm. It repeatedly iterates
-                            through the list to be sorted, compares adjacent elements, and swaps them if they are in the
-                            wrong order. Starting at the beginning of the list.
-                            Compare the first two elements. If the first element is larger (in the context of sorting in
-                            ascending order), swap them.
-                            Move one position to the right and repeat for the next pair of elements.
-                            Continue this process, comparing and swapping adjacent elements as needed, until you reach
-                            the end of the list.
-                            After one pass through the list, the largest unsorted element will have "bubbled up" to the
-                            end of the list.
-                            Continue these passes until no more swaps are needed, indicating that the entire list is
-                            sorted.
-                            Bubble Sort is straightforward to understand and implement, but it is generally inefficient
-                            for large lists, especially when compared to more advanced sorting algorithms like Merge
-                            Sort or Quick Sort. It has a time complexity of O(n^2) in the worst case, where n is the
-                            number of elements in the list, making it less suitable for large datasets.
-                        <p>An 'optimised' version of bubble sort has O(n) time complexity if the dataset is already
-                            sorted.</p>
-                        </p>
-                    </div>
-                </button>
-                <button id="tgl-numbers-bubble-btn">View Numbers</button><br>
-                Numbers Range
-                <input id="bubble-range" type="range" min="0" max="100" value="0" class="slider"></input><br>
-                Sort Speed
-                <input id="bubble-millis-range" type="range" min="1" max="50" value="0" class="slider"></input>
-            </div>
-            <div id="bubble-sort" class="sort">
-            </div>
-        </li>
-
         <li>
             <div class="btns">
                 <b>Merge Sort</b><br>
@@ -142,7 +108,8 @@
                             containing
                             all the elements from the original unsorted list. Merge Sort is highly efficient and stable,
                             meaning that no matter what the dataset is (almost sorted, sorted, random, etc.) the time
-                            complexity will still be O(n log n). It's often used as the basis for other sorting
+                            complexity will still be O(n log n) and the order of equal elements before and after sorting
+                            is guaranteed to remain the same. It's often used as the basis for other sorting
                             algorithms and is a fundamental concept in computer science.
                         </p>
                     </div>
@@ -152,6 +119,8 @@
                 <input id="merge-range" type="range" min="0" max="100" value="0" class="slider"></input><br>
                 Sort Speed
                 <input id="merge-millis-range" type="range" min="1" max="50" value="0" class="slider"></input>
+                Array Size
+                <input id="merge-elements-range" type="range" min="50" max="200" value="50" class="slider"></input>
             </div>
             <div id="merge-sort" class="sort">
             </div>
@@ -195,8 +164,158 @@
                 <input id="heap-range" type="range" min="0" max="100" value="0" class="slider"></input><br>
                 Sort Speed
                 <input id="heap-millis-range" type="range" min="1" max="50" value="0" class="slider"></input>
+                Array Size
+                <input id="heap-elements-range" type="range" min="50" max="200" value="50" class="slider"></input>
             </div>
             <div id="heap-sort" class="sort">
+            </div>
+        </li>
+
+        <li>
+            <div class="btns"><b>Bubble Sort</b><br>
+                <button id="sort-bubble-btn" class="sort-btn">Sort</button>
+                <button id="reset-bubble-btn">Clear</button>
+                <button class="collapsible">Click for description
+                    <div class="collapsible-content">
+                        <p> A simple and easy to understand sorting algorithm. It repeatedly iterates
+                            through the list to be sorted, compares adjacent elements, and swaps them if they are in the
+                            wrong order. Starting at the beginning of the list.
+                            Compare the first two elements. If the first element is larger (in the context of sorting in
+                            ascending order), swap them.
+                            Move one position to the right and repeat for the next pair of elements.
+                            Continue this process, comparing and swapping adjacent elements as needed, until you reach
+                            the end of the list.
+                            After one pass through the list, the largest unsorted element will have "bubbled up" to the
+                            end of the list.
+                            Continue these passes until no more swaps are needed, indicating that the entire list is
+                            sorted.
+                            Bubble Sort is straightforward to understand and implement, but it is generally inefficient
+                            for large lists, especially when compared to more advanced sorting algorithms like Merge
+                            Sort or Quick Sort. It has a time complexity of O(n^2) in the worst case, where n is the
+                            number of elements in the list, making it less suitable for large datasets.
+                        <p>An 'optimised' version of bubble sort has O(n) time complexity if the dataset is already
+                            sorted.</p>
+                        </p>
+                    </div>
+                </button>
+                <button id="tgl-numbers-bubble-btn">View Numbers</button><br>
+                Numbers Range
+                <input id="bubble-range" type="range" min="0" max="100" value="0" class="slider"></input><br>
+                Sort Speed
+                <input id="bubble-millis-range" type="range" min="1" max="50" value="0" class="slider"></input>
+                Array Size
+                <input id="bubble-elements-range" type="range" min="50" max="200" value="50" class="slider"></input>
+            </div>
+            <div id="bubble-sort" class="sort">
+            </div>
+        </li>
+
+        <li>
+            <div class="btns"><b>Comb Sort</b><br>
+                <button id="sort-comb-btn" class="sort-btn">Sort</button>
+                <button id="reset-comb-btn">Clear</button>
+                <button class="collapsible">Click for description
+                    <div class="collapsible-content">
+                        <p>Comb Sort is a comparison-based sorting algorithm that improves upon the Bubble Sort
+                            algorithm by eliminating or reducing the number of small values at the end of the list
+                            quickly.
+                            Initialize a gap (initially a large value) that determines the distance between elements to
+                            be compared and swapped. Commonly, the gap is set to a value slightly less than the length
+                            of the list.
+                            Iterate through the list, comparing elements that are separated by the current gap value. If
+                            two elements are out of order, swap them.
+                            Reduce the gap size (commonly by a fixed reduction factor, often around 1.3) and repeat the
+                            comparisons and swaps until the gap becomes 1.
+                            Continue the process with a gap of 1, which is essentially performing a final pass of Bubble
+                            Sort to ensure the remaining small elements "bubble" to their correct positions.
+                            Comb Sort's name comes from the idea of "combing" through the list with decreasing gap
+                            sizes. While it is not the most efficient sorting algorithm, it is an improvement over
+                            Bubble Sort and is simple to understand and implement. It has an average-case time
+                            complexity of O(n^2), but its performance can be improved with certain variations and
+                            optimizations.
+                        <p>An 'optimised' version of bubble sort has O(n) time complexity if the dataset is already
+                            sorted.</p>
+                        </p>
+                    </div>
+                </button>
+                <button id="tgl-numbers-comb-btn">View Numbers</button><br>
+                Numbers Range
+                <input id="comb-range" type="range" min="0" max="100" value="0" class="slider"></input><br>
+                Sort Speed
+                <input id="comb-millis-range" type="range" min="1" max="50" value="0" class="slider"></input>
+                Array Size
+                <input id="comb-elements-range" type="range" min="50" max="200" value="50" class="slider"></input>
+            </div>
+            <div id="comb-sort" class="sort">
+            </div>
+        </li>
+
+        <li>
+            <div class="btns"><b>Insertion Sort</b><br>
+                <button id="sort-insertion-btn" class="sort-btn">Sort</button>
+                <button id="reset-insertion-btn">Clear</button>
+                <button class="collapsible">Click for description
+                    <div class="collapsible-content">
+                        <p>
+                            Insertion Sort is a simple and efficient comparison-based sorting algorithm.
+                            Start with the second element (index 1) of the array. This element is assumed to be part of
+                            the sorted portion of the array.
+                            Compare the second element with the one before it (the first element) and move the second
+                            element to its correct position within the sorted portion of the array. If the second
+                            element is smaller, swap it with the first element.
+                            Move on to the third element (index 2) and repeat the process, shifting it leftwards within
+                            the sorted portion until it is in its correct position relative to the already sorted
+                            elements.
+                            Continue this process for each subsequent element in the array, one at a time, until the
+                            entire array is sorted.
+                        <p>Insertion Sort is an in-place sorting algorithm, meaning it doesn't require additional
+                            memory for sorting, and it works well for small to moderately sized lists. However, its time
+                            complexity is O(n^2) in the worst case, making it less efficient than some other sorting
+                            algorithms for large lists.</p>
+                        </p>
+                    </div>
+                </button>
+                <button id="tgl-numbers-insertion-btn">View Numbers</button><br>
+                Numbers Range
+                <input id="insertion-range" type="range" min="0" max="100" value="0" class="slider"></input><br>
+                Sort Speed
+                <input id="insertion-millis-range" type="range" min="1" max="50" value="0" class="slider"></input>
+                Array Size
+                <input id="insertion-elements-range" type="range" min="50" max="200" value="50" class="slider"></input>
+            </div>
+            <div id="insertion-sort" class="sort">
+            </div>
+        </li>
+
+        <li>
+            <div class="btns"><b>Selection Sort</b><br>
+                <button id="sort-selection-btn" class="sort-btn">Sort</button>
+                <button id="reset-selection-btn">Clear</button>
+                <button class="collapsible">Click for description
+                    <div class="collapsible-content">
+                        <p>Selection Sort is a simple comparison-based sorting algorithm that works by repeatedly
+                            selecting the smallest element from an unsorted portion of the list and moving
+                            it to the beginning of the sorted portion. Initially, the sorted part is empty, and the
+                            unsorted part contains all elements. Iterate through the whole unsorted part and find the
+                            smallest. Swap this smallest element with the leftmost element in the unsorted part,
+                            effectively moving it to the sorted part. Expand the sorted part by one element, and reduce
+                            the unsorted part by one element.
+                        <p>Selection Sort is easy to understand and implement but is not the most efficient sorting
+                            algorithm as it has a time complexity of O(n^2).
+                            It is mainly used for educational purposes or for small lists where simplicity is more
+                            important than performance.</p>
+                        </p>
+                    </div>
+                </button>
+                <button id="tgl-numbers-selection-btn">View Numbers</button><br>
+                Numbers Range
+                <input id="selection-range" type="range" min="0" max="100" value="0" class="slider"></input><br>
+                Sort Speed
+                <input id="selection-millis-range" type="range" min="1" max="50" value="0" class="slider"></input>
+                Array Size
+                <input id="selection-elements-range" type="range" min="50" max="200" value="50" class="slider"></input>
+            </div>
+            <div id="selection-sort" class="sort">
             </div>
         </li>
     </ol>
