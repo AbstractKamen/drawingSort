@@ -35,13 +35,14 @@ onload = () => {
 }
 
 class SortTask {
-    constructor(sortLabel, sortFunc, ms) {
+    constructor(sortLabel, sortFunc, ms, s) {
         this.sortLabel = sortLabel;
         this.isStarted = false;
         this.sortFunc = sortFunc;
         this.operations = 0;
         this.seeNumbers = false;
         this.ms = ms;
+        this.sortStatus = new Array(s).fill(0);
     }
 
     async doSort() {
@@ -50,14 +51,13 @@ class SortTask {
         this.isStarted = true;
         await this.sortFunc.apply(this, arguments);
         // verify
-        const sortStatus = arguments[1];
         const toSort = arguments[0];
         let lastVerified;
-        for (let i = 1; i < sortStatus.length; i++) {
+        for (let i = 1; i < this.sortStatus.length; i++) {
             if (!this.isStarted) return;
             if (toSort[i - 1] <= toSort[i]) {
-                sortStatus[i - 1] = VERIFIED_SORTED;
-                sortStatus[i] = VERIFIED_SORTED;
+                this.sortStatus[i - 1] = VERIFIED_SORTED;
+                this.sortStatus[i] = VERIFIED_SORTED;
             } else {
                 lastVerified = i;
             }
@@ -65,7 +65,7 @@ class SortTask {
         }
         for (let i = lastVerified; i >= 0; i--) {
             if (!this.isStarted) return;
-            sortStatus[i] = NOT_SORTED;
+            this.sortStatus[i] = NOT_SORTED;
             await sleep(1);
         }
         // finish
@@ -94,13 +94,12 @@ function initP5SortDrawer(sortId, sortLabel, sort) {
             var minNumber = h * rangePercent;
             var elements = getRandomElementsWithZero(s, -minNumber, maxNumber * 0.90);
             var toSort = [...elements];
-            var sortStatus = new Array(s).fill(0);
 
             // millis to sleep for 'animation' effect
             const millis = document.getElementById(`${sortId}-millis-range`);
             const msMax = parseInt(millis.max);
             var ms = msMax - parseInt(millis.value);
-            var sortTask = new SortTask(sortLabel, sort, ms);
+            var sortTask = new SortTask(sortLabel, sort, ms, s);
             millis.oninput = () => {
                 sortTask.ms = msMax - parseInt(millis.value)
             };
@@ -110,13 +109,13 @@ function initP5SortDrawer(sortId, sortLabel, sort) {
                 sortTask.isStarted = false;
                 setTimeout(() => {
                     toSort = [...elements];
-                    sortStatus.fill(0);
+                    sortTask.sortStatus.fill(0);
                     sortTask.operations = 0;
                 }, 100);
             });
             // sort
             document.getElementById(`sort-${sortId}-btn`).addEventListener('click', async () => {
-                await sortTask.doSort(toSort, sortStatus, sortTask);
+                await sortTask.doSort(toSort, sortTask);
             });
             // see numbers
             document.getElementById(`tgl-numbers-${sortId}-btn`).addEventListener('click', async () => {
@@ -124,20 +123,20 @@ function initP5SortDrawer(sortId, sortLabel, sort) {
             });
             const range = document.getElementById(`${sortId}-range`);
             range.oninput = () => {
-                maxNumber = updateElementsRange(parseInt(range.value) / 100, toSort, elements, sortTask, sortStatus);
+                maxNumber = updateElementsRange(parseInt(range.value) / 100, toSort, elements, sortTask);
             };
             sketch.setup = () => {
                 sketch.createCanvas(w, h);
             };
             sketch.draw = () => {
-                drawElements(sketch, toSort, elementsScale, maxNumber, sortStatus, sortTask);
+                drawElements(sketch, toSort, elementsScale, maxNumber, sortTask);
             };
         },
         `${sortId}-sort`);
 }
 
-function updateElementsRange(m, toSort, elements, offSwitch, sortStatus) {
-    offSwitch.isStarted = false;
+function updateElementsRange(m, toSort, elements, sortTask) {
+    sortTask.isStarted = false;
     const high = h - h * m;
     const low = h * m;
     const size = elements.length;
@@ -146,12 +145,12 @@ function updateElementsRange(m, toSort, elements, offSwitch, sortStatus) {
     setTimeout(() => {
         toSort.length = 0;
         toSort.push(...elements)
-        sortStatus.fill(0);
+        sortTask.sortStatus.fill(0);
     }, 25);
     return high;
 }
 
-function drawElements(sketch, elements, elementsScale, maxNumber, sortStatus, sortTask) {
+function drawElements(sketch, elements, elementsScale, maxNumber, sortTask) {
     sketch.background(0);
     sketch.push();
     sketch.translate(0, maxNumber);
@@ -159,7 +158,7 @@ function drawElements(sketch, elements, elementsScale, maxNumber, sortStatus, so
     sketch.strokeWeight(1 * elementsScale);
     for (let x = 0; x < elements.length; x++) {
         let y = elements[x];
-        sketch.stroke(COLOURS[sortStatus[x]]);
+        sketch.stroke(COLOURS[sortTask.sortStatus[x]]);
         let xS = x * elementsScale + elementsScale / 2
         sketch.line(xS, 0, xS, y);
     }
@@ -192,32 +191,32 @@ function drawElements(sketch, elements, elementsScale, maxNumber, sortStatus, so
     SORT ALORITHMS START
  */
 // QUICK SORT
-async function quickSort(toSort, sortStatus, sortTask) {
-    await quickSortRec(toSort, 0, toSort.length - 1, sortStatus, sortTask);
+async function quickSort(toSort, sortTask) {
+    await quickSortRec(toSort, 0, toSort.length - 1, sortTask);
 }
-async function quickSortRec(toSort, low, high, sortStatus, sortTask) {
+async function quickSortRec(toSort, low, high, sortTask) {
     if (sortTask.isFinished()) return;
     if (low < high) {
         sortTask.increment();
-        let pi = await partition(toSort, low, high, sortStatus, sortTask);
+        let pi = await partition(toSort, low, high, sortTask);
         await sortTask.sleep();
-        sortStatus[pi] = SORTED;
-        await quickSortRec(toSort, low, pi - 1, sortStatus, sortTask);
+        sortTask.sortStatus[pi] = SORTED;
+        await quickSortRec(toSort, low, pi - 1, sortTask);
         await sortTask.sleep();
-        sortStatus[pi - 1] = SORTED;
-        await quickSortRec(toSort, pi + 1, high, sortStatus, sortTask);
+        sortTask.sortStatus[pi - 1] = SORTED;
+        await quickSortRec(toSort, pi + 1, high, sortTask);
         await sortTask.sleep();
-        sortStatus[high] = SORTED;
+        sortTask.sortStatus[high] = SORTED;
         await sortTask.sleep();
-        sortStatus[low] = SORTED;
+        sortTask.sortStatus[low] = SORTED;
     }
 }
 
-async function partition(toSort, low, high, sortStatus, sortTask) {
+async function partition(toSort, low, high, sortTask) {
     if (sortTask.isFinished()) return;
     await sortTask.sleep();
     let pivot = toSort[high];
-    sortStatus[high] = GREATER;
+    sortTask.sortStatus[high] = GREATER;
     let i = low - 1;
 
     for (let j = low; j <= high - 1; j++) {
@@ -227,7 +226,7 @@ async function partition(toSort, low, high, sortStatus, sortTask) {
         if (toSort[j] < pivot) {
             i++;
             swap(toSort, i, j);
-            sortStatus[j] = LESSER;
+            sortTask.sortStatus[j] = LESSER;
         }
     }
     swap(toSort, i + 1, high);
@@ -236,7 +235,7 @@ async function partition(toSort, low, high, sortStatus, sortTask) {
 
 
 // SLEEP SORT
-async function sleepSort(toSort, sortStatus, sortTask) {
+async function sleepSort(toSort, sortTask) {
     const result = new Array();
     let i = 0;
     await Promise.all(
@@ -244,7 +243,7 @@ async function sleepSort(toSort, sortStatus, sortTask) {
             if (sortTask.isFinished()) return;
             sortTask.increment();
             await new Promise((res) => setTimeout(res, n));
-            sortStatus[i++] = GREATER;
+            sortTask.sortStatus[i++] = GREATER;
             result.push(n);
         }));
     for (let j = 0; j < result.length; j++) {
@@ -252,31 +251,31 @@ async function sleepSort(toSort, sortStatus, sortTask) {
         sortTask.increment();
         toSort[j] = result[j];
         await sortTask.sleep();
-        sortStatus[j] = SORTED
+        sortTask.sortStatus[j] = SORTED
     }
 }
 // HEAP SORT
-async function heapSort(toSort, sortStatus, sortTask) {
+async function heapSort(toSort, sortTask) {
     const n = toSort.length;
 
     // make a max heap starting from the last non-leaf node
     for (let i = Math.floor(n / 2) - 1; i >= 0; i--) {
         if (sortTask.isFinished()) return;
         sortTask.increment();
-        await heapify(toSort, n, i, sortStatus, sortTask);
+        await heapify(toSort, n, i, sortTask);
     }
 
     for (let i = n - 1; i > 0; i--) {
         if (sortTask.isFinished()) return;
         sortTask.increment();
-        sortStatus[i] = SORTED;
+        sortTask.sortStatus[i] = SORTED;
         swap(toSort, 0, i);
         // restore the max heap property for the remaining elements
-        await heapify(toSort, i, 0, sortStatus, sortTask);
+        await heapify(toSort, i, 0, sortTask);
     }
-    sortStatus[0] = SORTED;
+    sortTask.sortStatus[0] = SORTED;
 
-    async function heapify(arr, n, i, sortStatus, sortTask) {
+    async function heapify(arr, n, i, sortTask) {
         if (sortTask.isFinished()) return;
         await sortTask.sleep();
         let largest = i;
@@ -292,15 +291,15 @@ async function heapSort(toSort, sortStatus, sortTask) {
 
         if (largest !== i) {
             swap(arr, i, largest);
-            sortStatus[largest] = GREATER;
-            sortStatus[i] = LESSER;
+            sortTask.sortStatus[largest] = GREATER;
+            sortTask.sortStatus[i] = LESSER;
             sortTask.increment();
-            await heapify(arr, n, largest, sortStatus, sortTask);
+            await heapify(arr, n, largest, sortTask);
         }
     }
 }
 // BUBBLE SORT
-async function bubbleSort(toSort, sortStatus, sortTask) {
+async function bubbleSort(toSort, sortTask) {
     var i, j, m, p;
     var swapped;
     for (i = 0; i < toSort.length - 1; i++) {
@@ -309,7 +308,7 @@ async function bubbleSort(toSort, sortStatus, sortTask) {
         sortTask.increment();
         for (j = 0; j < toSort.length - i - 1; j++) {
             if (sortTask.isFinished()) return;
-            sortStatus[j] = GREATER;
+            sortTask.sortStatus[j] = GREATER;
             sortTask.increment();
             await sortTask.sleep();
             if (toSort[j] > toSort[j + 1]) {
@@ -318,31 +317,31 @@ async function bubbleSort(toSort, sortStatus, sortTask) {
                 swap(toSort, j, j + 1);
                 swapped = true;
 
-                if (sortStatus[m] != SORTED) {
-                    sortStatus[m] = GREATER;
+                if (sortTask.sortStatus[m] != SORTED) {
+                    sortTask.sortStatus[m] = GREATER;
                 }
-                sortStatus[m - 1] = NOT_SORTED;
-            } else if (sortStatus[p] != SORTED) {
-                sortStatus[p] = NOT_SORTED;
+                sortTask.sortStatus[m - 1] = NOT_SORTED;
+            } else if (sortTask.sortStatus[p] != SORTED) {
+                sortTask.sortStatus[p] = NOT_SORTED;
             }
         }
 
         if (swapped == false) {
             for (k = 0; k < toSort.length - 1; k++) {
-                sortStatus[k] = SORTED;
+                sortTask.sortStatus[k] = SORTED;
             }
             break;
         } else {
-            sortStatus[j] = SORTED;
+            sortTask.sortStatus[j] = SORTED;
         }
     }
-    sortStatus[0] = SORTED;
+    sortTask.sortStatus[0] = SORTED;
 }
 // MERGE SORT
-async function mergeSort(toSort, sortStatus, sortTask) {
-    await mergeSortRec(toSort, 0, toSort.length - 1, sortStatus, sortTask);
+async function mergeSort(toSort, sortTask) {
+    await mergeSortRec(toSort, 0, toSort.length - 1, sortTask);
 }
-async function mergeSortRec(toSort, leftI, rightI, sortStatus, sortTask) {
+async function mergeSortRec(toSort, leftI, rightI, sortTask) {
     if (sortTask.isFinished()) {
         return;
     }
@@ -351,12 +350,12 @@ async function mergeSortRec(toSort, leftI, rightI, sortStatus, sortTask) {
     }
 
     var m = leftI + parseInt((rightI - leftI) / 2);
-    await mergeSortRec(toSort, leftI, m, sortStatus, sortTask);
-    await mergeSortRec(toSort, m + 1, rightI, sortStatus, sortTask);
-    await merge(toSort, leftI, m, rightI, sortStatus, sortTask);
+    await mergeSortRec(toSort, leftI, m, sortTask);
+    await mergeSortRec(toSort, m + 1, rightI, sortTask);
+    await merge(toSort, leftI, m, rightI, sortTask);
 }
 
-async function merge(toSort, leftI, middle, rightI, sortStatus, sortTask) {
+async function merge(toSort, leftI, middle, rightI, sortTask) {
     if (sortTask.isFinished()) return;
     var leftSize = middle - leftI + 1;
     var rightSize = rightI - middle;
@@ -364,12 +363,12 @@ async function merge(toSort, leftI, middle, rightI, sortStatus, sortTask) {
     var right = new Array(rightSize);
     for (let i = 0; i < leftSize && sortTask.isStarted; i++) {
         left[i] = toSort[leftI + i];
-        sortStatus[leftI + i] = GREATER;
+        sortTask.sortStatus[leftI + i] = GREATER;
         await sortTask.sleep();
     }
     for (let j = 0; j < rightSize && sortTask.isStarted; j++) {
         right[j] = toSort[middle + 1 + j];
-        sortStatus[middle + 1 + j] = GREATER;
+        sortTask.sortStatus[middle + 1 + j] = GREATER;
         await sortTask.sleep();
     }
     var i = 0;
@@ -380,11 +379,11 @@ async function merge(toSort, leftI, middle, rightI, sortStatus, sortTask) {
         if (left[i] <= right[j]) {
             toSort[k] = left[i];
             i++;
-            sortStatus[k] = SORTED;
+            sortTask.sortStatus[k] = SORTED;
         } else {
             toSort[k] = right[j];
             j++;
-            sortStatus[k] = SORTED;
+            sortTask.sortStatus[k] = SORTED;
         }
         await sortTask.sleep();
         sortTask.increment();
@@ -393,7 +392,7 @@ async function merge(toSort, leftI, middle, rightI, sortStatus, sortTask) {
 
     while (i < leftSize && sortTask.isStarted) {
         toSort[k] = left[i];
-        sortStatus[k] = SORTED;
+        sortTask.sortStatus[k] = SORTED;
         i++;
         k++;
         await sortTask.sleep();
@@ -402,7 +401,7 @@ async function merge(toSort, leftI, middle, rightI, sortStatus, sortTask) {
 
     while (j < rightSize && sortTask.isStarted) {
         toSort[k] = right[j];
-        sortStatus[k] = SORTED;
+        sortTask.sortStatus[k] = SORTED;
         j++;
         k++;
         await sortTask.sleep();

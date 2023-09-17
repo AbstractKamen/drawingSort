@@ -59,7 +59,7 @@ onload = function onload() {
 var SortTask =
 /*#__PURE__*/
 function () {
-  function SortTask(sortLabel, sortFunc, ms) {
+  function SortTask(sortLabel, sortFunc, ms, s) {
     _classCallCheck(this, SortTask);
 
     this.sortLabel = sortLabel;
@@ -68,13 +68,13 @@ function () {
     this.operations = 0;
     this.seeNumbers = false;
     this.ms = ms;
+    this.sortStatus = new Array(s).fill(0);
   }
 
   _createClass(SortTask, [{
     key: "doSort",
     value: function doSort() {
-      var sortStatus,
-          toSort,
+      var toSort,
           lastVerified,
           i,
           _i,
@@ -99,70 +99,69 @@ function () {
 
             case 6:
               // verify
-              sortStatus = _args[1];
               toSort = _args[0];
               i = 1;
 
-            case 9:
-              if (!(i < sortStatus.length)) {
-                _context.next = 18;
+            case 8:
+              if (!(i < this.sortStatus.length)) {
+                _context.next = 17;
                 break;
               }
 
               if (this.isStarted) {
-                _context.next = 12;
+                _context.next = 11;
                 break;
               }
 
               return _context.abrupt("return");
 
-            case 12:
+            case 11:
               if (toSort[i - 1] <= toSort[i]) {
-                sortStatus[i - 1] = VERIFIED_SORTED;
-                sortStatus[i] = VERIFIED_SORTED;
+                this.sortStatus[i - 1] = VERIFIED_SORTED;
+                this.sortStatus[i] = VERIFIED_SORTED;
               } else {
                 lastVerified = i;
               }
 
-              _context.next = 15;
+              _context.next = 14;
               return regeneratorRuntime.awrap(_sleep(1));
 
-            case 15:
+            case 14:
               i++;
-              _context.next = 9;
+              _context.next = 8;
               break;
 
-            case 18:
+            case 17:
               _i = lastVerified;
 
-            case 19:
+            case 18:
               if (!(_i >= 0)) {
-                _context.next = 28;
+                _context.next = 27;
                 break;
               }
 
               if (this.isStarted) {
-                _context.next = 22;
+                _context.next = 21;
                 break;
               }
 
               return _context.abrupt("return");
 
-            case 22:
-              sortStatus[_i] = NOT_SORTED;
-              _context.next = 25;
+            case 21:
+              this.sortStatus[_i] = NOT_SORTED;
+              _context.next = 24;
               return regeneratorRuntime.awrap(_sleep(1));
 
-            case 25:
+            case 24:
               _i--;
-              _context.next = 19;
+              _context.next = 18;
               break;
 
-            case 28:
+            case 27:
               // finish
               this.isStarted = false;
 
-            case 29:
+            case 28:
             case "end":
               return _context.stop();
           }
@@ -213,14 +212,13 @@ function initP5SortDrawer(sortId, sortLabel, sort) {
     var minNumber = h * rangePercent;
     var elements = getRandomElementsWithZero(s, -minNumber, maxNumber * 0.90);
 
-    var toSort = _toConsumableArray(elements);
+    var toSort = _toConsumableArray(elements); // millis to sleep for 'animation' effect
 
-    var sortStatus = new Array(s).fill(0); // millis to sleep for 'animation' effect
 
     var millis = document.getElementById("".concat(sortId, "-millis-range"));
     var msMax = parseInt(millis.max);
     var ms = msMax - parseInt(millis.value);
-    var sortTask = new SortTask(sortLabel, sort, ms);
+    var sortTask = new SortTask(sortLabel, sort, ms, s);
 
     millis.oninput = function () {
       sortTask.ms = msMax - parseInt(millis.value);
@@ -231,7 +229,7 @@ function initP5SortDrawer(sortId, sortLabel, sort) {
       sortTask.isStarted = false;
       setTimeout(function () {
         toSort = _toConsumableArray(elements);
-        sortStatus.fill(0);
+        sortTask.sortStatus.fill(0);
         sortTask.operations = 0;
       }, 100);
     }); // sort
@@ -242,7 +240,7 @@ function initP5SortDrawer(sortId, sortLabel, sort) {
           switch (_context3.prev = _context3.next) {
             case 0:
               _context3.next = 2;
-              return regeneratorRuntime.awrap(sortTask.doSort(toSort, sortStatus, sortTask));
+              return regeneratorRuntime.awrap(sortTask.doSort(toSort, sortTask));
 
             case 2:
             case "end":
@@ -269,7 +267,7 @@ function initP5SortDrawer(sortId, sortLabel, sort) {
     var range = document.getElementById("".concat(sortId, "-range"));
 
     range.oninput = function () {
-      maxNumber = updateElementsRange(parseInt(range.value) / 100, toSort, elements, sortTask, sortStatus);
+      maxNumber = updateElementsRange(parseInt(range.value) / 100, toSort, elements, sortTask);
     };
 
     sketch.setup = function () {
@@ -277,13 +275,13 @@ function initP5SortDrawer(sortId, sortLabel, sort) {
     };
 
     sketch.draw = function () {
-      drawElements(sketch, toSort, elementsScale, maxNumber, sortStatus, sortTask);
+      drawElements(sketch, toSort, elementsScale, maxNumber, sortTask);
     };
   }, "".concat(sortId, "-sort"));
 }
 
-function updateElementsRange(m, toSort, elements, offSwitch, sortStatus) {
-  offSwitch.isStarted = false;
+function updateElementsRange(m, toSort, elements, sortTask) {
+  sortTask.isStarted = false;
   var high = h - h * m;
   var low = h * m;
   var size = elements.length;
@@ -292,12 +290,12 @@ function updateElementsRange(m, toSort, elements, offSwitch, sortStatus) {
   setTimeout(function () {
     toSort.length = 0;
     toSort.push.apply(toSort, _toConsumableArray(elements));
-    sortStatus.fill(0);
+    sortTask.sortStatus.fill(0);
   }, 25);
   return high;
 }
 
-function drawElements(sketch, elements, elementsScale, maxNumber, sortStatus, sortTask) {
+function drawElements(sketch, elements, elementsScale, maxNumber, sortTask) {
   sketch.background(0);
   sketch.push();
   sketch.translate(0, maxNumber);
@@ -306,7 +304,7 @@ function drawElements(sketch, elements, elementsScale, maxNumber, sortStatus, so
 
   for (var x = 0; x < elements.length; x++) {
     var y = elements[x];
-    sketch.stroke(COLOURS[sortStatus[x]]);
+    sketch.stroke(COLOURS[sortTask.sortStatus[x]]);
     var xS = x * elementsScale + elementsScale / 2;
     sketch.line(xS, 0, xS, y);
   }
@@ -344,13 +342,13 @@ function drawElements(sketch, elements, elementsScale, maxNumber, sortStatus, so
 // QUICK SORT
 
 
-function quickSort(toSort, sortStatus, sortTask) {
+function quickSort(toSort, sortTask) {
   return regeneratorRuntime.async(function quickSort$(_context5) {
     while (1) {
       switch (_context5.prev = _context5.next) {
         case 0:
           _context5.next = 2;
-          return regeneratorRuntime.awrap(quickSortRec(toSort, 0, toSort.length - 1, sortStatus, sortTask));
+          return regeneratorRuntime.awrap(quickSortRec(toSort, 0, toSort.length - 1, sortTask));
 
         case 2:
         case "end":
@@ -360,7 +358,7 @@ function quickSort(toSort, sortStatus, sortTask) {
   });
 }
 
-function quickSortRec(toSort, low, high, sortStatus, sortTask) {
+function quickSortRec(toSort, low, high, sortTask) {
   var pi;
   return regeneratorRuntime.async(function quickSortRec$(_context6) {
     while (1) {
@@ -381,7 +379,7 @@ function quickSortRec(toSort, low, high, sortStatus, sortTask) {
 
           sortTask.increment();
           _context6.next = 6;
-          return regeneratorRuntime.awrap(partition(toSort, low, high, sortStatus, sortTask));
+          return regeneratorRuntime.awrap(partition(toSort, low, high, sortTask));
 
         case 6:
           pi = _context6.sent;
@@ -389,30 +387,30 @@ function quickSortRec(toSort, low, high, sortStatus, sortTask) {
           return regeneratorRuntime.awrap(sortTask.sleep());
 
         case 9:
-          sortStatus[pi] = SORTED;
+          sortTask.sortStatus[pi] = SORTED;
           _context6.next = 12;
-          return regeneratorRuntime.awrap(quickSortRec(toSort, low, pi - 1, sortStatus, sortTask));
+          return regeneratorRuntime.awrap(quickSortRec(toSort, low, pi - 1, sortTask));
 
         case 12:
           _context6.next = 14;
           return regeneratorRuntime.awrap(sortTask.sleep());
 
         case 14:
-          sortStatus[pi - 1] = SORTED;
+          sortTask.sortStatus[pi - 1] = SORTED;
           _context6.next = 17;
-          return regeneratorRuntime.awrap(quickSortRec(toSort, pi + 1, high, sortStatus, sortTask));
+          return regeneratorRuntime.awrap(quickSortRec(toSort, pi + 1, high, sortTask));
 
         case 17:
           _context6.next = 19;
           return regeneratorRuntime.awrap(sortTask.sleep());
 
         case 19:
-          sortStatus[high] = SORTED;
+          sortTask.sortStatus[high] = SORTED;
           _context6.next = 22;
           return regeneratorRuntime.awrap(sortTask.sleep());
 
         case 22:
-          sortStatus[low] = SORTED;
+          sortTask.sortStatus[low] = SORTED;
 
         case 23:
         case "end":
@@ -422,7 +420,7 @@ function quickSortRec(toSort, low, high, sortStatus, sortTask) {
   });
 }
 
-function partition(toSort, low, high, sortStatus, sortTask) {
+function partition(toSort, low, high, sortTask) {
   var pivot, i, j;
   return regeneratorRuntime.async(function partition$(_context7) {
     while (1) {
@@ -441,7 +439,7 @@ function partition(toSort, low, high, sortStatus, sortTask) {
 
         case 4:
           pivot = toSort[high];
-          sortStatus[high] = GREATER;
+          sortTask.sortStatus[high] = GREATER;
           i = low - 1;
           j = low;
 
@@ -467,7 +465,7 @@ function partition(toSort, low, high, sortStatus, sortTask) {
           if (toSort[j] < pivot) {
             i++;
             swap(toSort, i, j);
-            sortStatus[j] = LESSER;
+            sortTask.sortStatus[j] = LESSER;
           }
 
         case 15:
@@ -488,7 +486,7 @@ function partition(toSort, low, high, sortStatus, sortTask) {
 } // SLEEP SORT
 
 
-function sleepSort(toSort, sortStatus, sortTask) {
+function sleepSort(toSort, sortTask) {
   var result, i, j;
   return regeneratorRuntime.async(function sleepSort$(_context9) {
     while (1) {
@@ -517,7 +515,7 @@ function sleepSort(toSort, sortStatus, sortTask) {
                     }));
 
                   case 5:
-                    sortStatus[i++] = GREATER;
+                    sortTask.sortStatus[i++] = GREATER;
                     result.push(n);
 
                   case 7:
@@ -551,7 +549,7 @@ function sleepSort(toSort, sortStatus, sortTask) {
           return regeneratorRuntime.awrap(sortTask.sleep());
 
         case 12:
-          sortStatus[j] = SORTED;
+          sortTask.sortStatus[j] = SORTED;
 
         case 13:
           j++;
@@ -567,14 +565,14 @@ function sleepSort(toSort, sortStatus, sortTask) {
 } // HEAP SORT
 
 
-function heapSort(toSort, sortStatus, sortTask) {
+function heapSort(toSort, sortTask) {
   var n, i, _i2, heapify;
 
   return regeneratorRuntime.async(function heapSort$(_context11) {
     while (1) {
       switch (_context11.prev = _context11.next) {
         case 0:
-          heapify = function _ref(arr, n, i, sortStatus, sortTask) {
+          heapify = function _ref(arr, n, i, sortTask) {
             var largest, left, right;
             return regeneratorRuntime.async(function heapify$(_context10) {
               while (1) {
@@ -610,11 +608,11 @@ function heapSort(toSort, sortStatus, sortTask) {
                     }
 
                     swap(arr, i, largest);
-                    sortStatus[largest] = GREATER;
-                    sortStatus[i] = LESSER;
+                    sortTask.sortStatus[largest] = GREATER;
+                    sortTask.sortStatus[i] = LESSER;
                     sortTask.increment();
                     _context10.next = 16;
-                    return regeneratorRuntime.awrap(heapify(arr, n, largest, sortStatus, sortTask));
+                    return regeneratorRuntime.awrap(heapify(arr, n, largest, sortTask));
 
                   case 16:
                   case "end":
@@ -644,7 +642,7 @@ function heapSort(toSort, sortStatus, sortTask) {
         case 6:
           sortTask.increment();
           _context11.next = 9;
-          return regeneratorRuntime.awrap(heapify(toSort, n, i, sortStatus, sortTask));
+          return regeneratorRuntime.awrap(heapify(toSort, n, i, sortTask));
 
         case 9:
           i--;
@@ -669,11 +667,11 @@ function heapSort(toSort, sortStatus, sortTask) {
 
         case 16:
           sortTask.increment();
-          sortStatus[_i2] = SORTED;
+          sortTask.sortStatus[_i2] = SORTED;
           swap(toSort, 0, _i2); // restore the max heap property for the remaining elements
 
           _context11.next = 21;
-          return regeneratorRuntime.awrap(heapify(toSort, _i2, 0, sortStatus, sortTask));
+          return regeneratorRuntime.awrap(heapify(toSort, _i2, 0, sortTask));
 
         case 21:
           _i2--;
@@ -681,7 +679,7 @@ function heapSort(toSort, sortStatus, sortTask) {
           break;
 
         case 24:
-          sortStatus[0] = SORTED;
+          sortTask.sortStatus[0] = SORTED;
 
         case 25:
         case "end":
@@ -692,7 +690,7 @@ function heapSort(toSort, sortStatus, sortTask) {
 } // BUBBLE SORT
 
 
-function bubbleSort(toSort, sortStatus, sortTask) {
+function bubbleSort(toSort, sortTask) {
   var i, j, m, p, swapped;
   return regeneratorRuntime.async(function bubbleSort$(_context12) {
     while (1) {
@@ -732,7 +730,7 @@ function bubbleSort(toSort, sortStatus, sortTask) {
           return _context12.abrupt("return");
 
         case 10:
-          sortStatus[j] = GREATER;
+          sortTask.sortStatus[j] = GREATER;
           sortTask.increment();
           _context12.next = 14;
           return regeneratorRuntime.awrap(sortTask.sleep());
@@ -744,13 +742,13 @@ function bubbleSort(toSort, sortStatus, sortTask) {
             swap(toSort, j, j + 1);
             swapped = true;
 
-            if (sortStatus[m] != SORTED) {
-              sortStatus[m] = GREATER;
+            if (sortTask.sortStatus[m] != SORTED) {
+              sortTask.sortStatus[m] = GREATER;
             }
 
-            sortStatus[m - 1] = NOT_SORTED;
-          } else if (sortStatus[p] != SORTED) {
-            sortStatus[p] = NOT_SORTED;
+            sortTask.sortStatus[m - 1] = NOT_SORTED;
+          } else if (sortTask.sortStatus[p] != SORTED) {
+            sortTask.sortStatus[p] = NOT_SORTED;
           }
 
         case 15:
@@ -765,13 +763,13 @@ function bubbleSort(toSort, sortStatus, sortTask) {
           }
 
           for (k = 0; k < toSort.length - 1; k++) {
-            sortStatus[k] = SORTED;
+            sortTask.sortStatus[k] = SORTED;
           }
 
           return _context12.abrupt("break", 27);
 
         case 23:
-          sortStatus[j] = SORTED;
+          sortTask.sortStatus[j] = SORTED;
 
         case 24:
           i++;
@@ -779,7 +777,7 @@ function bubbleSort(toSort, sortStatus, sortTask) {
           break;
 
         case 27:
-          sortStatus[0] = SORTED;
+          sortTask.sortStatus[0] = SORTED;
 
         case 28:
         case "end":
@@ -790,13 +788,13 @@ function bubbleSort(toSort, sortStatus, sortTask) {
 } // MERGE SORT
 
 
-function mergeSort(toSort, sortStatus, sortTask) {
+function mergeSort(toSort, sortTask) {
   return regeneratorRuntime.async(function mergeSort$(_context13) {
     while (1) {
       switch (_context13.prev = _context13.next) {
         case 0:
           _context13.next = 2;
-          return regeneratorRuntime.awrap(mergeSortRec(toSort, 0, toSort.length - 1, sortStatus, sortTask));
+          return regeneratorRuntime.awrap(mergeSortRec(toSort, 0, toSort.length - 1, sortTask));
 
         case 2:
         case "end":
@@ -806,7 +804,7 @@ function mergeSort(toSort, sortStatus, sortTask) {
   });
 }
 
-function mergeSortRec(toSort, leftI, rightI, sortStatus, sortTask) {
+function mergeSortRec(toSort, leftI, rightI, sortTask) {
   var m;
   return regeneratorRuntime.async(function mergeSortRec$(_context14) {
     while (1) {
@@ -830,15 +828,15 @@ function mergeSortRec(toSort, leftI, rightI, sortStatus, sortTask) {
         case 4:
           m = leftI + parseInt((rightI - leftI) / 2);
           _context14.next = 7;
-          return regeneratorRuntime.awrap(mergeSortRec(toSort, leftI, m, sortStatus, sortTask));
+          return regeneratorRuntime.awrap(mergeSortRec(toSort, leftI, m, sortTask));
 
         case 7:
           _context14.next = 9;
-          return regeneratorRuntime.awrap(mergeSortRec(toSort, m + 1, rightI, sortStatus, sortTask));
+          return regeneratorRuntime.awrap(mergeSortRec(toSort, m + 1, rightI, sortTask));
 
         case 9:
           _context14.next = 11;
-          return regeneratorRuntime.awrap(merge(toSort, leftI, m, rightI, sortStatus, sortTask));
+          return regeneratorRuntime.awrap(merge(toSort, leftI, m, rightI, sortTask));
 
         case 11:
         case "end":
@@ -848,7 +846,7 @@ function mergeSortRec(toSort, leftI, rightI, sortStatus, sortTask) {
   });
 }
 
-function merge(toSort, leftI, middle, rightI, sortStatus, sortTask) {
+function merge(toSort, leftI, middle, rightI, sortTask) {
   var leftSize, rightSize, left, right, _i3, _j, i, j, k;
 
   return regeneratorRuntime.async(function merge$(_context15) {
@@ -876,7 +874,7 @@ function merge(toSort, leftI, middle, rightI, sortStatus, sortTask) {
           }
 
           left[_i3] = toSort[leftI + _i3];
-          sortStatus[leftI + _i3] = GREATER;
+          sortTask.sortStatus[leftI + _i3] = GREATER;
           _context15.next = 12;
           return regeneratorRuntime.awrap(sortTask.sleep());
 
@@ -895,7 +893,7 @@ function merge(toSort, leftI, middle, rightI, sortStatus, sortTask) {
           }
 
           right[_j] = toSort[middle + 1 + _j];
-          sortStatus[middle + 1 + _j] = GREATER;
+          sortTask.sortStatus[middle + 1 + _j] = GREATER;
           _context15.next = 21;
           return regeneratorRuntime.awrap(sortTask.sleep());
 
@@ -918,11 +916,11 @@ function merge(toSort, leftI, middle, rightI, sortStatus, sortTask) {
           if (left[i] <= right[j]) {
             toSort[k] = left[i];
             i++;
-            sortStatus[k] = SORTED;
+            sortTask.sortStatus[k] = SORTED;
           } else {
             toSort[k] = right[j];
             j++;
-            sortStatus[k] = SORTED;
+            sortTask.sortStatus[k] = SORTED;
           }
 
           _context15.next = 31;
@@ -941,7 +939,7 @@ function merge(toSort, leftI, middle, rightI, sortStatus, sortTask) {
           }
 
           toSort[k] = left[i];
-          sortStatus[k] = SORTED;
+          sortTask.sortStatus[k] = SORTED;
           i++;
           k++;
           _context15.next = 42;
@@ -959,7 +957,7 @@ function merge(toSort, leftI, middle, rightI, sortStatus, sortTask) {
           }
 
           toSort[k] = right[j];
-          sortStatus[k] = SORTED;
+          sortTask.sortStatus[k] = SORTED;
           j++;
           k++;
           _context15.next = 52;
