@@ -34,6 +34,8 @@
                             its inefficiency and reliance on multithreading or asynchronous operations. It's mainly used
                             as an educational or recreational algorithm to demonstrate the idea of concurrency and
                             timing.
+                        <p>Due to the unstable nature of this algorithm and the way "super speed" is implemented it will
+                            almost always fail to sort large lists.</p>
                         <p><b>It also can't handle negative values!</b></p>
                         </p>
                     </div>
@@ -42,9 +44,9 @@
                 Numbers Range
                 <input id="sleep-range" type="range" min="0" max="100" value="0" class="slider"></input><br>
                 Sort Speed
-                <input id="sleep-millis-range" type="range" min="1" max="50" value="0" class="slider"></input>
+                <input id="sleep-millis-range" type="range" min="-9" max="50" value="0" class="slider"></input><br>
                 Array Size
-                <input id="sleep-elements-range" type="range" min="50" max="200" value="50" class="slider"></input>
+                <input id="sleep-elements-range" type="range" min="50" max="1200" value="50" class="slider"></input>
             </div>
             <div id="sleep-sort" class="sort">
             </div>
@@ -82,9 +84,9 @@
                 Numbers Range
                 <input id="quick-range" type="range" min="0" max="100" value="0" class="slider"></input><br>
                 Sort Speed
-                <input id="quick-millis-range" type="range" min="1" max="50" value="0" class="slider"></input>
+                <input id="quick-millis-range" type="range" min="-9" max="50" value="0" class="slider"></input><br>
                 Array Size
-                <input id="quick-elements-range" type="range" min="50" max="200" value="50" class="slider"></input>
+                <input id="quick-elements-range" type="range" min="50" max="1200" value="50" class="slider"></input>
             </div>
             <div id="quick-sort" class="sort">
             </div>
@@ -118,9 +120,9 @@
                 Numbers Range
                 <input id="merge-range" type="range" min="0" max="100" value="0" class="slider"></input><br>
                 Sort Speed
-                <input id="merge-millis-range" type="range" min="1" max="50" value="0" class="slider"></input>
+                <input id="merge-millis-range" type="range" min="-9" max="50" value="0" class="slider"></input><br>
                 Array Size
-                <input id="merge-elements-range" type="range" min="50" max="200" value="50" class="slider"></input>
+                <input id="merge-elements-range" type="range" min="50" max="1200" value="50" class="slider"></input>
             </div>
             <div id="merge-sort" class="sort">
             </div>
@@ -163,9 +165,9 @@
                 Numbers Range
                 <input id="heap-range" type="range" min="0" max="100" value="0" class="slider"></input><br>
                 Sort Speed
-                <input id="heap-millis-range" type="range" min="1" max="50" value="0" class="slider"></input>
+                <input id="heap-millis-range" type="range" min="-9" max="50" value="0" class="slider"></input><br>
                 Array Size
-                <input id="heap-elements-range" type="range" min="50" max="200" value="50" class="slider"></input>
+                <input id="heap-elements-range" type="range" min="50" max="1200" value="50" class="slider"></input>
             </div>
             <div id="heap-sort" class="sort">
             </div>
@@ -202,9 +204,9 @@
                 Numbers Range
                 <input id="bubble-range" type="range" min="0" max="100" value="0" class="slider"></input><br>
                 Sort Speed
-                <input id="bubble-millis-range" type="range" min="1" max="50" value="0" class="slider"></input>
+                <input id="bubble-millis-range" type="range" min="-9" max="50" value="0" class="slider"></input><br>
                 Array Size
-                <input id="bubble-elements-range" type="range" min="50" max="200" value="50" class="slider"></input>
+                <input id="bubble-elements-range" type="range" min="50" max="1200" value="50" class="slider"></input>
             </div>
             <div id="bubble-sort" class="sort">
             </div>
@@ -242,9 +244,9 @@
                 Numbers Range
                 <input id="comb-range" type="range" min="0" max="100" value="0" class="slider"></input><br>
                 Sort Speed
-                <input id="comb-millis-range" type="range" min="1" max="50" value="0" class="slider"></input>
+                <input id="comb-millis-range" type="range" min="-9" max="50" value="0" class="slider"></input><br>
                 Array Size
-                <input id="comb-elements-range" type="range" min="50" max="200" value="50" class="slider"></input>
+                <input id="comb-elements-range" type="range" min="50" max="1200" value="50" class="slider"></input>
             </div>
             <div id="comb-sort" class="sort">
             </div>
@@ -279,9 +281,9 @@
                 Numbers Range
                 <input id="insertion-range" type="range" min="0" max="100" value="0" class="slider"></input><br>
                 Sort Speed
-                <input id="insertion-millis-range" type="range" min="1" max="50" value="0" class="slider"></input>
+                <input id="insertion-millis-range" type="range" min="-9" max="50" value="0" class="slider"></input><br>
                 Array Size
-                <input id="insertion-elements-range" type="range" min="50" max="200" value="50" class="slider"></input>
+                <input id="insertion-elements-range" type="range" min="50" max="1200" value="50" class="slider"></input>
             </div>
             <div id="insertion-sort" class="sort">
             </div>
@@ -311,11 +313,33 @@
                 Numbers Range
                 <input id="selection-range" type="range" min="0" max="100" value="0" class="slider"></input><br>
                 Sort Speed
-                <input id="selection-millis-range" type="range" min="1" max="50" value="0" class="slider"></input>
+                <input id="selection-millis-range" type="range" min="-9" max="50" value="0" class="slider"></input><br>
                 Array Size
-                <input id="selection-elements-range" type="range" min="50" max="200" value="50" class="slider"></input>
+                <input id="selection-elements-range" type="range" min="50" max="1200" value="50" class="slider"></input>
             </div>
             <div id="selection-sort" class="sort">
+            </div>
+        </li>
+
+        <li>
+            <div class="btns"><b>Comb-Insertion Sort</b><br>
+                <button id="sort-comb-insertion-btn" class="sort-btn">Sort</button>
+                <button id="reset-comb-insertion-btn">Clear</button>
+                <button class="collapsible">Click for description
+                    <div class="collapsible-content">
+                        <p>Comb-Insertion Sort is.
+                        </p>
+                    </div>
+                </button>
+                <button id="tgl-numbers-comb-insertion-btn">View Numbers</button><br>
+                Numbers Range
+                <input id="comb-insertion-range" type="range" min="0" max="100" value="0" class="slider"></input><br>
+                Sort Speed
+                <input id="comb-insertion-millis-range" type="range" min="-9" max="50" value="0" class="slider"></input><br>
+                Array Size
+                <input id="comb-insertion-elements-range" type="range" min="50" max="1200" value="50" class="slider"></input>
+            </div>
+            <div id="comb-insertion-sort" class="sort">
             </div>
         </li>
     </ol>

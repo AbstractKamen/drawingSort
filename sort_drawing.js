@@ -20,6 +20,7 @@ onload = () => {
     initP5SortDrawer("selection", "Selection Sort", selectionSort);
     initP5SortDrawer("insertion", "Insertion Sort", insertionSort);
     initP5SortDrawer("comb", "Comb Sort", combSort);
+    initP5SortDrawer("comb-insertion", "Comb-Insertion Sort", combInsertionSort);
     // collapsible descriptions
     var elements = document.getElementsByClassName("collapsible");
     for (let i = 0; i < elements.length; i++) {
@@ -48,6 +49,8 @@ class SortTask {
         this.seeNumbers = false;
         this.ms = ms;
         this.sortStatus = new Array(s).fill(0);
+        this.mms = ms;
+        this.msC = 5;
     }
 
     async doSort() {
@@ -67,12 +70,12 @@ class SortTask {
             } else {
                 lastVerified = i;
             }
-            await sleep(1);
+            await this.sleep();
         }
         for (let i = lastVerified; i >= 0; i--) {
             if (!this.isStarted) return;
             this.sortStatus[i] = NOT_SORTED;
-            await sleep(1);
+            await this.sleep();
         }
         // finish
         this.isStarted = false;
@@ -88,6 +91,11 @@ class SortTask {
             this.sortStatus[toVisit[i]] = prev[i];
         }
     }
+    setMs(ms) {
+        this.ms = ms;
+        this.mms = ms;
+        console.log(ms);
+    }
     increment() {
         if (this.isStarted) {
             this.operations++;
@@ -97,7 +105,16 @@ class SortTask {
         return !this.isStarted;
     }
     async sleep() {
-        await sleep(this.ms);
+        if (this.mms <= 0) {
+            if (this.msC <= 0) {
+                await sleep(1);
+                this.msC = 1000;
+            } else {
+                this.msC -= (1000 + this.ms * 100);
+            }
+        } else {
+            await sleep(this.ms);
+        }
     }
 }
 
@@ -107,7 +124,7 @@ function initP5SortDrawer(sortId, sortLabel, sort) {
 
             const arraySize = document.getElementById(`${sortId}-elements-range`);
             var s = Math.min(parseInt(arraySize.value), w);
-            var elementsScale = w > s ? w / s : 1;
+            var elementsScale = w > s ? w / s : s / w;
 
             var rangePercent = 0; // 1 / 100
             var maxNumber = h - h * rangePercent;
@@ -118,7 +135,7 @@ function initP5SortDrawer(sortId, sortLabel, sort) {
             // array size
             arraySize.oninput = async () => {
                 s = Math.min(parseInt(arraySize.value), w);
-                elementsScale = w > s ? w / s : 1;
+                elementsScale = w > s ? w / s : s / w;
                 sortTask.isStarted = false;
                 elements = getRandomElementsWithZero(s, -minNumber, maxNumber * 0.90);
                 setTimeout(() => {
@@ -133,10 +150,11 @@ function initP5SortDrawer(sortId, sortLabel, sort) {
             // millis to sleep for 'animation' effect
             const millis = document.getElementById(`${sortId}-millis-range`);
             const msMax = parseInt(millis.max);
+            const msMin = parseInt(millis.min);
             var ms = msMax - parseInt(millis.value);
             var sortTask = new SortTask(sortLabel, sort, ms, s);
             millis.oninput = () => {
-                sortTask.ms = msMax - parseInt(millis.value)
+                sortTask.setMs(msMax - parseInt(millis.value) + msMin);
             };
 
             // reset
@@ -368,8 +386,6 @@ async function insertionSort(toSort, sortTask) {
     for (i = 1; i < n; i++) {
         if (sortTask.isFinished()) return;
         sortTask.increment();
-        await sortTask.sleep();
-
         key = toSort[i];
         j = i - 1;
         while (j >= 0 && toSort[j] > key) {
@@ -378,10 +394,45 @@ async function insertionSort(toSort, sortTask) {
             toSort[j + 1] = toSort[j];
             await sortTask.visit(j);
             sortTask.sortStatus[j - 1] = SORTED;
+            sortTask.sortStatus[j] = SORTED;
+            sortTask.sortStatus[j + 1] = SORTED;
             j = j - 1;
 
         }
         toSort[j + 1] = key;
+    }
+}
+// COMB-INSERTION SORT
+async function combInsertionSort(toSort, sortTask) {
+    let n = toSort.length;
+    let comb = n;
+    let swapped = true;
+    while (comb != 1 || swapped == true) {
+        if (sortTask.isFinished()) return;
+        sortTask.increment();
+        comb = getNextComb(comb);
+        swapped = false;
+        if (comb <= 7) {
+            await insertionSort(toSort, sortTask);
+            return;
+        }
+        for (let i = 0; i < n - comb; i++) {
+            if (sortTask.isFinished()) return;
+            sortTask.increment();
+            await sortTask.visit(i, i + comb);
+            if (toSort[i] > toSort[i + comb]) {
+                swap(toSort, i, i + comb);
+                swapped = true;
+            }
+        }
+    }
+
+    function getNextComb(comb) {
+        // shrink comb
+        comb = parseInt(comb / 1.3, 10);
+        if (comb < 1)
+            return 1;
+        return comb;
     }
 }
 // COMB SORT
@@ -392,7 +443,6 @@ async function combSort(toSort, sortTask) {
     while (comb != 1 || swapped == true) {
         if (sortTask.isFinished()) return;
         sortTask.increment();
-        await sortTask.sleep();
         comb = getNextComb(comb);
         swapped = false;
 
@@ -421,12 +471,10 @@ async function selectionSort(toSort, sortTask) {
     for (let i = 0; i < n - 1; i++) {
         if (sortTask.isFinished()) return;
         sortTask.increment();
-        await sortTask.sleep();
 
         min_idx = i;
         for (j = i + 1; j < n; j++) {
             if (sortTask.isFinished()) return;
-            await sortTask.sleep();
             sortTask.increment();
             await sortTask.visit(j);
 

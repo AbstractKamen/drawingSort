@@ -35,7 +35,8 @@ onload = function onload() {
   initP5SortDrawer("quick", "Quick Sort", quickSort);
   initP5SortDrawer("selection", "Selection Sort", selectionSort);
   initP5SortDrawer("insertion", "Insertion Sort", insertionSort);
-  initP5SortDrawer("comb", "Comb Sort", combSort); // collapsible descriptions
+  initP5SortDrawer("comb", "Comb Sort", combSort);
+  initP5SortDrawer("comb-insertion", "Comb-Insertion Sort", combInsertionSort); // collapsible descriptions
 
   var elements = document.getElementsByClassName("collapsible");
 
@@ -74,6 +75,8 @@ function () {
     this.seeNumbers = false;
     this.ms = ms;
     this.sortStatus = new Array(s).fill(0);
+    this.mms = ms;
+    this.msC = 5;
   }
 
   _createClass(SortTask, [{
@@ -130,7 +133,7 @@ function () {
               }
 
               _context.next = 15;
-              return regeneratorRuntime.awrap(_sleep(1));
+              return regeneratorRuntime.awrap(this.sleep());
 
             case 15:
               i++;
@@ -156,7 +159,7 @@ function () {
             case 22:
               this.sortStatus[_i] = NOT_SORTED;
               _context.next = 25;
-              return regeneratorRuntime.awrap(_sleep(1));
+              return regeneratorRuntime.awrap(this.sleep());
 
             case 25:
               _i--;
@@ -216,6 +219,13 @@ function () {
       }, null, this);
     }
   }, {
+    key: "setMs",
+    value: function setMs(ms) {
+      this.ms = ms;
+      this.mms = ms;
+      console.log(ms);
+    }
+  }, {
     key: "increment",
     value: function increment() {
       if (this.isStarted) {
@@ -234,10 +244,36 @@ function () {
         while (1) {
           switch (_context3.prev = _context3.next) {
             case 0:
-              _context3.next = 2;
+              if (!(this.mms <= 0)) {
+                _context3.next = 10;
+                break;
+              }
+
+              if (!(this.msC <= 0)) {
+                _context3.next = 7;
+                break;
+              }
+
+              _context3.next = 4;
+              return regeneratorRuntime.awrap(_sleep(1));
+
+            case 4:
+              this.msC = 1000;
+              _context3.next = 8;
+              break;
+
+            case 7:
+              this.msC -= 1000 + this.ms * 100;
+
+            case 8:
+              _context3.next = 12;
+              break;
+
+            case 10:
+              _context3.next = 12;
               return regeneratorRuntime.awrap(_sleep(this.ms));
 
-            case 2:
+            case 12:
             case "end":
               return _context3.stop();
           }
@@ -253,7 +289,7 @@ function initP5SortDrawer(sortId, sortLabel, sort) {
   new p5(function (sketch) {
     var arraySize = document.getElementById("".concat(sortId, "-elements-range"));
     var s = Math.min(parseInt(arraySize.value), w);
-    var elementsScale = w > s ? w / s : 1;
+    var elementsScale = w > s ? w / s : s / w;
     var rangePercent = 0; // 1 / 100
 
     var maxNumber = h - h * rangePercent;
@@ -269,7 +305,7 @@ function initP5SortDrawer(sortId, sortLabel, sort) {
           switch (_context4.prev = _context4.next) {
             case 0:
               s = Math.min(parseInt(arraySize.value), w);
-              elementsScale = w > s ? w / s : 1;
+              elementsScale = w > s ? w / s : s / w;
               sortTask.isStarted = false;
               elements = getRandomElementsWithZero(s, -minNumber, maxNumber * 0.90);
               setTimeout(function () {
@@ -295,11 +331,12 @@ function initP5SortDrawer(sortId, sortLabel, sort) {
 
     var millis = document.getElementById("".concat(sortId, "-millis-range"));
     var msMax = parseInt(millis.max);
+    var msMin = parseInt(millis.min);
     var ms = msMax - parseInt(millis.value);
     var sortTask = new SortTask(sortLabel, sort, ms, s);
 
     millis.oninput = function () {
-      sortTask.ms = msMax - parseInt(millis.value);
+      sortTask.setMs(msMax - parseInt(millis.value) + msMin);
     }; // reset
 
 
@@ -879,36 +916,34 @@ function insertionSort(toSort, sortTask) {
 
         case 5:
           sortTask.increment();
-          _context15.next = 8;
-          return regeneratorRuntime.awrap(sortTask.sleep());
-
-        case 8:
           key = toSort[i];
           j = i - 1;
 
-        case 10:
+        case 8:
           if (!(j >= 0 && toSort[j] > key)) {
             _context15.next = 21;
             break;
           }
 
           if (!sortTask.isFinished()) {
-            _context15.next = 13;
+            _context15.next = 11;
             break;
           }
 
           return _context15.abrupt("return");
 
-        case 13:
+        case 11:
           sortTask.increment();
           toSort[j + 1] = toSort[j];
-          _context15.next = 17;
+          _context15.next = 15;
           return regeneratorRuntime.awrap(sortTask.visit(j));
 
-        case 17:
+        case 15:
           sortTask.sortStatus[j - 1] = SORTED;
+          sortTask.sortStatus[j] = SORTED;
+          sortTask.sortStatus[j + 1] = SORTED;
           j = j - 1;
-          _context15.next = 10;
+          _context15.next = 8;
           break;
 
         case 21:
@@ -925,12 +960,12 @@ function insertionSort(toSort, sortTask) {
       }
     }
   });
-} // COMB SORT
+} // COMB-INSERTION SORT
 
 
-function combSort(toSort, sortTask) {
+function combInsertionSort(toSort, sortTask) {
   var n, comb, swapped, i, getNextComb;
-  return regeneratorRuntime.async(function combSort$(_context16) {
+  return regeneratorRuntime.async(function combInsertionSort$(_context16) {
     while (1) {
       switch (_context16.prev = _context16.next) {
         case 0:
@@ -947,7 +982,7 @@ function combSort(toSort, sortTask) {
 
         case 4:
           if (!(comb != 1 || swapped == true)) {
-            _context16.next = 25;
+            _context16.next = 27;
             break;
           }
 
@@ -960,50 +995,137 @@ function combSort(toSort, sortTask) {
 
         case 7:
           sortTask.increment();
-          _context16.next = 10;
-          return regeneratorRuntime.awrap(sortTask.sleep());
-
-        case 10:
           comb = getNextComb(comb);
           swapped = false;
-          i = 0;
+
+          if (!(comb <= 7)) {
+            _context16.next = 14;
+            break;
+          }
+
+          _context16.next = 13;
+          return regeneratorRuntime.awrap(insertionSort(toSort, sortTask));
 
         case 13:
+          return _context16.abrupt("return");
+
+        case 14:
+          i = 0;
+
+        case 15:
           if (!(i < n - comb)) {
-            _context16.next = 23;
+            _context16.next = 25;
             break;
           }
 
           if (!sortTask.isFinished()) {
-            _context16.next = 16;
+            _context16.next = 18;
             break;
           }
 
           return _context16.abrupt("return");
 
-        case 16:
+        case 18:
           sortTask.increment();
-          _context16.next = 19;
+          _context16.next = 21;
           return regeneratorRuntime.awrap(sortTask.visit(i, i + comb));
 
-        case 19:
+        case 21:
           if (toSort[i] > toSort[i + comb]) {
             swap(toSort, i, i + comb);
             swapped = true;
           }
 
-        case 20:
+        case 22:
           i++;
-          _context16.next = 13;
-          break;
-
-        case 23:
-          _context16.next = 4;
+          _context16.next = 15;
           break;
 
         case 25:
+          _context16.next = 4;
+          break;
+
+        case 27:
         case "end":
           return _context16.stop();
+      }
+    }
+  });
+} // COMB SORT
+
+
+function combSort(toSort, sortTask) {
+  var n, comb, swapped, i, getNextComb;
+  return regeneratorRuntime.async(function combSort$(_context17) {
+    while (1) {
+      switch (_context17.prev = _context17.next) {
+        case 0:
+          getNextComb = function _ref3(comb) {
+            // shrink comb
+            comb = parseInt(comb / 1.3, 10);
+            if (comb < 1) return 1;
+            return comb;
+          };
+
+          n = toSort.length;
+          comb = n;
+          swapped = true;
+
+        case 4:
+          if (!(comb != 1 || swapped == true)) {
+            _context17.next = 23;
+            break;
+          }
+
+          if (!sortTask.isFinished()) {
+            _context17.next = 7;
+            break;
+          }
+
+          return _context17.abrupt("return");
+
+        case 7:
+          sortTask.increment();
+          comb = getNextComb(comb);
+          swapped = false;
+          i = 0;
+
+        case 11:
+          if (!(i < n - comb)) {
+            _context17.next = 21;
+            break;
+          }
+
+          if (!sortTask.isFinished()) {
+            _context17.next = 14;
+            break;
+          }
+
+          return _context17.abrupt("return");
+
+        case 14:
+          sortTask.increment();
+          _context17.next = 17;
+          return regeneratorRuntime.awrap(sortTask.visit(i, i + comb));
+
+        case 17:
+          if (toSort[i] > toSort[i + comb]) {
+            swap(toSort, i, i + comb);
+            swapped = true;
+          }
+
+        case 18:
+          i++;
+          _context17.next = 11;
+          break;
+
+        case 21:
+          _context17.next = 4;
+          break;
+
+        case 23:
+        case "end":
+          return _context17.stop();
       }
     }
   });
@@ -1012,58 +1134,50 @@ function combSort(toSort, sortTask) {
 
 function selectionSort(toSort, sortTask) {
   var min_idx, j, n, i;
-  return regeneratorRuntime.async(function selectionSort$(_context17) {
+  return regeneratorRuntime.async(function selectionSort$(_context18) {
     while (1) {
-      switch (_context17.prev = _context17.next) {
+      switch (_context18.prev = _context18.next) {
         case 0:
           n = toSort.length;
           i = 0;
 
         case 2:
           if (!(i < n - 1)) {
-            _context17.next = 30;
+            _context18.next = 26;
             break;
           }
 
           if (!sortTask.isFinished()) {
-            _context17.next = 5;
+            _context18.next = 5;
             break;
           }
 
-          return _context17.abrupt("return");
+          return _context18.abrupt("return");
 
         case 5:
           sortTask.increment();
-          _context17.next = 8;
-          return regeneratorRuntime.awrap(sortTask.sleep());
-
-        case 8:
           min_idx = i;
           j = i + 1;
 
-        case 10:
+        case 8:
           if (!(j < n)) {
-            _context17.next = 23;
+            _context18.next = 19;
             break;
           }
 
           if (!sortTask.isFinished()) {
-            _context17.next = 13;
+            _context18.next = 11;
             break;
           }
 
-          return _context17.abrupt("return");
+          return _context18.abrupt("return");
 
-        case 13:
-          _context17.next = 15;
-          return regeneratorRuntime.awrap(sortTask.sleep());
-
-        case 15:
+        case 11:
           sortTask.increment();
-          _context17.next = 18;
+          _context18.next = 14;
           return regeneratorRuntime.awrap(sortTask.visit(j));
 
-        case 18:
+        case 14:
           if (toSort[j] < toSort[min_idx]) {
             sortTask.sortStatus[j] = LESSER;
 
@@ -1078,12 +1192,12 @@ function selectionSort(toSort, sortTask) {
             sortTask.sortStatus[j - 1] = NOT_SORTED;
           }
 
-        case 20:
+        case 16:
           j++;
-          _context17.next = 10;
+          _context18.next = 8;
           break;
 
-        case 23:
+        case 19:
           sortTask.sortStatus[i] = SORTED;
           sortTask.sortStatus[i + 1] = SORTED;
 
@@ -1093,14 +1207,14 @@ function selectionSort(toSort, sortTask) {
 
           swap(toSort, min_idx, i);
 
-        case 27:
+        case 23:
           i++;
-          _context17.next = 2;
+          _context18.next = 2;
           break;
 
-        case 30:
+        case 26:
         case "end":
-          return _context17.stop();
+          return _context18.stop();
       }
     }
   });
@@ -1108,56 +1222,14 @@ function selectionSort(toSort, sortTask) {
 
 
 function mergeSort(toSort, sortTask) {
-  return regeneratorRuntime.async(function mergeSort$(_context18) {
-    while (1) {
-      switch (_context18.prev = _context18.next) {
-        case 0:
-          _context18.next = 2;
-          return regeneratorRuntime.awrap(mergeSortRec(toSort, 0, toSort.length - 1, sortTask));
-
-        case 2:
-        case "end":
-          return _context18.stop();
-      }
-    }
-  });
-}
-
-function mergeSortRec(toSort, leftI, rightI, sortTask) {
-  var m;
-  return regeneratorRuntime.async(function mergeSortRec$(_context19) {
+  return regeneratorRuntime.async(function mergeSort$(_context19) {
     while (1) {
       switch (_context19.prev = _context19.next) {
         case 0:
-          if (!sortTask.isFinished()) {
-            _context19.next = 2;
-            break;
-          }
-
-          return _context19.abrupt("return");
+          _context19.next = 2;
+          return regeneratorRuntime.awrap(mergeSortRec(toSort, 0, toSort.length - 1, sortTask));
 
         case 2:
-          if (!(leftI >= rightI)) {
-            _context19.next = 4;
-            break;
-          }
-
-          return _context19.abrupt("return");
-
-        case 4:
-          m = leftI + parseInt((rightI - leftI) / 2);
-          _context19.next = 7;
-          return regeneratorRuntime.awrap(mergeSortRec(toSort, leftI, m, sortTask));
-
-        case 7:
-          _context19.next = 9;
-          return regeneratorRuntime.awrap(mergeSortRec(toSort, m + 1, rightI, sortTask));
-
-        case 9:
-          _context19.next = 11;
-          return regeneratorRuntime.awrap(merge(toSort, leftI, m, rightI, sortTask));
-
-        case 11:
         case "end":
           return _context19.stop();
       }
@@ -1165,10 +1237,9 @@ function mergeSortRec(toSort, leftI, rightI, sortTask) {
   });
 }
 
-function merge(toSort, leftI, middle, rightI, sortTask) {
-  var leftSize, rightSize, left, right, _i4, _j, i, j, k;
-
-  return regeneratorRuntime.async(function merge$(_context20) {
+function mergeSortRec(toSort, leftI, rightI, sortTask) {
+  var m;
+  return regeneratorRuntime.async(function mergeSortRec$(_context20) {
     while (1) {
       switch (_context20.prev = _context20.next) {
         case 0:
@@ -1180,6 +1251,49 @@ function merge(toSort, leftI, middle, rightI, sortTask) {
           return _context20.abrupt("return");
 
         case 2:
+          if (!(leftI >= rightI)) {
+            _context20.next = 4;
+            break;
+          }
+
+          return _context20.abrupt("return");
+
+        case 4:
+          m = leftI + parseInt((rightI - leftI) / 2);
+          _context20.next = 7;
+          return regeneratorRuntime.awrap(mergeSortRec(toSort, leftI, m, sortTask));
+
+        case 7:
+          _context20.next = 9;
+          return regeneratorRuntime.awrap(mergeSortRec(toSort, m + 1, rightI, sortTask));
+
+        case 9:
+          _context20.next = 11;
+          return regeneratorRuntime.awrap(merge(toSort, leftI, m, rightI, sortTask));
+
+        case 11:
+        case "end":
+          return _context20.stop();
+      }
+    }
+  });
+}
+
+function merge(toSort, leftI, middle, rightI, sortTask) {
+  var leftSize, rightSize, left, right, _i4, _j, i, j, k;
+
+  return regeneratorRuntime.async(function merge$(_context21) {
+    while (1) {
+      switch (_context21.prev = _context21.next) {
+        case 0:
+          if (!sortTask.isFinished()) {
+            _context21.next = 2;
+            break;
+          }
+
+          return _context21.abrupt("return");
+
+        case 2:
           leftSize = middle - leftI + 1;
           rightSize = rightI - middle;
           left = new Array(leftSize);
@@ -1188,17 +1302,17 @@ function merge(toSort, leftI, middle, rightI, sortTask) {
 
         case 7:
           if (!(_i4 < leftSize && sortTask.isStarted)) {
-            _context20.next = 14;
+            _context21.next = 14;
             break;
           }
 
           left[_i4] = toSort[leftI + _i4];
-          _context20.next = 11;
+          _context21.next = 11;
           return regeneratorRuntime.awrap(sortTask.visit(_i4));
 
         case 11:
           _i4++;
-          _context20.next = 7;
+          _context21.next = 7;
           break;
 
         case 14:
@@ -1206,17 +1320,17 @@ function merge(toSort, leftI, middle, rightI, sortTask) {
 
         case 15:
           if (!(_j < rightSize && sortTask.isStarted)) {
-            _context20.next = 22;
+            _context21.next = 22;
             break;
           }
 
           right[_j] = toSort[middle + 1 + _j];
-          _context20.next = 19;
+          _context21.next = 19;
           return regeneratorRuntime.awrap(sortTask.visit(_j));
 
         case 19:
           _j++;
-          _context20.next = 15;
+          _context21.next = 15;
           break;
 
         case 22:
@@ -1226,7 +1340,7 @@ function merge(toSort, leftI, middle, rightI, sortTask) {
 
         case 25:
           if (!(i < leftSize && j < rightSize && sortTask.isStarted)) {
-            _context20.next = 33;
+            _context21.next = 33;
             break;
           }
 
@@ -1240,54 +1354,54 @@ function merge(toSort, leftI, middle, rightI, sortTask) {
             sortTask.sortStatus[k] = SORTED;
           }
 
-          _context20.next = 29;
+          _context21.next = 29;
           return regeneratorRuntime.awrap(sortTask.visit(k));
 
         case 29:
           sortTask.increment();
           k++;
-          _context20.next = 25;
+          _context21.next = 25;
           break;
 
         case 33:
           if (!(i < leftSize && sortTask.isStarted)) {
-            _context20.next = 43;
+            _context21.next = 43;
             break;
           }
 
           toSort[k] = left[i];
           sortTask.sortStatus[k] = SORTED;
-          _context20.next = 38;
+          _context21.next = 38;
           return regeneratorRuntime.awrap(sortTask.visit(k));
 
         case 38:
           i++;
           k++;
           sortTask.increment();
-          _context20.next = 33;
+          _context21.next = 33;
           break;
 
         case 43:
           if (!(j < rightSize && sortTask.isStarted)) {
-            _context20.next = 53;
+            _context21.next = 53;
             break;
           }
 
           toSort[k] = right[j];
           sortTask.sortStatus[k] = SORTED;
-          _context20.next = 48;
+          _context21.next = 48;
           return regeneratorRuntime.awrap(sortTask.visit(k));
 
         case 48:
           j++;
           k++;
           sortTask.increment();
-          _context20.next = 43;
+          _context21.next = 43;
           break;
 
         case 53:
         case "end":
-          return _context20.stop();
+          return _context21.stop();
       }
     }
   });
@@ -1314,18 +1428,18 @@ function getRandom(lower, upper) {
 }
 
 function _sleep(ms) {
-  return regeneratorRuntime.async(function _sleep$(_context21) {
+  return regeneratorRuntime.async(function _sleep$(_context22) {
     while (1) {
-      switch (_context21.prev = _context21.next) {
+      switch (_context22.prev = _context22.next) {
         case 0:
-          _context21.next = 2;
+          _context22.next = 2;
           return regeneratorRuntime.awrap(new Promise(function (resolve) {
             return setTimeout(resolve, ms);
           }));
 
         case 2:
         case "end":
-          return _context21.stop();
+          return _context22.stop();
       }
     }
   });
