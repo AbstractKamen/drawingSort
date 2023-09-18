@@ -94,7 +94,6 @@ class SortTask {
     setMs(ms) {
         this.ms = ms;
         this.mms = ms;
-        console.log(ms);
     }
     increment() {
         if (this.isStarted) {
