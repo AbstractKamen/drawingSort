@@ -327,7 +327,18 @@
                 <button id="reset-comb-insertion-btn">Clear</button>
                 <button class="collapsible">Click for description
                     <div class="collapsible-content">
-                        <p>Comb-Insertion Sort is.
+                        <p>Comb-Insertion Hybrid Sort is a sorting algorithm that combines two different sorting
+                            techniques, namely Comb Sort and Insertion Sort, to achieve improved performance for certain
+                            types of input data. The Comb-Insertion Hybrid Sort algorithm combines the two approaches. It
+                            starts with Comb Sort to quickly reduce the distance between elements, and when the gap
+                            becomes small (7 in the example), it switches to Insertion Sort. This
+                            hybridization leverages the strengths of Comb Sort for initial gap reduction and Insertion
+                            Sort for final fine-grained sorting.
+                            The advantage of this hybrid approach is that it can take advantage of Comb Sort's
+                            efficiency in handling larger gaps and Insertion Sort's efficiency in handling smaller gaps,
+                            making it a potentially faster sorting algorithm compared to using either method in
+                            isolation, especially for lists that are partially sorted or have elements with varying
+                            magnitudes.
                         </p>
                     </div>
                 </button>
@@ -335,9 +346,11 @@
                 Numbers Range
                 <input id="comb-insertion-range" type="range" min="0" max="100" value="0" class="slider"></input><br>
                 Sort Speed
-                <input id="comb-insertion-millis-range" type="range" min="-9" max="50" value="0" class="slider"></input><br>
+                <input id="comb-insertion-millis-range" type="range" min="-9" max="50" value="0"
+                    class="slider"></input><br>
                 Array Size
-                <input id="comb-insertion-elements-range" type="range" min="50" max="1200" value="50" class="slider"></input>
+                <input id="comb-insertion-elements-range" type="range" min="50" max="1200" value="50"
+                    class="slider"></input>
             </div>
             <div id="comb-insertion-sort" class="sort">
             </div>
