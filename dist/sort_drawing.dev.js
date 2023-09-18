@@ -223,7 +223,6 @@ function () {
     value: function setMs(ms) {
       this.ms = ms;
       this.mms = ms;
-      console.log(ms);
     }
   }, {
     key: "increment",
