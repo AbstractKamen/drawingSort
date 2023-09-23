@@ -1,2 +1,5 @@
 # drawingSort
-A simple visualisation of sorting algorithms
+A simple satisfying visualisation of sorting algorithms.
+
+Dependencies:
+- p5 drawing library https://p5js.org/
