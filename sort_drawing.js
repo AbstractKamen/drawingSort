@@ -41,7 +41,8 @@ onload = () => {
 }
 
 class SortTask {
-    constructor(sortLabel, sortFunc, ms, s) {
+    constructor(sketch, sortLabel, sortFunc, ms, s) {
+        this.sketch = sketch;
         this.sortLabel = sortLabel;
         this.isStarted = false;
         this.sortFunc = sortFunc;
@@ -151,7 +152,8 @@ function initP5SortDrawer(sortId, sortLabel, sort) {
             const msMax = parseInt(millis.max);
             const msMin = parseInt(millis.min);
             var ms = msMax - parseInt(millis.value);
-            var sortTask = new SortTask(sortLabel, sort, ms, s);
+            // sort task init
+            var sortTask = new SortTask(sketch, sortLabel, sort, ms, s);
             millis.oninput = () => {
                 sortTask.setMs(msMax - parseInt(millis.value) + msMin);
             };
@@ -173,6 +175,14 @@ function initP5SortDrawer(sortId, sortLabel, sort) {
             document.getElementById(`tgl-numbers-${sortId}-btn`).addEventListener('click', async () => {
                 sortTask.seeNumbers = !sortTask.seeNumbers;
             });
+            // colour mode
+            const HSB = 1;
+            const CODED = 2;
+            var currentMode = HSB;
+            var nextMode = CODED;
+            document.getElementById(`tgl-colour-mode-${sortId}-btn`).addEventListener('click', async () => {
+                [currentMode, nextMode] = [nextMode, currentMode];
+            });
             // numbers range
             const range = document.getElementById(`${sortId}-range`);
             range.oninput = () => {
@@ -182,7 +192,13 @@ function initP5SortDrawer(sortId, sortLabel, sort) {
                 sketch.createCanvas(w, h);
             };
             sketch.draw = () => {
-                drawElements(sketch, toSort, elementsScale, maxNumber, sortTask);
+                switch (currentMode) {
+                    case HSB:
+                        drawElementsHSBMode(sketch, toSort, elementsScale, minNumber, maxNumber, sortTask);
+                        break;
+                    default:
+                        drawElementsColourCoded(sketch, toSort, elementsScale, maxNumber, sortTask);
+                }
             };
         },
         `${sortId}-sort`);
@@ -203,19 +219,58 @@ function updateElementsRange(m, toSort, elements, sortTask) {
     return high;
 }
 
-function drawElements(sketch, elements, elementsScale, maxNumber, sortTask) {
+function drawElementsHSBMode(sketch, elements, elementsScale, minNumber, maxNumber, sortTask) {
+    sketch.background(0);
+    sketch.push();
+    sketch.translate(0, maxNumber);
+    sketch.scale(1, -1);
+    sketch.strokeWeight(1 * elementsScale);
+    sketch.colorMode(sketch.HSB, 360, 100, 100);
+    // maybe some there is some way we don't do this every time
+    const yPart = 1 / absDifference(maxNumber, minNumber);
+    for (let x = 0; x < elements.length; x++) {
+        const y = elements[x];
+        const xSortStatus = sortTask.sortStatus[x];
+        if (xSortStatus == VISITED) {
+            drawBar(sketch, x, y, elementsScale, sketch.color(100));
+        } else {
+            drawBar(sketch, x, y, elementsScale, sketch.color(Math.abs(1 - (yPart * y)) * 360, 80, 80))
+        }
+    }
+    drawElementNumbers(sketch, elements, elementsScale, maxNumber, sortTask);
+    drawOperations(sketch, elements, sortTask);
+}
+
+function drawElementsColourCoded(sketch, elements, elementsScale, maxNumber, sortTask) {
     sketch.background(0);
     sketch.push();
     sketch.translate(0, maxNumber);
     sketch.scale(1, -1);
     sketch.strokeWeight(1 * elementsScale);
     for (let x = 0; x < elements.length; x++) {
-        let y = elements[x];
-        sketch.stroke(COLOURS[sortTask.sortStatus[x]]);
-        let xS = x * elementsScale + elementsScale / 2
-        sketch.line(xS, 0, xS, y);
+        const y = elements[x];
+        drawBar(sketch, x, y, elementsScale, sketch.color(COLOURS[sortTask.sortStatus[x]]))
     }
+    drawElementNumbers(sketch, elements, elementsScale, maxNumber, sortTask);
+    drawOperations(sketch, elements, sortTask);
+}
 
+function drawBar(sketch, x, y, elementsScale, colour) {
+    sketch.stroke(colour);
+    let xS = x * elementsScale + elementsScale / 2
+    sketch.line(xS, 0, xS, y);
+}
+
+function drawOperations(sketch, elements, sortTask) {
+    sketch.pop();
+    sketch.stroke(50);
+    sketch.strokeWeight(1);
+    sketch.textSize(12);
+    sketch.fill(255);
+    sketch.text(`${sortTask.sortLabel}: ${sortTask.operations} operations to sort ${elements.length} elements.`, w * 0.005, h * 0.03);
+}
+
+function drawElementNumbers(sketch, elements, elementsScale, maxNumber, sortTask) {
     sketch.scale(1, -1);
     sketch.rotate(sketch.radians(270));
     // adjusting nonsense so we can see the numbers better
@@ -232,14 +287,7 @@ function drawElements(sketch, elements, elementsScale, maxNumber, sortTask) {
             sketch.text(y, -offset + Math.max(y, y - y * adjust), xS + elementsScale);
         }
     }
-    sketch.pop();
-    sketch.stroke(50);
-    sketch.strokeWeight(1);
-    sketch.textSize(12);
-    sketch.fill(255);
-    sketch.text(`${sortTask.sortLabel}: ${sortTask.operations} operations to sort ${elements.length} elements.`, w * 0.005, h * 0.03);
 }
-
 /*
     SORT ALORITHMS START
  */
@@ -591,4 +639,8 @@ function swap(arr, i, j) {
     let temp = arr[i];
     arr[i] = arr[j];
     arr[j] = temp;
+}
+
+function absDifference(a, b) {
+    return Math.max(a, b) - Math.min(a, b);
 }
