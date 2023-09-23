@@ -342,17 +342,16 @@
                         <p>Characteristics:<strong> Not Stable, In place, O(n^2) time complexity</strong></p>
                         <p>
                             Shell Sort is an advanced sorting algorithm designed to improve upon the basic insertion
-                            sort method. It operates by dividing the input data into smaller chunks, known as
-                            subsequences or subarrays, and applies insertion sort separately to each of them. These
-                            subsequences are created by selecting elements at fixed intervals or gaps. The key
-                            innovation in Shell Sort is the gradual reduction of these intervals, leading to a more
-                            sorted state before the final pass.<br>
-                            The algorithm begins with a relatively large gap (for this example a little more than
-                            half the size of the array) between elements, making it efficient for
+                            sort method. It operates by dividing the input data into smaller chunks, and applies
+                            insertion sort separately to each of them. These chunks are created by selecting elements at
+                            fixed intervals or gaps. The key innovation in Shell Sort is the gradual reduction of these
+                            intervals, leading to a more sorted state before the final pass.<br>
+                            The algorithm begins with a relatively large gap between elements, making it efficient for
                             moving smaller values to the beginning of the array and larger values to the end. This
                             initial step helps reduce the overall work required for subsequent sorting passes. As the
-                            algorithm progresses, the gap decreases, eventually reaching a value of 1, at which point
-                            Shell Sort behaves similarly to the traditional insertion sort.<br>
+                            algorithm progresses, the gap decreases (by factor of 2.3 in this example), eventually
+                            reaching a value of 1, at which point Shell Sort behaves similarly to the traditional
+                            insertion sort.<br>
                             By employing this step-by-step approach, Shell Sort capitalizes on the advantages of
                             insertion sort for partially sorted subarrays, significantly improving sorting efficiency.
                             While it doesn't guarantee the optimal time complexity, Shell Sort provides a practical
