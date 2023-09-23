@@ -13,12 +13,13 @@ const VISITED = 5;
 onload = () => {
     initP5SortDrawer("heap", "Heap Sort", heapSort);
     initP5SortDrawer("bubble", "Bubble Sort", bubbleSort);
+    initP5SortDrawer("shaker", "Shaker Sort", shakerSort);
     initP5SortDrawer("merge", "Merge Sort", mergeSort);
     initP5SortDrawer("sleep", "Sleep Sort", sleepSort);
     initP5SortDrawer("quick", "Quick Sort", quickSort);
+    initP5SortDrawer("comb", "Comb Sort", combSort);
     initP5SortDrawer("selection", "Selection Sort", selectionSort);
     initP5SortDrawer("insertion", "Insertion Sort", insertionSort);
-    initP5SortDrawer("comb", "Comb Sort", combSort);
     initP5SortDrawer("comb-insertion", "Comb-Insertion Sort", combInsertionSort);
     initP5SortDrawer("shell", "Shell Sort", shellSort);
     // collapsible descriptions
@@ -96,9 +97,9 @@ class SortTask {
         this.ms = ms;
         this.mms = ms;
     }
-    increment() {
+    increment(i = 1) {
         if (this.isStarted) {
-            this.operations++;
+            this.operations += i;
         }
     }
     isFinished() {
@@ -272,7 +273,7 @@ function drawOperations(sketch, elements, sortTask) {
     sketch.strokeWeight(1);
     sketch.textSize(12);
     sketch.fill(255);
-    sketch.text(`${sortTask.sortLabel}: ${sortTask.operations} operations to sort ${elements.length} elements.`, w * 0.005, h * 0.03);
+    sketch.text(`${sortTask.sortLabel} ≈ ${sortTask.operations} operations to sort ${elements.length} elements.`, w * 0.005, h * 0.03);
 }
 
 function drawElementNumbers(sketch, elements, elementsScale, maxNumber, sortTask) {
@@ -386,24 +387,25 @@ async function heapSort(toSort, sortTask) {
         const right = 2 * i + 2;
         if (left < n && arr[left] > arr[largest]) {
             largest = left;
+            sortTask.increment();
         }
 
         if (right < n && arr[right] > arr[largest]) {
             largest = right;
+            sortTask.increment();
         }
 
         if (largest !== i) {
             swap(arr, i, largest);
             sortTask.sortStatus[largest] = LESSER;
             sortTask.sortStatus[i] = GREATER;
-            sortTask.increment();
             await heapify(arr, n, largest, sortTask);
         }
     }
 }
 // BUBBLE SORT
 async function bubbleSort(toSort, sortTask) {
-    var i, j, m, p;
+    var i, j, m;
     var swapped;
     for (i = 0; i < toSort.length - 1; i++) {
         if (sortTask.isFinished()) return;
@@ -417,6 +419,59 @@ async function bubbleSort(toSort, sortTask) {
                 m = j + 1;
                 p = m;
                 swap(toSort, j, j + 1);
+                swapped = true;
+            }
+        }
+
+        if (swapped == false) {
+            for (k = 0; k < toSort.length - 1; k++) {
+                sortTask.sortStatus[k] = SORTED;
+            }
+            break;
+        } else {
+            sortTask.sortStatus[j] = SORTED;
+        }
+    }
+    sortTask.sortStatus[0] = SORTED;
+}
+// SHAKER SORT
+async function shakerSort(toSort, sortTask) {
+    var i, j = 0,
+        m;
+    var swapped;
+    for (i = 0; i < toSort.length - 1; ++i) {
+        if (sortTask.isFinished()) return;
+        swapped = false;
+        sortTask.increment();
+        for (; j < toSort.length - i - 1; ++j) {
+            if (sortTask.isFinished()) return;
+            sortTask.increment();
+            await sortTask.visit(j);
+            if (toSort[j] > toSort[j + 1]) {
+                m = j + 1;
+                p = m;
+                swap(toSort, j, j + 1);
+                swapped = true;
+            }
+        }
+
+        if (swapped == false) {
+            for (k = 0; k < toSort.length - 1; ++k) {
+                sortTask.sortStatus[k] = SORTED;
+            }
+            break;
+        } else {
+            sortTask.sortStatus[j] = SORTED;
+        }
+
+        for (; j > i; --j) {
+            if (sortTask.isFinished()) return;
+            sortTask.increment();
+            await sortTask.visit(j);
+            if (toSort[j] < toSort[j - 1]) {
+                m = j - 1;
+                p = m;
+                swap(toSort, j, j - 1);
                 swapped = true;
             }
         }

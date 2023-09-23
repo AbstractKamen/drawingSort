@@ -20,6 +20,7 @@
                 <button id="reset-sleep-btn">Clear</button>
                 <button class="collapsible">Click for description
                     <div class="collapsible-content">
+                        <p>Characteristics:<strong> Not Stable, O(n) time complexity</strong></p>
                         <p> A rather unconventional sorting algorithm that exploits the concept of time
                             delays or "sleeping" to sort a list of numbers.
                             For each number in the input list, create a separate thread, task, or process.
@@ -59,6 +60,7 @@
                 <button id="reset-quick-btn">Clear</button>
                 <button class="collapsible">Click for description
                     <div class="collapsible-content">
+                        <p>Characteristics:<strong> Not Stable, In place, O(n log n) time complexity</strong></p>
                         <p> A highly efficient and widely used sorting algorithm known for its
                             average-case performance.
                             It begins by choosing a "pivot" element from the array. The choice of the pivot can be
@@ -100,6 +102,7 @@
                 <button id="reset-merge-btn">Clear</button>
                 <button class="collapsible">Click for description
                     <div class="collapsible-content">
+                        <p>Characteristics:<strong> Stable, In place, O(n log n) time complexity</strong></p>
                         <p>A widely used and efficient comparison-based sorting algorithm known for its
                             stability and guaranteed time complexity. It uses the 'divide and conquer' approach and is
                             typically recursive. Begin by taking the unsorted list and split it into two roughly equal
@@ -137,6 +140,7 @@
                 <button id="reset-heap-btn">Clear</button>
                 <button class="collapsible">Click for description
                     <div class="collapsible-content">
+                        <p>Characteristics:<strong> Not Stable, In place, O(n log n) time complexity</strong></p>
                         <p>An efficient comparison-based sorting algorithm that operates by transforming
                             an input array into a binary heap data structure and then repeatedly extracting the maximum
                             (for the
@@ -183,6 +187,7 @@
                 <button id="reset-bubble-btn">Clear</button>
                 <button class="collapsible">Click for description
                     <div class="collapsible-content">
+                        <p>Characteristics:<strong> Stable, In place, O(n^2) time complexity</strong></p>
                         <p> A simple and easy to understand sorting algorithm. It repeatedly iterates
                             through the list to be sorted, compares adjacent elements, and swaps them if they are in the
                             wrong order. Starting at the beginning of the list.
@@ -218,11 +223,42 @@
         </li>
 
         <li>
+            <div class="btns"><b>Shaker Sort</b><br>
+                <button id="sort-shaker-btn" class="sort-btn">Sort</button>
+                <button id="reset-shaker-btn">Clear</button>
+                <button class="collapsible">Click for description
+                    <div class="collapsible-content">
+                        <p>Characteristics:<strong> Stable, In place, O(n^2) time complexity</strong></p>
+                        <p> Shaker Sort, also known as Cocktail Sort, is a variation of the bubble sort algorithm. It
+                            does it's sorting by moving the largest value to the end of the list. Then when it reaches
+                            the end instead of starting over like bubble sort it starts going back to the beginning this
+                            time moving the smallest value it finds. It keeps doing this until no swaps have occurred
+                            and the list is sorted. The shaker sort has the bubble sort optimisation for sorting an
+                            already sorted list. It is also slightly faster than the normal bubble sort time but it's
+                            worst case is still O(n^2).
+                        </p>
+                    </div>
+                </button>
+                <button id="tgl-colour-mode-shaker-btn">Colour Mode</button><br>
+                <button id="tgl-numbers-shaker-btn">View Numbers</button><br>
+                Numbers Range
+                <input id="shaker-range" type="range" min="0" max="100" value="0" class="slider"></input><br>
+                Sort Speed
+                <input id="shaker-millis-range" type="range" min="-9" max="50" value="0" class="slider"></input><br>
+                Array Size
+                <input id="shaker-elements-range" type="range" min="50" max="1200" value="50" class="slider"></input>
+            </div>
+            <div id="shaker-sort" class="sort">
+            </div>
+        </li>
+
+        <li>
             <div class="btns"><b>Comb Sort</b><br>
                 <button id="sort-comb-btn" class="sort-btn">Sort</button>
                 <button id="reset-comb-btn">Clear</button>
                 <button class="collapsible">Click for description
                     <div class="collapsible-content">
+                        <p>Characteristics:<strong> Not Stable, In place, O(n^2) time complexity</strong></p>
                         <p>Comb Sort is a comparison-based sorting algorithm that improves upon the Bubble Sort
                             algorithm by eliminating or reducing the number of small values at the end of the list
                             quickly.
@@ -264,6 +300,7 @@
                 <button id="reset-insertion-btn">Clear</button>
                 <button class="collapsible">Click for description
                     <div class="collapsible-content">
+                        <p>Characteristics:<strong> Stable, In place, O(n^2) time complexity</strong></p>
                         <p>
                             Insertion Sort is a simple and efficient comparison-based sorting algorithm.
                             Start with the second element (index 1) of the array. This element is assumed to be part of
@@ -302,6 +339,7 @@
                 <button id="reset-shell-btn">Clear</button>
                 <button class="collapsible">Click for description
                     <div class="collapsible-content">
+                        <p>Characteristics:<strong> Not Stable, In place, O(n^2) time complexity</strong></p>
                         <p>
                             Shell Sort is an advanced sorting algorithm designed to improve upon the basic insertion
                             sort method. It operates by dividing the input data into smaller chunks, known as
@@ -309,7 +347,7 @@
                             subsequences are created by selecting elements at fixed intervals or gaps. The key
                             innovation in Shell Sort is the gradual reduction of these intervals, leading to a more
                             sorted state before the final pass.<br>
-                            The algorithm begins with a relatively large gap (for this example a little more than 
+                            The algorithm begins with a relatively large gap (for this example a little more than
                             half the size of the array) between elements, making it efficient for
                             moving smaller values to the beginning of the array and larger values to the end. This
                             initial step helps reduce the overall work required for subsequent sorting passes. As the
@@ -342,6 +380,7 @@
                 <button id="reset-selection-btn">Clear</button>
                 <button class="collapsible">Click for description
                     <div class="collapsible-content">
+                        <p>Characteristics:<strong> Not Stable, In place, O(n^2) time complexity</strong></p>
                         <p>Selection Sort is a simple comparison-based sorting algorithm that works by repeatedly
                             selecting the smallest element from an unsorted portion of the list and moving
                             it to the beginning of the sorted portion. Initially, the sorted part is empty, and the
@@ -375,6 +414,7 @@
                 <button id="reset-comb-insertion-btn">Clear</button>
                 <button class="collapsible">Click for description
                     <div class="collapsible-content">
+                        <p>Characteristics:<strong> Not Stable, In place, O(n^2) time complexity</strong></p>
                         <p>Comb-Insertion Hybrid Sort is a sorting algorithm that combines two different sorting
                             techniques, namely Comb Sort and Insertion Sort, to achieve improved performance for certain
                             types of input data. The Comb-Insertion Hybrid Sort algorithm combines the two approaches.
