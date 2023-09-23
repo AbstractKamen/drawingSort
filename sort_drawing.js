@@ -1,7 +1,6 @@
 const CANVAS_SCALE = 0.8;
 const w = ((window.innerWidth > 0) ? window.innerWidth : screen.width) * CANVAS_SCALE;
 const h = ((window.innerHeight > 0) ? window.innerHeight : screen.height) * CANVAS_SCALE;
-const MAX_ELEMENTS = 50;
 const MIN_ELEMENTS = 50;
 const COLOURS = ["red", "yellow", "blue", "teal", "green", "white"];
 const NOT_SORTED = 0;
@@ -225,16 +224,20 @@ function drawElementsHSBMode(sketch, elements, elementsScale, minNumber, maxNumb
     sketch.translate(0, maxNumber);
     sketch.scale(1, -1);
     sketch.strokeWeight(1 * elementsScale);
+    sketch.strokeCap(sketch.SQUARE);
     sketch.colorMode(sketch.HSB, 360, 100, 100);
+    // maxElement can't be greater than 90% of the canvas height, 
+    // so in order to reach peak redness we have to adjust y
+    const yAdjust = 0.90;
     // maybe some there is some way we don't do this every time
-    const yPart = 1 / absDifference(maxNumber, minNumber);
+    const yPart = 1 / absDifference(maxNumber * yAdjust, minNumber);
     for (let x = 0; x < elements.length; x++) {
         const y = elements[x];
         const xSortStatus = sortTask.sortStatus[x];
         if (xSortStatus == VISITED) {
             drawBar(sketch, x, y, elementsScale, sketch.color(100));
         } else {
-            drawBar(sketch, x, y, elementsScale, sketch.color(Math.abs(1 - (yPart * y)) * 360, 80, 80))
+            drawBar(sketch, x, y, elementsScale, sketch.color(-7 + Math.abs(1 - (yPart * y)) * 360, 80, 80))
         }
     }
     drawElementNumbers(sketch, elements, elementsScale, maxNumber, sortTask);
@@ -247,6 +250,7 @@ function drawElementsColourCoded(sketch, elements, elementsScale, maxNumber, sor
     sketch.translate(0, maxNumber);
     sketch.scale(1, -1);
     sketch.strokeWeight(1 * elementsScale);
+    sketch.strokeCap(sketch.SQUARE);
     for (let x = 0; x < elements.length; x++) {
         const y = elements[x];
         drawBar(sketch, x, y, elementsScale, sketch.color(COLOURS[sortTask.sortStatus[x]]))
