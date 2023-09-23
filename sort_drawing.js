@@ -17,6 +17,7 @@ onload = () => {
     initP5SortDrawer("merge", "Merge Sort", mergeSort);
     initP5SortDrawer("sleep", "Sleep Sort", sleepSort);
     initP5SortDrawer("quick", "Quick Sort", quickSort);
+    initP5SortDrawer("iterative-quick", "Iterative Quick Sort", iterativeQuickSort);
     initP5SortDrawer("comb", "Comb Sort", combSort);
     initP5SortDrawer("selection", "Selection Sort", selectionSort);
     initP5SortDrawer("insertion", "Insertion Sort", insertionSort);
@@ -303,21 +304,73 @@ async function quickSort(toSort, sortTask) {
 }
 async function quickSortRec(toSort, low, high, sortTask) {
     if (sortTask.isFinished()) return;
-    if (low < high) {
-        await sortTask.visit(low, high);
+    while (low < high) {
         sortTask.increment();
         let pi = await partition(toSort, low, high, sortTask);
         sortTask.sortStatus[pi] = SORTED;
-        await quickSortRec(toSort, low, pi - 1, sortTask);
-        await sortTask.sleep();
         sortTask.sortStatus[pi - 1] = SORTED;
-        await quickSortRec(toSort, pi + 1, high, sortTask);
-        await sortTask.sleep();
-        sortTask.sortStatus[high] = SORTED;
-        sortTask.sortStatus[low] = SORTED;
+        if (pi - low < high - pi) {
+            await quickSortRec(toSort, low, pi - 1, sortTask);
+            sortTask.sortStatus[low] = SORTED;
+            low = pi + 1;
+        } else {
+            await quickSortRec(toSort, pi + 1, high, sortTask);
+            sortTask.sortStatus[high] = SORTED;
+            high = pi - 1;
+        }
     }
 }
+// ITERATIVE QUICK SORT
+async function iterativeQuickSort(toSort, sortTask) {
+    const loHiStack = [{
+        low: 0,
+        high: toSort.length - 1
+    }];
+    while (loHiStack.length > 0) {
+        if (sortTask.isFinished()) return;
+        const {
+            low,
+            high
+        } = loHiStack.pop();
+        if (low < high) {
+            await sortTask.visit(low, high);
+            sortTask.increment();
+            let pi = await partition(toSort, low, high, sortTask);
+            sortTask.sortStatus[pi] = SORTED;
+            sortTask.sortStatus[pi - 1] = SORTED;
+            sortTask.sortStatus[pi + 1] = SORTED;
+            loHiStack.push({
+                low,
+                high: pi - 1
+            });
+            loHiStack.push({
+                low: pi + 1,
+                high
+            });
+        }
+    }
 
+}
+
+function medianOfThree(toSort, sortTask, low, high) {
+    const a = toSort[low];
+    const mid = Math.floor((low + high) / 2);
+    const b = toSort[mid];
+    const c = toSort[high];
+    // [a, b, c] a >= b >= c --> mid
+    // [c, b, a] c >= b >= a --> mid
+    // [b, a, c] b >= a >= c --> low
+    // [c, a, b] c >= a >= b --> low
+    // [b, c, a] b >= c >= a --> high
+    // [a, c, b] a >= c >= b --> high
+    if (a >= b && b >= c || c >= b && b >= a) {
+        return mid;
+    } else if (b >= a && a >= c || c >= a && a >= b) {
+        return low;
+    } else {
+        return high;
+    }
+}
 async function partition(toSort, low, high, sortTask) {
     if (sortTask.isFinished()) return;
     await sortTask.sleep();
@@ -327,7 +380,7 @@ async function partition(toSort, low, high, sortTask) {
     for (let j = low; j <= high - 1; j++) {
         if (sortTask.isFinished()) return;
         sortTask.increment();
-        await sortTask.visit(i, j);
+        await sortTask.visit(i, j, high);
         if (toSort[j] < pivot) {
             i++;
             swap(toSort, i, j);
@@ -380,26 +433,34 @@ async function heapSort(toSort, sortTask) {
     sortTask.sortStatus[0] = SORTED;
 
     async function heapify(arr, n, i, sortTask) {
-        if (sortTask.isFinished()) return;
-        await sortTask.visit(i);
-        let largest = i;
-        const left = 2 * i + 1;
-        const right = 2 * i + 2;
-        if (left < n && arr[left] > arr[largest]) {
-            largest = left;
-            sortTask.increment();
-        }
+        while (true) {
+            if (sortTask.isFinished()) return;
 
-        if (right < n && arr[right] > arr[largest]) {
-            largest = right;
-            sortTask.increment();
-        }
+            const visit = [i]
+            let largest = i;
+            const left = 2 * i + 1;
+            const right = 2 * i + 2;
 
-        if (largest !== i) {
+            if (left < n && arr[left] > arr[largest]) {
+                largest = left;
+                sortTask.increment();
+                visit.push(left);
+            }
+
+            if (right < n && arr[right] > arr[largest]) {
+                largest = right;
+                sortTask.increment();
+                visit.push(right);
+            }
+
+            if (largest == i) {
+                return; // No further swaps needed
+            }
+            await sortTask.visit(...visit);
             swap(arr, i, largest);
             sortTask.sortStatus[largest] = LESSER;
             sortTask.sortStatus[i] = GREATER;
-            await heapify(arr, n, largest, sortTask);
+            i = largest; // Move to the next level of the heap
         }
     }
 }
@@ -550,8 +611,8 @@ async function insertionSort(toSort, sortTask) {
 // basically the inner loop of the insertion sort
 async function insertionSortHelper(toSort, sortTask, cur, backStep,
     /* 
-     * Since we use this for other sorts leave a way for them to mark the insertions.
-     * The default for insertion sort is to visit mark as SORTED.
+     * since we use this for other sorts leave a way for them to mark the insertions
+     * the default for insertion sort is to visit mark as SORTED
      */
     markInserted = async j => {
         await sortTask.visit(j);
