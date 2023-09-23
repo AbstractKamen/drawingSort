@@ -20,6 +20,7 @@ onload = () => {
     initP5SortDrawer("insertion", "Insertion Sort", insertionSort);
     initP5SortDrawer("comb", "Comb Sort", combSort);
     initP5SortDrawer("comb-insertion", "Comb-Insertion Sort", combInsertionSort);
+    initP5SortDrawer("shell", "Shell Sort", shellSort);
     // collapsible descriptions
     var elements = document.getElementsByClassName("collapsible");
     for (let i = 0; i < elements.length; i++) {
@@ -431,27 +432,23 @@ async function bubbleSort(toSort, sortTask) {
     }
     sortTask.sortStatus[0] = SORTED;
 }
-// INSERTION SORT
-async function insertionSort(toSort, sortTask) {
-    let i, key, j, n = toSort.length;
-    for (i = 1; i < n; i++) {
+// SHELL SORT
+async function shellSort(toSort, sortTask) {
+    var n = toSort.length;
+    const factor = 2.3;
+    // start with half gap then decrease by half again
+    for (let g = Math.round(n / factor); g > 0; g = Math.round(g / factor)) {
         if (sortTask.isFinished()) return;
-        sortTask.increment();
-        key = toSort[i];
-        j = i - 1;
-        while (j >= 0 && toSort[j] > key) {
+        // gapped insertion sort for this gap size
+        for (let i = g; i < n; ++i) {
             if (sortTask.isFinished()) return;
-            sortTask.increment();
-            toSort[j + 1] = toSort[j];
-            await sortTask.visit(j);
-            sortTask.sortStatus[j - 1] = SORTED;
-            sortTask.sortStatus[j] = SORTED;
-            sortTask.sortStatus[j + 1] = SORTED;
-            j = j - 1;
-
+            await sortTask.visit(i);
+            await insertionSortHelper(toSort, sortTask, i, g, async j => {
+                await sortTask.visit(j);
+            });
         }
-        toSort[j + 1] = key;
     }
+    return toSort;
 }
 // COMB-INSERTION SORT
 async function combInsertionSort(toSort, sortTask) {
@@ -485,6 +482,43 @@ async function combInsertionSort(toSort, sortTask) {
             return 1;
         return comb;
     }
+}
+// INSERTION SORT
+async function insertionSort(toSort, sortTask) {
+    let i, n = toSort.length;
+    for (i = 1; i < n; i++) {
+        if (sortTask.isFinished()) return;
+        await sortTask.visit(i);
+        await insertionSortHelper(toSort, sortTask, i, 1);
+    }
+}
+// basically the inner loop of the insertion sort
+async function insertionSortHelper(toSort, sortTask, cur, backStep,
+    /* 
+     * Since we use this for other sorts leave a way for them to mark the insertions.
+     * The default for insertion sort is to visit mark as SORTED.
+     */
+    markInserted = async j => {
+        await sortTask.visit(j);
+        sortTask.sortStatus[j - backStep] = SORTED;
+        sortTask.sortStatus[j] = SORTED;
+        sortTask.sortStatus[j + backStep] = SORTED;
+    }
+) {
+    if (sortTask.isFinished()) return;
+    sortTask.increment();
+    const key = toSort[cur];
+    let j = cur - backStep;
+    while (j >= 0 && toSort[j] > key) {
+        if (sortTask.isFinished()) return;
+        sortTask.increment();
+        // insertion
+        toSort[j + backStep] = toSort[j];
+        await markInserted(j);
+        j -= backStep;
+
+    }
+    toSort[j + backStep] = key;
 }
 // COMB SORT
 async function combSort(toSort, sortTask) {
