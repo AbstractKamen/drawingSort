@@ -8,6 +8,7 @@
     <title>Sort Drawing</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/p5@1.6.0/lib/p5.min.js"></script>
+    <script src="sorts.js"></script>
     <script src="sort_drawing.js"></script>
     <link rel="icon" href="data:,">
 </head>
@@ -130,7 +131,7 @@
                 <button id="reset-merge-btn">Clear</button>
                 <button class="collapsible">Click for description
                     <div class="collapsible-content">
-                        <p>Characteristics:<strong> Stable, In place, O(n log n) time complexity</strong></p>
+                        <p>Characteristics:<strong> Stable, Not In place, O(n log n) time complexity</strong></p>
                         <p>A widely used and efficient comparison-based sorting algorithm known for its
                             stability and guaranteed time complexity. It uses the 'divide and conquer' approach and is
                             typically recursive. Begin by taking the unsorted list and split it into two roughly equal
@@ -432,6 +433,63 @@
                 <input id="selection-elements-range" type="range" min="50" max="1200" value="50" class="slider"></input>
             </div>
             <div id="selection-sort" class="sort">
+            </div>
+        </li>
+
+        <li>
+            <div class="btns"><b>Patience Sort</b><br>
+                <button id="sort-patience-btn" class="sort-btn">Sort</button>
+                <button id="reset-patience-btn">Clear</button>
+                <button class="collapsible">Click for description
+                    <div class="collapsible-content">
+                        <p>Characteristics:<strong> Stable, Not In place, O(n^2) time complexity</strong>
+                        <p>Patience Sort is a sorting algorithm inspired by the patience card game. It is used to
+                            efficiently sort a sequence of elements, typically represented as a deck of cards, by
+                            creating piles of cards following specific rules and then merging these piles to obtain the
+                            sorted sequence. Patience Sort is known for its simplicity and effectiveness, especially in
+                            scenarios where the number of elements is moderate, but the input data is not fully sorted.
+                        </p>
+
+                        <p>Initialization: Start with an empty array of piles and iterate through the elements to be
+                            sorted.</p>
+
+                        <p>Pile Creation: For each element, find the leftmost pile where it can be placed on top
+                            according to the sorting order. If no such pile exists, create a new pile with the
+                            element.</p>
+                        <p>Merging Piles: Once all elements are placed into piles, merge them to obtain the
+                            sorted sequence. This typically involves using a min-heap data structure. During merging,
+                            the top card of each pile is compared, and the smallest card is added to the sorted
+                            sequence. The pile from which the card was removed is refilled with the next card, and this
+                            process continues until all cards are merged.</p>
+                        <p>Sorted Sequence: The result of the merging
+                            process is a sorted sequence of elements.Key FeaturesAdaptive: Patience Sort adapts to the
+                            input data, making it efficient for partially sorted lists.Comparison-Based: The sorting
+                            process involves comparing elements, making it suitable for a wide range of data
+                            types.</p>
+                        <p>Stable: Patience Sort is a stable sorting algorithm, meaning that it preserves the
+                            relative order of equal elements.Efficiency: While not as fast as some other sorting
+                            algorithms for fully random data, Patience Sort performs well in scenarios with partially
+                            ordered data.</p>
+                        <p>Complexity: Patience Sort has a time complexity of O(n * log n),
+                            where n is the number of elements to be sorted. The most time-consuming step is merging the
+                            piles. The space complexity is O(n) because it requires extra space to
+                            store the piles.</p>
+                        <p>Patience Sort is rarely used in practical applications due to
+                            its space and time complexities. However, it serves as an interesting algorithmic concept
+                            and is used as a benchmark in sorting algorithm analysis.</p>
+                        </p>
+                    </div>
+                </button>
+                <button id="tgl-colour-mode-patience-btn">Colour Mode</button><br>
+                <button id="tgl-numbers-patience-btn">View Numbers</button><br>
+                Numbers Range
+                <input id="patience-range" type="range" min="0" max="100" value="0" class="slider"></input><br>
+                Sort Speed
+                <input id="patience-millis-range" type="range" min="-9" max="50" value="0" class="slider"></input><br>
+                Array Size
+                <input id="patience-elements-range" type="range" min="50" max="1200" value="50" class="slider"></input>
+            </div>
+            <div id="patience-sort" class="sort">
             </div>
         </li>
 

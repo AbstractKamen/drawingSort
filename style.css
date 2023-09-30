@@ -19,3 +19,7 @@ p {
     display: none;
     overflow: hidden;
 }
+
+input[type="range"]{
+    width: 50%;
+}
