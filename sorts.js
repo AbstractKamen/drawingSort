@@ -115,7 +115,6 @@ async function heapSort(toSort, sortTask) {
     // make a max heap starting from the last non-leaf node
     for (let i = (n >>> 1) - 1; i >= 0; --i) {
         if (sortTask.isFinished()) return;
-        sortTask.increment();
         await maxHeapify(toSort, n, i, sortTask);
     }
 
@@ -132,6 +131,7 @@ async function heapSort(toSort, sortTask) {
 async function maxHeapify(arr, n, i, sortTask) {
     const half = n >>> 1;
     while (i < half) {
+        sortTask.increment();
         if (sortTask.isFinished()) return;
 
         const visit = [i]
@@ -155,6 +155,7 @@ async function maxHeapify(arr, n, i, sortTask) {
             return; // no further swaps needed
         }
         await sortTask.visit(...visit);
+        sortTask.increment();
         swap(arr, i, largest);
         sortTask.sortStatus[largest] = LESSER;
         sortTask.sortStatus[i] = GREATER;
@@ -479,37 +480,36 @@ async function patienceSort(toSort, sortTask) {
         const newCard = toSortCopy[i];
 
         // linear card pile search
-        // for (; j < piles.length; ++j) {
-        //     sortTask.increment();
-        //     // if we start from the leftmost pile and find a card greater than the current we push
-        //     if (getLastPileItemPS(piles, j) > newCard) {
-        //         piles[j].push(newCard);
-        //         b = true;
-        //         break;
-        //     }
-        // }
-        // // if no pile was found make a new one and push current
-        // if (!b) {
-        //     piles.push([newCard]);
-        // }
+        for (; j < piles.length; ++j) {
+            sortTask.increment();
+            // if we start from the leftmost pile and find a card greater than the current we push
+            if (getLastPileItemPS(piles, j) > newCard) {
+                piles[j].push(newCard);
+                b = true;
+                break;
+            }
+        }
+        // if no pile was found make a new one and push current
+        if (!b) {
+            piles.push([newCard]);
+        }
 
         // binary card pile search + heapify
-        const pileIndex = binarySearch(sortTask, piles, newCard, getFromToSort);
-        if (pileIndex <= 0) {
-            j = Math.max(0, -pileIndex - 1);
-            // if there is a next pile it's last card is always greater, so push
-            if (pileIndex === -0 || j == piles.length) {
-                piles.push([newCard]);
-            } else if (j + 1 < piles.length) {
-                piles[j + 1].push(newCard);
-            } else if (j - 1 > 0) {
-                piles.splice(j - 1, 0, [newCard]);
-            }
-        } else {
-            j = pileIndex;
-            piles[pileIndex].push(newCard);
-        }
-        console.log9
+        // const pileIndex = binarySearch(sortTask, piles, newCard, getFromToSort);
+        // if (pileIndex <= 0) {
+        //     j = Math.max(0, -pileIndex - 1);
+        //     // if there is a next pile it's last card is always greater, so push
+        //     if (pileIndex === -0 || j == piles.length) {
+        //         piles.push([newCard]);
+        //     } else if (j + 1 < piles.length) {
+        //         piles[j + 1].push(newCard);
+        //     } else if (j - 1 > 0) {
+        //         piles.splice(j - 1, 0, [newCard]);
+        //     }
+        // } else {
+        //     j = pileIndex;
+        //     piles[pileIndex].push(newCard);
+        // }
         swapElementsWithCards(toSort, piles, sortTask);
     }
 
@@ -531,7 +531,6 @@ async function patienceSort(toSort, sortTask) {
             // minHeapifyPiles(piles, sortTask, 0);
             for (let j = (piles.length >>> 1) - 1; j >= 0; --j) {
                 if (sortTask.isFinished()) return;
-                sortTask.increment();
                 minHeapifyPiles(piles, sortTask, j);
             }
         }
@@ -555,6 +554,7 @@ function minHeapifyPiles(piles, sortTask, i, n = piles.length) {
         if (sortTask.isFinished()) return;
         const left = (i << 1) + 1;
         const right = left + 1;
+        sortTask.increment();
         if (left < n && getLastPileItemPS(piles, left) < getLastPileItemPS(piles, smallest)) {
             smallest = left;
             sortTask.increment();
