@@ -406,7 +406,7 @@ async function mergeSortRec(toSort, leftI, rightI, sortTask) {
     if (leftI >= rightI) {
         return;
     }
-    var m = leftI + parseInt((rightI - leftI) / 2);
+    var m = leftI + ((rightI - leftI) >>> 1);
     await mergeSortRec(toSort, leftI, m, sortTask);
     await mergeSortRec(toSort, m + 1, rightI, sortTask);
     await merge(toSort, leftI, m, rightI, sortTask);
@@ -469,47 +469,48 @@ async function merge(toSort, leftI, middle, rightI, sortTask) {
 async function patienceSort(toSort, sortTask) {
     const piles = [];
     const toSortCopy = [...toSort];
-    const getFromToSort = (p, pilesIndex) => toSortCopy[getLastPileItemPS(p, pilesIndex)];
-    const desc = (a, b) => a > b ? 1 : a == b ? 0 : -1;
+    const getFromToSort = (p, pilesIndex) => getLastPileItemPS(p, pilesIndex);
     for (let i = 0; i < toSort.length; ++i) {
         sortTask.increment();
         if (sortTask.isFinished()) return;
         await sortTask.visit(i);
         var b = false;
         var j = 0;
+        const newCard = toSortCopy[i];
+
         // linear card pile search
         // for (; j < piles.length; ++j) {
         //     sortTask.increment();
         //     // if we start from the leftmost pile and find a card greater than the current we push
-        //     if (toSortCopy[getLastPileItemPS(piles, j)] > toSortCopy[i]) {
-        //         piles[j].push(i);
+        //     if (getLastPileItemPS(piles, j) > newCard) {
+        //         piles[j].push(newCard);
         //         b = true;
         //         break;
         //     }
         // }
         // // if no pile was found make a new one and push current
         // if (!b) {
-        //     piles.push([i]);
-        //     j = piles.length - 1;
+        //     piles.push([newCard]);
         // }
 
         // binary card pile search + heapify
-        const pileIndex = binarySearch(sortTask, piles, toSort[i], getFromToSort, desc);
+        const pileIndex = binarySearch(sortTask, piles, newCard, getFromToSort);
         if (pileIndex <= 0) {
             j = Math.max(0, -pileIndex - 1);
             // if there is a next pile it's last card is always greater, so push
-            if (j + 1 < piles.length) {
-                piles[j + 1].push(i);
-            } else {
-                piles.push([i]);
+            if (pileIndex === -0 || j == piles.length) {
+                piles.push([newCard]);
+            } else if (j + 1 < piles.length) {
+                piles[j + 1].push(newCard);
+            } else if (j - 1 > 0) {
+                piles.splice(j - 1, 0, [newCard]);
             }
         } else {
             j = pileIndex;
-            piles[pileIndex].push(i);
+            piles[pileIndex].push(newCard);
         }
-        // preserve piles order
-        minHeapifyPiles(toSortCopy, piles, sortTask, j);
-        swapElementsWithCards(toSort, toSortCopy, piles, sortTask, i);
+        console.log9
+        swapElementsWithCards(toSort, piles, sortTask);
     }
 
     let i = 0;
@@ -518,51 +519,167 @@ async function patienceSort(toSort, sortTask) {
         const pile = piles[0];
         sortTask.increment();
         await sortTask.visit(i);
+        toSort[i] = pile.pop();
+        sortTask.sortStatus[i] = SORTED;
+        i++;
 
-        toSort[i] = toSortCopy[pile.pop()];
         if (pile.length <= 0) {
             piles.shift();
         }
-        sortTask.sortStatus[i] = SORTED;
-        i++;
-        for (let j = (piles.length >>> 1) - 1; j >= 0; --j) {
-            if (sortTask.isFinished()) return;
-            sortTask.increment();
-            minHeapifyPiles(toSortCopy, piles, sortTask, j, piles.length);
+        if (piles.length > 0) {
+            //swap(piles, 0, piles.length - 1);
+            // minHeapifyPiles(piles, sortTask, 0);
+            for (let j = (piles.length >>> 1) - 1; j >= 0; --j) {
+                if (sortTask.isFinished()) return;
+                sortTask.increment();
+                minHeapifyPiles(piles, sortTask, j);
+            }
         }
     }
 }
 
-function swapElementsWithCards(toSort, toSortCopy, piles, sortTask, start) {
+function swapElementsWithCards(toSort, piles, sortTask) {
     for (let i = 0, k = 0; i < piles.length; ++i) {
         const p = piles[i];
         for (let j = p.length - 1; j >= 0; --j) {
             if (sortTask.isFinished()) return;
-            toSort[k++] = toSortCopy[p[j]];
+            toSort[k++] = p[j];
         }
     }
 }
 
-function minHeapifyPiles(toSort, piles, sortTask, i, n = piles.length) {
+function minHeapifyPiles(piles, sortTask, i, n = piles.length) {
     const half = piles.length >>> 1;
     let smallest = i;
     while (i < half) {
         if (sortTask.isFinished()) return;
         const left = (i << 1) + 1;
         const right = left + 1;
-        if (left < n && toSort[getLastPileItemPS(piles, left)] < toSort[getLastPileItemPS(piles, smallest)]) {
+        if (left < n && getLastPileItemPS(piles, left) < getLastPileItemPS(piles, smallest)) {
             smallest = left;
             sortTask.increment();
         }
-        if (right < n && toSort[getLastPileItemPS(piles, right)] < toSort[getLastPileItemPS(piles, smallest)]) {
+        if (right < n && getLastPileItemPS(piles, right) < getLastPileItemPS(piles, smallest)) {
             smallest = right;
             sortTask.increment();
         }
-        if (smallest == i) {
+        if (smallest === i) {
             return;
         }
         swap(piles, i, smallest);
         i = smallest;
+    }
+}
+// CIRCLE SORT
+async function circleSort(toSort, sortTask) {
+    while (await circleSortRec(toSort, sortTask, 0, toSort.length - 1));
+    for (k = 0; k < toSort.length - 1; ++k) {
+        sortTask.sortStatus[k] = SORTED;
+    }
+    await sortTask.sleep();
+}
+
+async function circleSortRec(toSort, sortTask, low, high) {
+    if (sortTask.isFinished()) return false;
+    let swapped = false;
+    sortTask.increment();
+    if (low === high) {
+        return false;
+    }
+
+    let lo = low;
+    let hi = high;
+
+    while (lo < hi) {
+        if (sortTask.isFinished()) return false;
+        if (toSort[lo] > toSort[hi]) {
+            sortTask.increment();
+            await sortTask.visit(lo, hi);
+            sortTask.sortStatus[lo] = NOT_SORTED;
+            sortTask.sortStatus[hi] = NOT_SORTED;
+            swap(toSort, lo, hi);
+            swapped = true;
+        }
+        lo++;
+        hi--;
+    }
+    // central element if it exists
+    if (lo === hi) {
+        sortTask.increment();
+        hi++;
+        if (toSort[lo] > toSort[hi]) {
+            await sortTask.visit(lo, hi);
+            sortTask.sortStatus[lo] = NOT_SORTED;
+            sortTask.sortStatus[hi] = NOT_SORTED;
+            swap(toSort, lo, hi);
+            swapped = true;
+        }
+    }
+
+    let mid = (high - low) >>> 1;
+    let firstHalf = await circleSortRec(toSort, sortTask, low, low + mid);
+    let secondHalf = await circleSortRec(toSort, sortTask, low + mid + 1, high);
+    sortTask.sortStatus[low + mid + 1] = SORTED;
+    return swapped || firstHalf || secondHalf;
+}
+// ITERATIVE CIRCLE SORT
+async function circleSortIterative(toSort, sortTask) {
+    const startCycle = {
+        low: 0,
+        high: toSort.length - 1
+    };
+    const loHiStack = [startCycle];
+    while (loHiStack.length > 0) {
+        let swapped = false;
+        const {
+            low,
+            high
+        } = loHiStack.pop()
+        sortTask.increment();
+        if (low === high) continue;
+        let lo = low;
+        let hi = high;
+        if (lo == hi) return;
+        while (lo < hi) {
+            if (sortTask.isFinished()) return;
+            if (toSort[lo] > toSort[hi]) {
+                sortTask.increment();
+                await sortTask.visit(lo, hi);
+                sortTask.sortStatus[lo] = NOT_SORTED;
+                sortTask.sortStatus[hi] = NOT_SORTED;
+                swap(toSort, lo, hi);
+                swapped = true;
+            }
+            lo++;
+            hi--;
+        }
+
+        // central element if it exists
+        if (lo === hi) {
+            await sortTask.visit(hi);
+            sortTask.increment();
+            hi++;
+            if (toSort[lo] > toSort[hi]) {
+                await sortTask.visit(lo, hi);
+                sortTask.sortStatus[lo] = NOT_SORTED;
+                sortTask.sortStatus[hi] = NOT_SORTED;
+                swap(toSort, lo, hi);
+                swapped = true;
+            }
+        }
+        let mid = (high - low) >>> 1;
+        loHiStack.push({
+            low: low,
+            high: low + mid
+        });
+        loHiStack.push({
+            low: low + mid + 1,
+            high: high
+        });
+        // if swap occured we have to keep cycling but we only want one (0, n - 1) cycle present on the stack
+        if (swapped && (loHiStack.length <= 0 || loHiStack[0] != startCycle)) {
+            loHiStack.unshift(startCycle);
+        }
     }
 }
 

@@ -20,6 +20,6 @@ p {
     overflow: hidden;
 }
 
-input[type="range"]{
-    width: 50%;
+.slider{
+    width: 80%;
 }

@@ -1,6 +1,6 @@
 const CANVAS_SCALE = 0.8;
-const w = ((window.innerWidth > 0) ? window.innerWidth : screen.width) * CANVAS_SCALE;
-const h = ((window.innerHeight > 0) ? window.innerHeight : screen.height) * CANVAS_SCALE;
+var w = ((window.innerWidth > 0) ? window.innerWidth : screen.width) * CANVAS_SCALE;
+var h = ((window.innerHeight > 0) ? window.innerHeight : screen.height) * CANVAS_SCALE;
 const MIN_ELEMENTS = 50;
 const COLOURS = ["red", "yellow", "blue", "teal", "green", "white"];
 const NOT_SORTED = 0;
@@ -25,6 +25,8 @@ onload = () => {
     initP5SortDrawer("comb-insertion", "Comb-Insertion Sort", combInsertionSort);
     initP5SortDrawer("shell", "Shell Sort", shellSort);
     initP5SortDrawer("patience", "Patience Sort", patienceSort);
+    initP5SortDrawer("circle", "Circle Sort", circleSortIterative);
+    //initP5SortDrawer("circle", "Circle Sort", circleSort);
     // collapsible descriptions
     var elements = document.getElementsByClassName("collapsible");
     for (let i = 0; i < elements.length; i++) {
@@ -132,6 +134,7 @@ function initP5SortDrawer(sortId, sortLabel, sort) {
 
             const arraySize = document.getElementById(`${sortId}-elements-range`);
             var s = Math.min(parseInt(arraySize.value), w);
+            arraySize.max = w;
             var elementsScale = elementScale(w, s);
 
             var rangePercent = 0; // 1 / 100
@@ -185,9 +188,9 @@ function initP5SortDrawer(sortId, sortLabel, sort) {
             });
             // colour mode
             const HSB = 1;
-            const CODED = 2;
+            const DISTINCT = 2;
             var currentMode = HSB;
-            var nextMode = CODED;
+            var nextMode = DISTINCT;
             document.getElementById(`tgl-colour-mode-${sortId}-btn`).addEventListener('click', async () => {
                 [currentMode, nextMode] = [nextMode, currentMode];
             });
@@ -239,7 +242,7 @@ function drawElementsHSBMode(sketch, elements, elementsScale, minNumber, maxNumb
     for (let x = 0; x < elements.length; x++) {
         const y = elements[x];
         const xSortStatus = sortTask.sortStatus[x];
-        var sb = 75;
+        var sb = 70;
         if (xSortStatus == VISITED) {
             sb = 100;
         }
@@ -249,7 +252,7 @@ function drawElementsHSBMode(sketch, elements, elementsScale, minNumber, maxNumb
         }
         drawBar(sketch, x, y, elementsScale, c);
     }
-    drawElementNumbers(sketch, elements, elementsScale, maxNumber, sortTask);
+    drawElementNumbers(sketch, elements, elementsScale, sortTask);
     drawOperations(sketch, elements, sortTask);
 }
 
@@ -264,7 +267,7 @@ function drawElementsColourCoded(sketch, elements, elementsScale, maxNumber, sor
         const y = elements[x];
         drawBar(sketch, x, y, elementsScale, sketch.color(COLOURS[sortTask.sortStatus[x]]))
     }
-    drawElementNumbers(sketch, elements, elementsScale, maxNumber, sortTask);
+    drawElementNumbers(sketch, elements, elementsScale, sortTask);
     drawOperations(sketch, elements, sortTask);
 }
 
@@ -283,11 +286,9 @@ function drawOperations(sketch, elements, sortTask) {
     sketch.text(`${sortTask.sortLabel} ≈ ${sortTask.operations} operations to sort ${elements.length} elements.`, w * 0.005, h * 0.03);
 }
 
-function drawElementNumbers(sketch, elements, elementsScale, maxNumber, sortTask) {
+function drawElementNumbers(sketch, elements, elementsScale, sortTask) {
     sketch.scale(1, -1);
     sketch.rotate(sketch.radians(270));
-    const offset = maxNumber * (1 - BAR_RATIO);
-    const adjust = h / maxNumber;
     for (let x = 0; x < elements.length; x++) {
         let xS = x * elementsScale
         let y = elements[x];
