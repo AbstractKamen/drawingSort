@@ -164,23 +164,12 @@ async function maxHeapify(arr, n, i, sortTask) {
 }
 // BUBBLE SORT
 async function bubbleSort(toSort, sortTask) {
-    var i, j, m;
+    var i, j;
     var swapped;
     for (i = 0; i < toSort.length - 1; i++) {
         if (sortTask.isFinished()) return;
-        swapped = false;
         sortTask.increment();
-        for (j = 0; j < toSort.length - i - 1; j++) {
-            if (sortTask.isFinished()) return;
-            sortTask.increment();
-            await sortTask.visit(j);
-            if (toSort[j] > toSort[j + 1]) {
-                m = j + 1;
-                p = m;
-                swap(toSort, j, j + 1);
-                swapped = true;
-            }
-        }
+        swapped = await bubbleSortInner(toSort, sortTask, j => j < toSort.length - i - 1);
 
         if (swapped == false) {
             for (k = 0; k < toSort.length - 1; k++) {
@@ -192,6 +181,35 @@ async function bubbleSort(toSort, sortTask) {
         }
     }
     sortTask.sortStatus[0] = SORTED;
+}
+async function bubbleSortInner(toSort, sortTask, loopPred, init = 0, step = 1) {
+    var swapped = false;
+    for (j = init; loopPred(j); j += step) {
+        if (sortTask.isFinished()) return;
+        sortTask.increment();
+        await sortTask.visit(j);
+        if (toSort[j] > toSort[j + 1]) {
+            swap(toSort, j, j + 1);
+            swapped = true;
+        }
+    }
+    return swapped;
+}
+// BUBBLE SORT
+async function brickSort(toSort, sortTask) {
+    var swapped = true;
+    while (swapped) {
+        if (sortTask.isFinished()) return;
+        sortTask.increment();
+        swapped = await bubbleSortInner(toSort, sortTask, i => i < toSort.length - 1, 1, 2);
+        swapped = await bubbleSortInner(toSort, sortTask, i => i < toSort.length - 1, 0, 2);
+
+        if (swapped == false) {
+            for (k = 0; k < toSort.length; k++) {
+                sortTask.sortStatus[k] = SORTED;
+            }
+        }
+    }
 }
 // SHAKER SORT
 async function shakerSort(toSort, sortTask) {

@@ -14,6 +14,7 @@ const BAR_RATIO = 0.9;
 onload = () => {
     initP5SortDrawer("heap", "Heap Sort", heapSort);
     initP5SortDrawer("bubble", "Bubble Sort", bubbleSort);
+    initP5SortDrawer("brick", "Brick Sort", brickSort);
     initP5SortDrawer("shaker", "Shaker Sort", shakerSort);
     initP5SortDrawer("merge", "Merge Sort", mergeSort);
     initP5SortDrawer("sleep", "Sleep Sort", sleepSort);
