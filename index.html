@@ -159,6 +159,38 @@
             <div id="merge-sort" class="sort">
             </div>
         </li>
+        <li>
+            <div class="btns">
+                <b>Iterative (unoptimised) Merge Sort</b><br>
+                <button id="sort-iterative-merge-btn" class="sort-btn">Sort</button>
+                <button id="reset-iterative-merge-btn">Clear</button>
+                <button class="collapsible">Click for description
+                    <div class="collapsible-content">
+                        <p>Characteristics:<strong> Stable, Not In place, O(n log n) time complexity</strong></p>
+                        <p>Iterative Merge Sort is an alternative implementation of the traditional Merge Sort algorithm
+                            that avoids recursion and instead uses an iterative approach. It is a comparison-based
+                            sorting algorithm that divides the input array into smaller subarrays, sorts them, and then
+                            merges the sorted subarrays to produce a fully sorted array. Unlike the recursive version of
+                            Merge Sort, the unoptimised iterative version uses a second auxiliary array, to perform the
+                            merging. With an auxiliary array, the space complexity is O(n), but it can be optimized to
+                            O(1) with in-place merging.
+                        </p>
+                    </div>
+                </button>
+                <button id="tgl-colour-mode-iterative-merge-btn">Colour Mode</button><br>
+                <button id="tgl-numbers-iterative-merge-btn">View Numbers</button><br>
+
+                <input id="iterative-merge-range" type="range" min="0" max="100" value="0" class="slider">Numbers
+                Range</input>
+                <input id="iterative-merge-millis-range" type="range" min="-9" max="50" value="0" class="slider">Sort
+                Speed</input>
+                <input id="iterative-merge-elements-range" type="range" min="15" max="1200" value="40"
+                    class="slider">Array
+                Size</input>
+            </div>
+            <div id="iterative-merge-sort" class="sort">
+            </div>
+        </li>
 
         <li>
             <div class="btns"><b>Heap Sort</b><br>
