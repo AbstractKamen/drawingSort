@@ -145,6 +145,7 @@
                             is guaranteed to remain the same. It's often used as the basis for other sorting
                             algorithms and is a fundamental concept in computer science.
                         </p>
+                        <p>Can easily be optimised for the best case, to sort an already sorted list in O(n) time.</p>
                     </div>
                 </button>
                 <button id="tgl-colour-mode-merge-btn">Colour Mode</button><br>
@@ -161,7 +162,7 @@
         </li>
         <li>
             <div class="btns">
-                <b>Iterative (unoptimised) Merge Sort</b><br>
+                <b>Iterative Merge Sort</b><br>
                 <button id="sort-iterative-merge-btn" class="sort-btn">Sort</button>
                 <button id="reset-iterative-merge-btn">Clear</button>
                 <button class="collapsible">Click for description
@@ -172,9 +173,10 @@
                             sorting algorithm that divides the input array into smaller subarrays, sorts them, and then
                             merges the sorted subarrays to produce a fully sorted array. Unlike the recursive version of
                             Merge Sort, the unoptimised iterative version uses a second auxiliary array, to perform the
-                            merging. With an auxiliary array, the space complexity is O(n), but it can be optimized to
-                            O(1) with in-place merging.
+                            merging. With an auxiliary array, the space complexity is O(n), but it can be further
+                            optimized to O(1) with in-place merging at the cost of O(n^2logn) time complexity.
                         </p>
+                        <p>Can easily be optimised for the best case, to sort an already sorted list in O(n) time.</p>
                     </div>
                 </button>
                 <button id="tgl-colour-mode-iterative-merge-btn">Colour Mode</button><br>
