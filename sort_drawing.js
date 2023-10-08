@@ -237,7 +237,7 @@ function drawElementsHSBMode(sketch, elements, elementsScale, minNumber, maxNumb
     sketch.translate(0, maxNumber);
     sketch.scale(1, -1);
     sketch.strokeWeight(1 * elementsScale);
-    sketch.strokeCap(sketch.SQUARE);
+    //sketch.strokeCap(sketch.SQUARE);
     sketch.colorMode(sketch.HSB, 360, 100, 100);
     const yPart = 1 / Math.max(100, absDifference(minNumber, maxNumber));
     for (let x = 0; x < elements.length; x++) {
@@ -263,7 +263,7 @@ function drawElementsColourCoded(sketch, elements, elementsScale, maxNumber, sor
     sketch.translate(0, maxNumber);
     sketch.scale(1, -1);
     sketch.strokeWeight(1 * elementsScale);
-    sketch.strokeCap(sketch.SQUARE);
+    // sketch.strokeCap(sketch.SQUARE);
     for (let x = 0; x < elements.length; x++) {
         const y = elements[x];
         drawBar(sketch, x, y, elementsScale, sketch.color(COLOURS[sortTask.sortStatus[x]]))
