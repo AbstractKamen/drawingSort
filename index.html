@@ -54,7 +54,30 @@
             <div id="sleep-sort" class="sort">
             </div>
         </li>
+        <li>
+            <div class="btns"><b>Counting Sort</b><br>
+                <button id="sort-counting-btn" class="sort-btn">Sort</button>
+                <button id="reset-counting-btn">Clear</button>
+                <button class="collapsible">Click for description
+                    <div class="collapsible-content">
+                        <p>Characteristics:<strong> Stable, O(n + k) time and space complexity</strong></p>
+                        <p>Limitations:<strong>It is efficient for small ranges of integers</strong> but becomes impractical for large ranges due to the space required by the count array.</p>
+                        Counting sort works by creating a count array to store the frequency of each unique element in the input array. It then uses this count array to determine the position of each element in the sorted output array.
+                        The algorithm is especially useful when the range of input values (k) is not significantly larger than the number of elements to be sorted (n).    
+                    </div>
+                </button>
+                <button id="tgl-colour-mode-counting-btn">Colour Mode</button><br>
+                <button id="tgl-numbers-counting-btn">View Numbers</button><br>
 
+                <input id="counting-range" type="range" min="0" max="100" value="0" class="slider">Numbers Range</input>
+                <input id="counting-millis-range" type="range" min="-9" max="50" value="0" class="slider">Sort
+                Speed</input>
+                <input id="counting-elements-range" type="range" min="15" max="1200" value="40" class="slider">Array
+                Size</input>
+            </div>
+            <div id="counting-sort" class="sort">
+            </div>
+        </li>
         <li>
             <div class="btns"><b>Quick Sort</b><br>
                 <button id="sort-quick-btn" class="sort-btn">Sort</button>

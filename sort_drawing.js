@@ -10,6 +10,7 @@ const LESSER = 3;
 const VERIFIED_SORTED = 4;
 const VISITED = 5;
 const BAR_RATIO = 0.9;
+const FRAME_RATE = 30;
 
 function init() {
     initP5SortDrawer("heap", "Heap Sort", heapSort);
@@ -28,6 +29,7 @@ function init() {
     initP5SortDrawer("shell", "Shell Sort", shellSort);
     initP5SortDrawer("patience", "Patience Sort", patienceSort);
     initP5SortDrawer("circle", "Circle Sort", circleSortIterative);
+    initP5SortDrawer("counting", "Counting Sort", countingSort);
     //initP5SortDrawer("circle", "Circle Sort", circleSort);
     // collapsible descriptions
     var elements = document.getElementsByClassName("collapsible");
@@ -134,7 +136,7 @@ function elementScale(width, elements) {
 function initP5SortDrawer(sortId, sortLabel, sort) {
     new p5(
         (sketch) => {
-
+            sketch.frameRate(FRAME_RATE);
             const arraySize = document.getElementById(`${sortId}-elements-range`);
             var s = Math.min(parseInt(arraySize.value), w);
             arraySize.max = w;
@@ -241,7 +243,8 @@ function drawElementsHSBMode(sketch, elements, elementsScale, minNumber, maxNumb
     sketch.strokeWeight(1 * elementsScale);
     //sketch.strokeCap(sketch.SQUARE);
     sketch.colorMode(sketch.HSB, 360, 100, 100);
-    const yPart = 1 / Math.max(100, absDifference(minNumber, maxNumber));
+    const yPart = 1 / Math.max(100, absDifference(0, maxNumber));
+    const yPartNeg = 1 / Math.max(100, absDifference(0, minNumber));
     for (let x = 0; x < elements.length; x++) {
         const y = elements[x];
         const xSortStatus = sortTask.sortStatus[x];
@@ -251,12 +254,12 @@ function drawElementsHSBMode(sketch, elements, elementsScale, minNumber, maxNumb
         }
         var c = sketch.color(yPart * y * 360, sb, sb);
         if (y < 0) {
-            c = sketch.color(360 - (-y % 360), sb, sb);
+            c = sketch.color(360 - (((1 - yPartNeg) * -y )), sb, sb);
         }
         drawBar(sketch, x, y, elementsScale, c);
     }
     drawElementNumbers(sketch, elements, elementsScale, sortTask);
-    drawOperations(sketch, elements, sortTask);
+    stats(sketch, elements, sortTask);
 }
 
 function drawElementsColourCoded(sketch, elements, elementsScale, maxNumber, sortTask) {
@@ -271,7 +274,7 @@ function drawElementsColourCoded(sketch, elements, elementsScale, maxNumber, sor
         drawBar(sketch, x, y, elementsScale, sketch.color(COLOURS[sortTask.sortStatus[x]]))
     }
     drawElementNumbers(sketch, elements, elementsScale, sortTask);
-    drawOperations(sketch, elements, sortTask);
+    stats(sketch, elements, sortTask);
 }
 
 function drawBar(sketch, x, y, elementsScale, colour) {
@@ -280,13 +283,13 @@ function drawBar(sketch, x, y, elementsScale, colour) {
     sketch.line(xS, 0, xS, y * BAR_RATIO);
 }
 
-function drawOperations(sketch, elements, sortTask) {
+function stats(sketch, elements, sortTask) {
     sketch.pop();
     sketch.stroke(50);
     sketch.strokeWeight(1);
     sketch.textSize(12);
     sketch.fill(255);
-    sketch.text(`${sortTask.sortLabel} ≈ ${sortTask.operations} operations to sort ${elements.length} elements.`, w * 0.005, h * 0.03);
+    sketch.text(`${sortTask.sortLabel} ≈ ${sortTask.operations} operations to sort ${elements.length} elements.`, w * 0.005, h * 0.05);
 }
 
 function drawElementNumbers(sketch, elements, elementsScale, sortTask) {

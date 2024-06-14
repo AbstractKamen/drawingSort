@@ -775,6 +775,68 @@ async function circleSortIterative(toSort, sortTask) {
         }
     }
 }
+// COUNTING SORT
+async function countingSort(toSort, sortTask) {
+    var n, i, j = 0,
+        max = -((1 << 32) - 1),
+        min = 1 << 32;
+    for (i = 0; i < toSort.length; i++) {
+        await sortTask.visit(i);
+        sortTask.increment();
+        min = Math.min(min, toSort[i]);
+        max = Math.max(max, toSort[i]);
+    }
+    var count;
+    if (min < 0) {
+        const min_abs = abs(min);
+        n = max + min_abs + 1;
+        count = new Array(n);
+        for (i = 0; i < toSort.length; i++) {
+            sortTask.increment();
+            if (count[min_abs + toSort[i]]) {
+                count[min_abs + toSort[i]]++;
+            } else {
+                count[min_abs + toSort[i]] = 1;
+            }
+        }
+        for (i = 0; i < n; i++) {
+            if (count[i] > 0) {
+                while (count[i] > 0) {
+                    sortTask.increment();
+                    await sortTask.visit(j);
+                    toSort[j] = i - min_abs;
+                    sortTask.sortStatus[j] = SORTED;
+                    j++;
+                    count[i]--;
+                }
+            }
+            sortTask.increment();
+        }
+    } else {
+        n = max + 1;
+        count = new Array(n);
+        for (i = 0; i < toSort.length; i++) {
+            if (count[toSort[i]]) {
+                count[toSort[i]]++;
+            } else {
+                count[toSort[i]] = 1;
+            }
+        }
+        for (i = 0, j = 0; i < n; i++) {
+            if (count[i] > 0) {
+                while (count[i] > 0) {
+                    sortTask.increment();
+                    await sortTask.visit(j);
+                    toSort[j] = i;
+                    sortTask.sortStatus[j] = SORTED;
+                    j++;
+                    count[i]--;
+                }
+            }
+            sortTask.increment();
+        }
+    }
+}
 
 function binarySearch(sortTask, elements, value,
     // default array access and comparison functions
@@ -815,4 +877,9 @@ function swap(arr, i, j) {
     let temp = arr[i];
     arr[i] = arr[j];
     arr[j] = temp;
+}
+
+function abs(n) {
+    mask = n >> 31;
+    return ((n + mask) ^ mask);
 }
