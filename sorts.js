@@ -513,7 +513,7 @@ async function iterativeMergeSort(toSort, sortTask) {
                 const temp = await itMerge(toSort, sortTask, leftStart, leftEnd, rightStart, rightEnd);
                 const limit = rightEnd - leftStart + 1;
                 for (let j = 0; j < limit && sortTask.isStarted; j++) {
-                    await sortTask.visit(j, i + j);
+                    await sortTask.visit(i + j);
                     toSort[i + j] = temp[j];
                     sortTask.sortStatus[j] = SORTED;
                     sortTask.increment();
