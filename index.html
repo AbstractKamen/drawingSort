@@ -79,6 +79,30 @@
             </div>
         </li>
         <li>
+            <div class="btns"><b>Bucket Sort</b><br>
+                <button id="sort-bucket-btn" class="sort-btn">Sort</button>
+                <button id="reset-bucket-btn">Clear</button>
+                <button class="collapsible">Click for description
+                    <div class="collapsible-content">
+                        <p>Characteristics:<strong> Stable, O(n^2) time and O(n)space complexity</strong></p>
+                        Bucket sort is a comparison-based sorting algorithm that distributes elements into a number of buckets, sorts each bucket individually, and then concatenates the sorted buckets to produce the final sorted array. Its sorting stability depends on the algorithm used to sort each bucket.
+                        <p>Advantages: Efficient for uniformly distributed data.</p>
+                        <p>Disadvantages: Performance degrades if elements are not uniformly distributed. Requires additional space for buckets.</p>
+                    </div>
+                </button>
+                <button id="tgl-colour-mode-bucket-btn">Colour Mode</button><br>
+                <button id="tgl-numbers-bucket-btn">View Numbers</button><br>
+
+                <input id="bucket-range" type="range" min="0" max="100" value="0" class="slider">Numbers Range</input>
+                <input id="bucket-millis-range" type="range" min="-9" max="50" value="0" class="slider">Sort
+                Speed</input>
+                <input id="bucket-elements-range" type="range" min="15" max="1200" value="40" class="slider">Array
+                Size</input>
+            </div>
+            <div id="bucket-sort" class="sort">
+            </div>
+        </li>
+        <li>
             <div class="btns"><b>Quick Sort</b><br>
                 <button id="sort-quick-btn" class="sort-btn">Sort</button>
                 <button id="reset-quick-btn">Clear</button>

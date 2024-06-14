@@ -30,6 +30,7 @@ function init() {
     initP5SortDrawer("patience", "Patience Sort", patienceSort);
     initP5SortDrawer("circle", "Circle Sort", circleSortIterative);
     initP5SortDrawer("counting", "Counting Sort", countingSort);
+    initP5SortDrawer("bucket", "Bucket Sort", bucketSort);
     //initP5SortDrawer("circle", "Circle Sort", circleSort);
     // collapsible descriptions
     var elements = document.getElementsByClassName("collapsible");

@@ -274,7 +274,6 @@ async function shellSort(toSort, sortTask) {
         // gapped insertion sort for this gap size
         for (let i = g; i < n; ++i) {
             if (sortTask.isFinished()) return;
-            await sortTask.visit(i);
             await insertionBackstepLoop(toSort, sortTask, i, g, async j => {
                 await sortTask.visit(i, j);
             });
@@ -392,14 +391,12 @@ async function selectionSort(toSort, sortTask) {
         for (j = i + 1; j < n; j++) {
             if (sortTask.isFinished()) return;
             sortTask.increment();
-            await sortTask.visit(j);
-
+            await sortTask.visit(min_idx, j);
             if (toSort[j] < toSort[min_idx]) {
                 sortTask.sortStatus[j] = LESSER;
                 if (sortTask.sortStatus[min_idx] != SORTED) {
                     sortTask.sortStatus[min_idx] = NOT_SORTED;
                 }
-
                 min_idx = j;
             }
             if (j - 1 != min_idx && sortTask.sortStatus[j - 1] != SORTED) {
@@ -488,6 +485,71 @@ async function merge(toSort, leftI, middle, rightI, sortTask) {
         j++;
         k++;
         sortTask.increment();
+    }
+}
+// BUCKET SORT
+async function bucketSort(toSort, sortTask) {
+    let n = toSort.length;
+    var max = -((1 << 32) - 1),
+        min = 1 << 32;
+    for (i = 0; i < toSort.length; i++) {
+        sortTask.increment();
+        min = Math.min(min, toSort[i]);
+        max = Math.max(max, toSort[i]);
+    }
+    const bucketSize = Math.floor((max - min) / Math.sqrt(n)) + 1;
+    // Initialize buckets
+    const buckets = new Array(Math.floor((max - min) / bucketSize) + 1);
+    for (let i = 0; i < buckets.length; i++) {
+        buckets[i] = [];
+    }
+    for (let i = 0; i < n; i++) {
+        if (sortTask.isFinished()) return;
+        let bi = Math.floor((toSort[i] - min) / bucketSize);
+        const bucket = buckets[bi];
+        bucket.push(toSort[i]);
+        await sortTask.visit(bi, i, bi + bucket.length);
+        sortTask.increment();
+        let index = 0;
+        for (let k = 0; k < buckets.length; k++) {
+            const bucket = buckets[k];
+            for (let j = 0; j < bucket.length; j++) {
+                toSort[index++] = bucket[j];
+            }
+        }
+    }
+    let indexO = 0;
+    for (let k = 0; k < buckets.length; k++) {
+        sortTask.increment();
+        // sort bucket with insertion sort
+        const bucket = buckets[k];
+        for (let i = 1; i < bucket.length; ++i) {
+            if (sortTask.isFinished()) return;
+            sortTask.increment();
+            let key = bucket[i];
+            let j = i - 1;
+            toSort[indexO + j] = bucket[j];
+            await sortTask.visit(j + indexO);
+            while (j >= 0 && bucket[j] > key) {
+                if (sortTask.isFinished()) return;
+                sortTask.increment();
+                bucket[j + 1] = bucket[j];
+                toSort[indexO + j + 1] = bucket[j];
+                await sortTask.visit(j + 1 + indexO);
+                j--;
+            }
+            bucket[j + 1] = key;
+            toSort[indexO + 1 + j] = key;
+        }
+        // copy sorted bucket contents to original array
+        let index = indexO;
+        for (let j = 0; j < bucket.length; j++) {
+            sortTask.increment();
+            toSort[index] = bucket[j];
+            await sortTask.visit(index);
+            sortTask.sortStatus[index++] = SORTED;
+        }
+        indexO += bucket.length;
     }
 }
 // ITERATIVE MERGE SORT
