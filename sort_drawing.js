@@ -30,7 +30,7 @@ function init() {
     initP5SortDrawer("patience", "Patience Sort", patienceSort);
     initP5SortDrawer("circle", "Circle Sort", circleSortIterative);
     initP5SortDrawer("counting", "Counting Sort", countingSort);
-    initP5SortDrawer("bucket", "Bucket Sort", bucketSort);
+    initP5SortDrawer("bucket", "Bucket Sort", bucketSort, BUCKET_COMP_SORTS, BUCKET_COMP_SORTS[0]);
     //initP5SortDrawer("circle", "Circle Sort", circleSort);
     // collapsible descriptions
     var elements = document.getElementsByClassName("collapsible");
@@ -51,9 +51,28 @@ function init() {
     }
 }
 onload = init;
-
+const BUCKET_COMP_SORTS = [
+    {
+        'label': function () {
+            return "Insertion Sort";
+        },
+        sort: bucketInsertionSort
+    },
+    {
+        'label': function () {
+            return "Quick Sort";
+        },
+        sort: bucketQuickSort
+    },
+    {
+        'label': function () {
+            return "Merge Sort";
+        },
+        sort: bucketMergeSort
+    }
+];
 class SortTask {
-    constructor(sketch, sortLabel, sortFunc, ms, s) {
+    constructor(sketch, sortLabel, sortFunc, ms, s, ...additionalArgs) {
         this.sketch = sketch;
         this.sortLabel = sortLabel;
         this.isStarted = false;
@@ -64,6 +83,7 @@ class SortTask {
         this.sortStatus = new Array(s).fill(0);
         this.mms = ms;
         this.msC = 5;
+        this.additionalArgs = additionalArgs;
     }
 
     async doSort() {
@@ -71,17 +91,24 @@ class SortTask {
         this.sortStatus.fill(0);
         this.operations = 0;
         this.isStarted = true;
-        await this.sortFunc.apply(this, arguments);
+        const args = [...arguments, ...this.additionalArgs]
+        await this.sortFunc.apply(this, args);
         // verify
         const toSort = arguments[0];
         let lastVerified;
-        for (let i = 1; i < this.sortStatus.length; i++) {
+        for (let i = 1; i < toSort.length; i++) {
             if (!this.isStarted) return;
             if (toSort[i - 1] <= toSort[i]) {
                 this.sortStatus[i - 1] = VERIFIED_SORTED;
                 this.sortStatus[i] = VERIFIED_SORTED;
             } else {
                 lastVerified = i;
+                console.log(i - 1, i);
+                console.log(toSort[i - 1], toSort[i]);
+                for (let item of toSort) {
+                    console.log(typeof item, item);
+                }
+                break;
             }
             await this.sleep();
         }
@@ -134,7 +161,7 @@ function elementScale(width, elements) {
     return width > elements ? width / elements : elements / width;
 }
 
-function initP5SortDrawer(sortId, sortLabel, sort) {
+function initP5SortDrawer(sortId, sortLabel, sort, compSorts, currentCompSort) {
     new p5(
         (sketch) => {
             sketch.frameRate(FRAME_RATE);
@@ -170,7 +197,7 @@ function initP5SortDrawer(sortId, sortLabel, sort) {
             const msMin = parseInt(millis.min);
             var ms = msMax - parseInt(millis.value);
             // sort task init
-            var sortTask = new SortTask(sketch, sortLabel, sort, ms, s);
+            var sortTask = new SortTask(sketch, sortLabel, sort, ms, s, currentCompSort);
             millis.oninput = () => {
                 sortTask.setMs(msMax - parseInt(millis.value) + msMin);
             };
@@ -217,8 +244,35 @@ function initP5SortDrawer(sortId, sortLabel, sort) {
                         drawElementsColourCoded(sketch, toSort, elementsScale, maxNumber, sortTask);
                 }
             };
+            // comp sorts
+            const compSortBtn = document.getElementById(`${sortId}-comp-sort-btn`);
+            if (compSortBtn != undefined && compSorts != undefined) {
+                const compSortContent = document.getElementById(`${sortId}-comp-sort-content`);
+                compSortBtn.textContent = currentCompSort.label();
+                loadDropDownContent(compSortContent, compSortBtn, compSorts, (selection) => {
+                    currentCompSort = compSorts[selection];
+                    // todo
+                    sortTask.additionalArgs = [currentCompSort];
+                    compSortBtn.textContent = currentCompSort.label();
+                    compSortContent.classList.toggle("show");
+                    return false;
+                });
+            }
         },
         `${sortId}-sort`);
+}
+
+function loadDropDownContent(contentHtmlElement, contentBtn, labeledContent, onClickFunc) {
+    for (var i = 0; i < labeledContent.length; i++) {
+        let a = document.createElement("a");
+        const curI = i;
+        a.onclick = () => onClickFunc(curI);
+        a.href = '#';
+        a.textContent = labeledContent[i].label();
+        a.classList = ["dropdown-content-a"];
+        contentHtmlElement.appendChild(a);
+    }
+    contentBtn.addEventListener("click", () => contentHtmlElement.classList.toggle("show"));
 }
 
 function updateElementsRange(m, toSort, elements, sortTask) {

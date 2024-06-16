@@ -488,7 +488,7 @@ async function merge(toSort, leftI, middle, rightI, sortTask) {
     }
 }
 // BUCKET SORT
-async function bucketSort(toSort, sortTask) {
+async function bucketSort(toSort, sortTask, compSort) {
     let n = toSort.length;
     var max = -((1 << 32) - 1),
         min = 1 << 32;
@@ -506,9 +506,13 @@ async function bucketSort(toSort, sortTask) {
     for (let i = 0; i < n; i++) {
         if (sortTask.isFinished()) return;
         let bi = Math.floor((toSort[i] - min) / bucketSize);
+        let biStart = 0;
+        for (let j = 0; j <= bi; j++) {
+            biStart += buckets[j].length;
+        }
         const bucket = buckets[bi];
         bucket.push(toSort[i]);
-        await sortTask.visit(bi, i, bi + bucket.length);
+        await sortTask.visit(biStart, biStart + bucket.length);
         sortTask.increment();
         let index = 0;
         for (let k = 0; k < buckets.length; k++) {
@@ -518,38 +522,157 @@ async function bucketSort(toSort, sortTask) {
             }
         }
     }
-    let indexO = 0;
+    let index = 0;
     for (let k = 0; k < buckets.length; k++) {
         sortTask.increment();
-        // sort bucket with insertion sort
         const bucket = buckets[k];
-        for (let i = 1; i < bucket.length; ++i) {
+        await compSort.sort(toSort, sortTask, bucket, index);
+        index += bucket.length;
+    }
+}
+// BUCKET insertion sort
+async function bucketInsertionSort(toSort, sortTask, bucket, offset) {
+    for (let i = 1; i < bucket.length; ++i) {
+        if (sortTask.isFinished()) return;
+        sortTask.increment();
+        let key = bucket[i];
+        let j = i - 1;
+        toSort[offset + j] = bucket[j];
+        sortTask.sortStatus[offset + j] = SORTED;
+        while (j >= 0 && bucket[j] > key) {
             if (sortTask.isFinished()) return;
             sortTask.increment();
-            let key = bucket[i];
-            let j = i - 1;
-            toSort[indexO + j] = bucket[j];
-            await sortTask.visit(j + indexO);
-            while (j >= 0 && bucket[j] > key) {
-                if (sortTask.isFinished()) return;
-                sortTask.increment();
-                bucket[j + 1] = bucket[j];
-                toSort[indexO + j + 1] = bucket[j];
-                await sortTask.visit(j + 1 + indexO);
-                j--;
-            }
-            bucket[j + 1] = key;
-            toSort[indexO + 1 + j] = key;
+            bucket[j + 1] = bucket[j];
+            toSort[offset + j + 1] = bucket[j];
+            await sortTask.visit(j + 1 + offset);
+            sortTask.sortStatus[offset + j - 1] = SORTED;
+            sortTask.sortStatus[offset + j] = SORTED;
+            sortTask.sortStatus[offset + j + 1] = SORTED;
+            j--;
         }
-        // copy sorted bucket contents to original array
-        let index = indexO;
-        for (let j = 0; j < bucket.length; j++) {
+        bucket[j + 1] = key;
+        toSort[offset + j + 1] = key;
+        sortTask.sortStatus[offset + j + 1] = SORTED;
+    }
+}
+// BUCKET merge sort
+async function bucketMergeSort(toSort, sortTask, bucket, offset) {
+    await mergeSortRec(0, bucket.length - 1);
+    async function mergeSortRec(leftI, rightI) {
+        if (sortTask.isFinished()) {
+            return;
+        }
+        if (leftI >= rightI) {
+            return;
+        }
+        sortTask.increment();
+        var m = leftI + ((rightI - leftI) >>> 1);
+        await sortTask.visit(offset + m);
+        await mergeSortRec(leftI, m);
+        await mergeSortRec(m + 1, rightI);
+        if (bucket[m] > bucket[m + 1]) { // best case condition
             sortTask.increment();
-            toSort[index] = bucket[j];
-            await sortTask.visit(index);
-            sortTask.sortStatus[index++] = SORTED;
+            await merge(leftI, m, rightI);
+        } else {
+            sortTask.sortStatus[offset + m] = SORTED;
+            sortTask.sortStatus[offset + m + 1] = SORTED;
         }
-        indexO += bucket.length;
+    }
+    
+    async function merge(leftI, middle, rightI) {
+        if (sortTask.isFinished()) return;
+        var leftSize = middle - leftI + 1;
+        var rightSize = rightI - middle;
+        var left = new Array(leftSize);
+        var right = new Array(rightSize);
+        for (let i = 0; i < leftSize && sortTask.isStarted; i++) {
+            left[i] = bucket[leftI + i];
+            sortTask.increment();
+        }
+        for (let j = 0; j < rightSize && sortTask.isStarted; j++) {
+            right[j] = bucket[middle + 1 + j];
+            sortTask.increment();
+        }
+        var i = 0;
+        var j = 0;
+        var k = leftI;
+    
+        while (i < leftSize && j < rightSize && sortTask.isStarted) {
+            if (left[i] <= right[j]) {
+                bucket[k] = left[i];
+                toSort[offset + k] = left[i];
+                i++;
+            } else {
+                bucket[k] = right[j];
+                toSort[offset + k] = right[j];
+                j++;
+            }
+            sortTask.sortStatus[offset + k] = SORTED;
+            await sortTask.visit(offset + k);
+            sortTask.increment();
+            k++;
+        }
+    
+        while (i < leftSize && sortTask.isStarted) {
+            bucket[k] = left[i];
+            toSort[offset + k] = left[i];
+            sortTask.sortStatus[offset + k] = SORTED;
+            await sortTask.visit(offset + k);
+            i++;
+            k++;
+            sortTask.increment();
+        }
+    
+        while (j < rightSize && sortTask.isStarted) {
+            bucket[k] = right[j];
+            toSort[offset + k] = right[j];
+            sortTask.sortStatus[offset + k] = SORTED;
+            await sortTask.visit(offset + k);
+            j++;
+            k++;
+            sortTask.increment();
+        }
+    }
+}
+// BUCKET quick sort
+async function bucketQuickSort(toSort, sortTask, bucket, offset) {
+    await quickSortRec(0, bucket.length - 1);
+    async function quickSortRec(low, high) {
+        if (sortTask.isFinished()) return;
+        while (low < high) {
+            sortTask.increment();
+            let pi = await partition(low, high);
+            sortTask.sortStatus[offset + pi] = SORTED;
+            sortTask.sortStatus[offset + pi - 1] = SORTED;
+            if (pi - low < high - pi) {
+                await quickSortRec(low, pi - 1);
+                sortTask.sortStatus[offset + low] = SORTED;
+                low = pi + 1;
+            } else {
+                await quickSortRec(pi + 1, high);
+                sortTask.sortStatus[offset + high] = SORTED;
+                high = pi - 1;
+            }
+        }
+    }
+    async function partition(low, high) {
+        if (sortTask.isFinished()) return;
+        await sortTask.sleep();
+        let pivot = bucket[high];
+        let i = low - 1;
+        for (let j = low; j <= high - 1; j++) {
+            if (sortTask.isFinished()) return;
+            sortTask.increment();
+            await sortTask.visit(offset + i, offset + j);
+            if (bucket[j] < pivot) {
+                i++;
+                swap(bucket, i, j);
+                swap(toSort, offset + i, offset + j);
+            }
+        }
+        swap(bucket, i + 1, high);
+        swap(toSort, offset + i + 1, offset + high);
+        return i + 1;
     }
 }
 // ITERATIVE MERGE SORT
