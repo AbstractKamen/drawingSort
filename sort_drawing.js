@@ -31,6 +31,8 @@ function init() {
     initP5SortDrawer("circle", "Circle Sort", circleSortIterative);
     initP5SortDrawer("counting", "Counting Sort", countingSort);
     initP5SortDrawer("bucket", "Bucket Sort", bucketSort, BUCKET_COMP_SORTS, BUCKET_COMP_SORTS[0]);
+    initP5SortDrawer("tim", "Tim Sort", timSort);
+    initP5SortDrawer("binary-insertion", "Binary Insertion Sort", binaryInsertionSort);
     //initP5SortDrawer("circle", "Circle Sort", circleSort);
     // collapsible descriptions
     var elements = document.getElementsByClassName("collapsible");

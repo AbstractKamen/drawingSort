@@ -350,6 +350,32 @@ async function insertionBackstepLoop(toSort, sortTask, cur, backStep,
     }
     toSort[j + backStep] = key;
 }
+// BINARY INSERTION SORT
+async function binaryInsertionSort(toSort, sortTask) {
+    let i, n = toSort.length;
+    for (i = 1; i < n && sortTask.isStarted; i++) {
+        let p = toSort[i];
+        let left = 0;
+        let right = i;
+        while (left < right && sortTask.isStarted) {
+            let mid = (left + right) >>> 1;
+            await sortTask.visit(left, right);
+            sortTask.increment();
+            if (p < toSort[mid]) {
+                right = mid;
+            } else {
+                left = mid + 1;
+            }
+        }
+        sortTask.increment(2);
+        // consider this a block operation
+        for (let j = i; j > left - 1; j--) {
+            toSort[j] = toSort[j - 1];
+            sortTask.sortStatus[j] = SORTED;
+        }
+        toSort[left] = p;
+    }
+}
 // COMB SORT
 async function combSort(toSort, sortTask) {
     let n = toSort.length;
@@ -490,7 +516,7 @@ async function merge(toSort, leftI, middle, rightI, sortTask) {
 // BUCKET SORT
 async function bucketSort(toSort, sortTask, compSort) {
     let n = toSort.length;
-    var max = -((1 << 32) - 1),
+    var max = -(1 << 32),
         min = 1 << 32;
     for (i = 0; i < toSort.length; i++) {
         sortTask.increment();
@@ -578,7 +604,7 @@ async function bucketMergeSort(toSort, sortTask, bucket, offset) {
             sortTask.sortStatus[offset + m + 1] = SORTED;
         }
     }
-    
+
     async function merge(leftI, middle, rightI) {
         if (sortTask.isFinished()) return;
         var leftSize = middle - leftI + 1;
@@ -596,7 +622,7 @@ async function bucketMergeSort(toSort, sortTask, bucket, offset) {
         var i = 0;
         var j = 0;
         var k = leftI;
-    
+
         while (i < leftSize && j < rightSize && sortTask.isStarted) {
             if (left[i] <= right[j]) {
                 bucket[k] = left[i];
@@ -612,7 +638,7 @@ async function bucketMergeSort(toSort, sortTask, bucket, offset) {
             sortTask.increment();
             k++;
         }
-    
+
         while (i < leftSize && sortTask.isStarted) {
             bucket[k] = left[i];
             toSort[offset + k] = left[i];
@@ -622,7 +648,7 @@ async function bucketMergeSort(toSort, sortTask, bucket, offset) {
             k++;
             sortTask.increment();
         }
-    
+
         while (j < rightSize && sortTask.isStarted) {
             bucket[k] = right[j];
             toSort[offset + k] = right[j];
@@ -673,6 +699,95 @@ async function bucketQuickSort(toSort, sortTask, bucket, offset) {
         swap(bucket, i + 1, high);
         swap(toSort, offset + i + 1, offset + high);
         return i + 1;
+    }
+}
+// TIM SORT
+async function timSort(toSort, sortTask) {
+    const MIN_MERGE = 32;
+
+    function minRunLength(n) {
+        let r = 0;
+        while (n >= MIN_MERGE) {
+            r |= (n & 1);
+            n >>>= 1;
+        }
+        return n + r;
+    }
+
+    async function insertionSort(left, right) {
+        for (let i = left + 1; i <= right; i++) {
+            let temp = toSort[i];
+            let j = i - 1;
+            sortTask.increment();
+            while (j >= left && toSort[j] > temp) {
+                if (sortTask.isFinished()) return;
+                sortTask.increment();
+                await sortTask.visit(j + 1);
+                toSort[j + 1] = toSort[j];
+                sortTask.sortStatus[j - 1] = SORTED;
+                sortTask.sortStatus[j] = SORTED;
+                sortTask.sortStatus[j + 1] = SORTED;
+                j--;
+            }
+            toSort[j + 1] = temp;
+        }
+    }
+
+    async function merge(l, m, r) {
+        let leftSize = m - l + 1,
+            rightSize = r - m;
+        let left = new Array(leftSize);
+        let right = new Array(rightSize);
+        for (let i = 0; i < leftSize && sortTask.isStarted; i++) {
+            left[i] = toSort[l + i];
+            sortTask.increment();
+        }
+        for (let i = 0; i < rightSize && sortTask.isStarted; i++) {
+            right[i] = toSort[m + 1 + i];
+            sortTask.increment();
+        }
+        let i = 0,
+            j = 0,
+            k = l;
+        while (i < leftSize && j < rightSize && sortTask.isStarted) {
+            // no galloping here brother man
+            if (left[i] <= right[j]) {
+                toSort[k] = left[i++];
+            } else {
+                toSort[k] = right[j++];
+            }
+            sortTask.increment();
+            await sortTask.visit(k++);
+        }
+        while (i < leftSize && sortTask.isStarted) {
+            toSort[k] = left[i++];
+            await sortTask.visit(k++);
+            sortTask.increment();
+        }
+        while (j < rightSize && sortTask.isStarted) {
+            toSort[k] = right[j++];
+            await sortTask.visit(k++);
+            sortTask.increment();
+        }
+    }
+
+    const n = toSort.length;
+    const minRun = minRunLength(n);
+
+    // Sort individual subarrays of size RUN
+
+    for (let i = 0; i < n; i += minRun) {
+        await insertionSort(i, Math.min(i + MIN_MERGE - 1, n - 1));
+    }
+
+    for (let size = minRun; size < n; size = 2 * size) {
+        for (let left = 0; left < n; left += 2 * size) {
+            let mid = Math.min(n - 1, left + size - 1);
+            let right = Math.min((left + 2 * size - 1), (n - 1));
+            if (mid < right) {
+                await merge(left, mid, right);
+            }
+        }
     }
 }
 // ITERATIVE MERGE SORT
