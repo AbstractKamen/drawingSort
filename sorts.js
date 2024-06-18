@@ -777,7 +777,7 @@ async function timSort(toSort, sortTask) {
     // Sort individual subarrays of size RUN
 
     for (let i = 0; i < n; i += minRun) {
-        await insertionSort(i, Math.min(i + MIN_MERGE - 1, n - 1));
+        await insertionSort(i, Math.min(i + minRun - 1, n - 1));
     }
 
     for (let size = minRun; size < n; size = 2 * size) {
