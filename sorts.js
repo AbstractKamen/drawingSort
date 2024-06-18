@@ -2,11 +2,11 @@
 async function quickSort(toSort, sortTask) {
     await quickSortRec(toSort, 0, toSort.length - 1, sortTask);
 }
-async function quickSortRec(toSort, low, high, sortTask) {
+async function quickSortRec(toSort, low, high, sortTask, partitionFunc = partition) {
     if (sortTask.isFinished()) return;
     while (low < high) {
         sortTask.increment();
-        let pi = await partition(toSort, low, high, sortTask);
+        let pi = await partitionFunc(toSort, low, high, sortTask);
         sortTask.sortStatus[pi] = SORTED;
         sortTask.sortStatus[pi - 1] = SORTED;
         if (pi - low < high - pi) {
@@ -18,6 +18,51 @@ async function quickSortRec(toSort, low, high, sortTask) {
             sortTask.sortStatus[high] = SORTED;
             high = pi - 1;
         }
+    }
+}
+// MEDIAN OF THREE QUICK SORT
+async function medianOfThreeQuickSort(toSort, sortTask) {
+    await quickSortRec(toSort, 0, toSort.length - 1, sortTask, medianOfThreePartition);
+
+    async function medianOfThreePartition(toSort, low, high, sortTask) {
+        if (sortTask.isFinished()) return;
+        let pIndex = await medianOfThree(toSort, low, high, sortTask);
+        let pivot = toSort[pIndex];
+        swap(toSort, pIndex, high);
+        let i = low - 1;
+        for (let j = low; j <= high - 1; j++) {
+            if (sortTask.isFinished()) return;
+            sortTask.increment();
+            if (i >= 0) {
+                await sortTask.visit(i, j);
+                if (toSort[j] < pivot) {
+                    swap(toSort, ++i, j);
+                }
+            } else {
+                await sortTask.visit(j);
+                if (toSort[j] < pivot) {
+                    swap(toSort, ++i, j);
+                }
+            }
+        }
+        swap(toSort, ++i, high);
+        return i;
+    }
+
+    async function medianOfThree(toSort, low, high, sortTask) {
+        const mid = low + ((high - low) >> 1);
+        if (toSort[low] > toSort[mid]) {
+            swap(toSort, low, mid);
+        }
+        if (toSort[low] > toSort[high]) {
+            swap(toSort, low, high);
+        }
+        if (toSort[mid] > toSort[high]) {
+            swap(toSort, mid, high);
+        }
+        await sortTask.visit(low, mid, high);
+        sortTask.increment();
+        return mid;
     }
 }
 // ITERATIVE QUICK SORT
@@ -49,26 +94,6 @@ async function iterativeQuickSort(toSort, sortTask) {
         }
     }
 
-}
-
-function medianOfThree(toSort, low, high) {
-    const a = toSort[low];
-    const mid = Math.floor((low + high) / 2);
-    const b = toSort[mid];
-    const c = toSort[high];
-    // [a, b, c] a >= b >= c --> mid
-    // [c, b, a] c >= b >= a --> mid
-    // [b, a, c] b >= a >= c --> low
-    // [c, a, b] c >= a >= b --> low
-    // [b, c, a] b >= c >= a --> high
-    // [a, c, b] a >= c >= b --> high
-    if (a >= b && b >= c || c >= b && b >= a) {
-        return mid;
-    } else if (b >= a && a >= c || c >= a && a >= b) {
-        return low;
-    } else {
-        return high;
-    }
 }
 
 async function partition(toSort, low, high, sortTask) {
@@ -1080,6 +1105,7 @@ async function countingSort(toSort, sortTask) {
         max = -((1 << 32) - 1),
         min = 1 << 32;
     for (i = 0; i < toSort.length; i++) {
+        if (sortTask.isFinished()) return;
         await sortTask.visit(i);
         sortTask.increment();
         min = Math.min(min, toSort[i]);
@@ -1091,6 +1117,7 @@ async function countingSort(toSort, sortTask) {
         n = max + min_abs + 1;
         count = new Array(n);
         for (i = 0; i < toSort.length; i++) {
+            if (sortTask.isFinished()) return;
             sortTask.increment();
             if (count[min_abs + toSort[i]]) {
                 count[min_abs + toSort[i]]++;
@@ -1099,8 +1126,10 @@ async function countingSort(toSort, sortTask) {
             }
         }
         for (i = 0; i < n; i++) {
+            if (sortTask.isFinished()) return;
             if (count[i] > 0) {
                 while (count[i] > 0) {
+                    if (sortTask.isFinished()) return;
                     sortTask.increment();
                     await sortTask.visit(j);
                     toSort[j] = i - min_abs;
@@ -1115,6 +1144,7 @@ async function countingSort(toSort, sortTask) {
         n = max + 1;
         count = new Array(n);
         for (i = 0; i < toSort.length; i++) {
+            if (sortTask.isFinished()) return;
             if (count[toSort[i]]) {
                 count[toSort[i]]++;
             } else {
@@ -1122,6 +1152,7 @@ async function countingSort(toSort, sortTask) {
             }
         }
         for (i = 0, j = 0; i < n; i++) {
+            if (sortTask.isFinished()) return;
             if (count[i] > 0) {
                 while (count[i] > 0) {
                     sortTask.increment();
