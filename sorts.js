@@ -401,6 +401,54 @@ async function binaryInsertionSort(toSort, sortTask) {
         toSort[left] = p;
     }
 }
+// PAIR INSERTION
+async function pairInsertionSort(toSort, sortTask) {
+    let i = 0, low = 0;
+    for (; low < toSort.length && sortTask.isStarted; ++low) {
+        let left = toSort[i = low], right = toSort[++low];
+        if (left > right) {
+            while (left < toSort[--i] && sortTask.isStarted) {
+                sortTask.increment();
+                await sortTask.visit(i);
+                toSort[i + 2] = toSort[i];
+                sortTask.sortStatus[i + 2] = SORTED;
+            }
+            toSort[++i + 1] = left;
+            sortTask.sortStatus[i + 2] = SORTED;
+            await sortTask.visit(i + 2);
+            while (right < toSort[--i] && sortTask.isStarted) {
+                sortTask.increment();
+                await sortTask.visit(i);
+                toSort[i + 1] = toSort[i];
+                sortTask.sortStatus[i + 1] = SORTED;
+            }
+            toSort[i + 1] = right;
+            sortTask.sortStatus[i + 1] = SORTED;
+            await sortTask.visit(i + 1);
+            sortTask.increment(2);
+        } else if (left < toSort[i - 1]) {
+            while (right < toSort[--i] && sortTask.isStarted) {
+                sortTask.increment();
+                await sortTask.visit(i);
+                toSort[i + 2] = toSort[i];
+                sortTask.sortStatus[i + 2] = SORTED;
+            }
+            await sortTask.visit(i + 2);
+            sortTask.sortStatus[i + 2] = SORTED;
+            toSort[++i + 1] = right;
+            while (left < toSort[--i] && sortTask.isStarted) {
+                sortTask.increment();
+                await sortTask.visit(i);
+                toSort[i + 1] = toSort[i];
+                sortTask.sortStatus[i + 1] = SORTED;
+            }
+            toSort[i + 1] = left;
+            sortTask.sortStatus[i + 1] = SORTED;
+            await sortTask.visit(i + 1);
+            sortTask.increment(2);
+        }
+    }
+}
 // COMB SORT
 async function combSort(toSort, sortTask) {
     let n = toSort.length;
