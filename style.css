@@ -7,6 +7,28 @@ body {
     width: 75%;
 }
 
+.action-btns {
+    display: block;
+}
+
+label {
+    display: block;
+}
+
+.range-btns {
+    display: block;
+    text-align: right;
+}
+
+.additional-settings-btns {
+    text-align: right;
+}
+
+.settings-btns {
+    display: block;
+    text-align: right;
+}
+
 .sort {
     padding-bottom: 5%;
 }
@@ -20,9 +42,14 @@ p {
     overflow: hidden;
 }
 
-.slider{
+.slider {
     width: 50%;
 }
+
+button {
+    margin-bottom: 1%;
+}
+
 .dropdown {
     position: relative;
     display: inline-block;

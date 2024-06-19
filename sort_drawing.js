@@ -229,53 +229,62 @@ var copiedNumbersRangeMax;
 var copiedNumbersRangeValue;
 var copiedElementsScale;
 
-function initAlgorithm(sortsContainer, getTemplate = getAlgorithmUITemplate, sort, compSorts, currentCompSort) {
-    const template = getTemplate;
+function initAlgorithm(sortsContainer, template, sort, compSorts, currentCompSort) {
     const sortLabel = template.name;
     const sortId = template.idPrefix;
     const listItem = document.createElement('li');
     if (compSorts != undefined) {
         listItem.innerHTML = `
-        <div id="${sortId}-btns" class="btns"><b>${sortLabel}</b><br>
-            <button id="sort-${sortId}-btn" class="sort-btn">Sort</button>
-            <button id="reset-${sortId}-btn">Clear</button>
-            <button class="collapsible">Click for description
-                <div class="collapsible-content">
-                    <p>Characteristics:<strong> ${template.characteristics}</strong></p>
-                    <p>${template.description}</p>
+        <b>${sortLabel}</b>
+        <div id="${sortId}-btns" class="btns">
+             <div class="action-btns">Actions<br>
+                <button id="sort-${sortId}-btn" class="sort-btn">Sort</button>
+                <button id="reset-${sortId}-btn">Clear</button>
+                <button class="copy-numbers-btn" id="copy-numbers-${sortId}-btn">Copy Numbers</button>
+            </div>
+            <div class="settings-btns">Settings<br>
+                <button id="tgl-numbers-${sortId}-btn">Toggle Numbers</button>
+                <button id="tgl-colour-mode-${sortId}-btn">Colour Mode</button>
+                <div class="range-btns">
+                    <label>Numbers Range: <input id="${sortId}-range" type="range" min="${template.minRange}" max="${template.maxRange}" value="${template.valueRange}" class="slider"></label>
+                    <label>Array Size: <input id="${sortId}-elements-range" type="range" min="${template.minSize}" max="${template.maxSize}" value="${template.valueSize}" class="slider"></label>
+                    <label>Sort Speed: <input id="${sortId}-millis-range" type="range" min="${template.minSpeed}" max="${template.maxSpeed}" value="${template.valueSpeed}" class="slider"></label>
                 </div>
-            </button>
-            <button id="tgl-colour-mode-${sortId}-btn">Colour Mode</button><br>
-            <button id="tgl-numbers-${sortId}-btn">View Numbers</button>
-            <button class="copy-numbers-btn" id="copy-numbers-${sortId}-btn">Copy Numbers</button><br>
-            <div id="${sortId}-comp-sort-dropdown" class="dropdown">Individual Bucket Sort:
-                <button id="${sortId}-comp-sort-btn" class="dropbtn"></button>
-                <div id="${sortId}-comp-sort-content" class="dropdown-content"></div>
-            </div><br>
-            <input id="${sortId}-range" type="range" min="${template.minRange}" max="${template.maxRange}" value="${template.valueRange}" class="slider">Numbers Range</input>
-            <input id="${sortId}-millis-range" type="range" min="${template.minSpeed}" max="${template.maxSpeed}" value="${template.valueSpeed}" class="slider">Sort Speed</input>
-            <input id="${sortId}-elements-range" type="range" min="${template.minSize}" max="${template.maxSize}" value="${template.valueSize}" class="slider">Array Size</input>
+                <div class="additional-settings-btns">
+                    <div id="${sortId}-comp-sort-dropdown" class="dropdown">${template.compSortLabel}
+                        <button id="${sortId}-comp-sort-btn" class="dropbtn"></button>
+                        <div id="${sortId}-comp-sort-content" class="dropdown-content"></div>
+                    </div>
+                </div>
+            </div>
+
         </div>
         <div id="${sortId}-sort" class="sort"></div>
     `;
     } else {
         listItem.innerHTML = `
-        <div id="${sortId}-btns" class="btns"><b>${sortLabel}</b><br>
-            <button id="sort-${sortId}-btn" class="sort-btn">Sort</button>
-            <button id="reset-${sortId}-btn">Clear</button>
+        <b>${sortLabel}</b>
+        <div id="${sortId}-btns" class="btns">
             <button class="collapsible">Click for description
                 <div class="collapsible-content">
                     <p>Characteristics:<strong> ${template.characteristics}</strong></p>
                     <p>${template.description}</p>
                 </div>
             </button>
-            <button id="tgl-colour-mode-${sortId}-btn">Colour Mode</button><br>
-            <button id="tgl-numbers-${sortId}-btn">View Numbers</button>
-            <button class="copy-numbers-btn" id="copy-numbers-${sortId}-btn">Copy Numbers</button><br>
-
-            <input id="${sortId}-range" type="range" min="${template.minRange}" max="${template.maxRange}" value="${template.valueRange}" class="slider">Numbers Range</input>
-            <input id="${sortId}-millis-range" type="range" min="${template.minSpeed}" max="${template.maxSpeed}" value="${template.valueSpeed}" class="slider">Sort Speed</input>
-            <input id="${sortId}-elements-range" type="range" min="${template.minSize}" max="${template.maxSize}" value="${template.valueSize}" class="slider">Array Size</input>
+            <div class="action-btns">Actions<br>
+                <button id="sort-${sortId}-btn" class="sort-btn">Sort</button>
+                <button id="reset-${sortId}-btn">Clear</button>
+                <button class="copy-numbers-btn" id="copy-numbers-${sortId}-btn">Copy Numbers</button>
+            </div>
+            <div class="settings-btns">Settings<br>
+                <button id="tgl-numbers-${sortId}-btn">Toggle Numbers</button>
+                <button id="tgl-colour-mode-${sortId}-btn">Colour Mode</button>
+                <div class="range-btns">
+                    <label>Numbers Range: <input id="${sortId}-range" type="range" min="${template.minRange}" max="${template.maxRange}" value="${template.valueRange}" class="slider"></label>
+                    <label>Array Size: <input id="${sortId}-elements-range" type="range" min="${template.minSize}" max="${template.maxSize}" value="${template.valueSize}" class="slider"></label>
+                    <label>Sort Speed: <input id="${sortId}-millis-range" type="range" min="${template.minSpeed}" max="${template.maxSpeed}" value="${template.valueSpeed}" class="slider"></label>
+                </div>
+            </div>
         </div>
         <div id="${sortId}-sort" class="sort"></div>
     `;
