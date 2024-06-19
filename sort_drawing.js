@@ -234,7 +234,32 @@ function initAlgorithm(sortsContainer, getTemplate = getAlgorithmUITemplate, sor
     const sortLabel = template.name;
     const sortId = template.idPrefix;
     const listItem = document.createElement('li');
-    listItem.innerHTML = `
+    if (compSorts != undefined) {
+        listItem.innerHTML = `
+        <div id="${sortId}-btns" class="btns"><b>${sortLabel}</b><br>
+            <button id="sort-${sortId}-btn" class="sort-btn">Sort</button>
+            <button id="reset-${sortId}-btn">Clear</button>
+            <button class="collapsible">Click for description
+                <div class="collapsible-content">
+                    <p>Characteristics:<strong> ${template.characteristics}</strong></p>
+                    <p>${template.description}</p>
+                </div>
+            </button>
+            <button id="tgl-colour-mode-${sortId}-btn">Colour Mode</button><br>
+            <button id="tgl-numbers-${sortId}-btn">View Numbers</button>
+            <button class="copy-numbers-btn" id="copy-numbers-${sortId}-btn">Copy Numbers</button><br>
+            <div id="${sortId}-comp-sort-dropdown" class="dropdown">Individual Bucket Sort:
+                <button id="${sortId}-comp-sort-btn" class="dropbtn"></button>
+                <div id="${sortId}-comp-sort-content" class="dropdown-content"></div>
+            </div><br>
+            <input id="${sortId}-range" type="range" min="${template.minRange}" max="${template.maxRange}" value="${template.valueRange}" class="slider">Numbers Range</input>
+            <input id="${sortId}-millis-range" type="range" min="${template.minSpeed}" max="${template.maxSpeed}" value="${template.valueSpeed}" class="slider">Sort Speed</input>
+            <input id="${sortId}-elements-range" type="range" min="${template.minSize}" max="${template.maxSize}" value="${template.valueSize}" class="slider">Array Size</input>
+        </div>
+        <div id="${sortId}-sort" class="sort"></div>
+    `;
+    } else {
+        listItem.innerHTML = `
         <div id="${sortId}-btns" class="btns"><b>${sortLabel}</b><br>
             <button id="sort-${sortId}-btn" class="sort-btn">Sort</button>
             <button id="reset-${sortId}-btn">Clear</button>
@@ -254,6 +279,7 @@ function initAlgorithm(sortsContainer, getTemplate = getAlgorithmUITemplate, sor
         </div>
         <div id="${sortId}-sort" class="sort"></div>
     `;
+    }
     sortsContainer.appendChild(listItem);
 
     new p5(
@@ -386,31 +412,9 @@ function initAlgorithm(sortsContainer, getTemplate = getAlgorithmUITemplate, sor
                 }
             };
             // comp sorts
-            const btnsHolder = document.getElementById(`${sortId}-btns`);
             if (compSorts != undefined) {
-                const compSortDropdown = document.createElement("div");
-                compSortDropdown.textContent = template.compSortLabel;
-                compSortDropdown.setAttribute("id", `${sortId}-comp-sort-dropdown`);
-                compSortDropdown.setAttribute("class", "dropdown");
-                btnsHolder.insertBefore(compSortDropdown, numbersRange);
-
-                const compSortBtn = document.createElement("button");
-                compSortBtn.setAttribute("id", `${sortId}-comp-sort-btn`);
-                compSortBtn.setAttribute("class", "dropbtn");
-
-                const compSortContent = document.createElement("div");
-                compSortDropdown.appendChild(compSortBtn);
-                compSortDropdown.appendChild(compSortContent);
-                compSortContent.setAttribute("id", `${sortId}-comp-sort-content`);
-                compSortContent.setAttribute("class", "dropdown-content");
-
-                btnsHolder.insertBefore(document.createElement("br"), numbersRange);
-
-                // <div id="bucket-comp-sort-dropdown" class="dropdown">Individual Bucket Sort:
-                //     <button id="bucket-comp-sort-btn" class="dropbtn"></button>
-                //     <div id="bucket-comp-sort-content" class="dropdown-content"></div>
-                // </div>
-
+                const compSortBtn = document.getElementById(`${sortId}-comp-sort-btn`);
+                const compSortContent = document.getElementById(`${sortId}-comp-sort-content`);
                 compSortBtn.textContent = currentCompSort.label();
                 loadDropDownContent(compSortContent, compSortBtn, compSorts, (selection) => {
                     currentCompSort = compSorts[selection];
