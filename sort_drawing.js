@@ -32,6 +32,9 @@ function init() {
     const combInsertionSortDescription = "Comb-Insertion Hybrid Sort is a sorting algorithm that combines two different sorting techniques, namely Comb Sort and Insertion Sort, to achieve improved performance for certain types of input data. The Comb-Insertion Hybrid Sort algorithm combines the two approaches. It starts with Comb Sort to quickly reduce the distance between elements, and when the gap becomes small (7 in the example), it switches to Insertion Sort. This hybridization leverages the strengths of Comb Sort for initial gap reduction and Insertion Sort for final fine-grained sorting. The advantage of this hybrid approach is that it can take advantage of Comb Sort's efficiency in handling larger gaps and Insertion Sort's efficiency in handling smaller gaps, making it a potentially faster sorting algorithm compared to using either method in isolation, especially for lists that are partially sorted or have elements with varying magnitudes.";
     const patienceSortDescription = "<p>Patience Sort is a sorting algorithm inspired by the patience card game. It is used to efficiently sort a sequence of elements, typically represented as a deck of cards, by creating piles of cards following specific rules and then merging these piles to obtain the sorted sequence. Patience Sort is known for its simplicity and effectiveness, especially in scenarios where the number of elements is moderate, but the input data is not fully sorted. It's an adaptive algorithm, making it efficient for partially sorted lists. It's also a stable sorting algorithm, meaning that it preserves the relative order of equal elements.</p><p>Initialization: Start with an empty array of piles and iterate through the elements to be sorted.</p><p>Pile Creation: For each element, find the leftmost pile where it can be placed on top according to the sorting order. If no such pile exists, create a new pile with the element.</p><p>Merging Piles: Once all elements are placed into piles, merge them to obtain the sorted sequence. This typically involves using a min-heap data structure. During merging, the top card of each pile is compared, and the smallest card is added to the sorted sequence. The pile from which the card was removed is refilled with the next card, and this process continues until all cards are merged. The result of the merging process is a sorted sequence of elements.</p><p>Complexity: The algorithm has a time complexity of O(n * log n), where n is the number of elements to be sorted. The most time-consuming step is merging the piles. The space complexity is O(n) because it requires extra space to store the piles.</p><p>Patience Sort is rarely used in practical applications due to its space and time complexities. However, it serves as an interesting algorithmic concept and is used as a benchmark in sorting algorithm analysis.</p>";
     const circleSortDescription = "Circle Sort, also known as Cycle Sort, is an in-place and unstable sorting algorithm designed to minimize the number of writes to memory. It is particularly useful for situations where write operations are expensive or limited. Circle Sort works by selecting an element from the unsorted portion of the array and repeatedly cycling it to its correct position, effectively building a sorted sequence one element at a time. Circle Sort selects an element from the unsorted portion of the array and cycles it through its correct position in the sorted portion. This process continues until all elements are in their correct positions. To cycle an element to its correct position, the algorithm detects cycles within the array. A cycle is a set of elements where each element's final position is occupied by another element in the cycle. Once all cycles are identified it cycles the elements within each cycle until they reach their correct positions. This process is repeated for each unsorted element until the entire array is sorted. The algorithm keeps track of the sorted portion and the remaining unsorted portion.";
+    const pinInsertionSortDescription = "Pin Insertion Sort is an extension of the standard insertion sort that optimizes the process of finding the correct position for each element. It leverages a pin element, which is typically the last element in the array, to create an additional boundary for comparisons. This helps reduce the number of comparisons and shifts required for certain elements";
+    const pairInsertionSortDescription = "Pair Insertion Sort is an extension of the classic insertion sort that sorts pairs of elements simultaneously. This variation attempts to improve efficiency by reducing the number of comparisons and shifts needed to sort the array. The idea is to take two elements at a time, insert them in their correct positions within the already sorted part of the array, and repeat this process for the entire array.";
+    const binaryInsertionSortDescription = "Binary Insertion Sort is a variation of the traditional insertion sort that uses binary search to reduce the number of comparisons needed to find the correct position for the element being inserted. Instead of comparing elements sequentially, binary search is used to find the position in the already sorted portion of the array, which reduces the time complexity of the search to O(logn). However, the shifting of elements to make room for the inserted element still takes O(n) in the worst case, resulting in the same overall time complexity as traditional insertion sort for the entire sorting process.";
 
     initAlgorithm(sortsContainer, getAlgorithmUITemplate("bubble", "Bubble Sort", "Stable, In place, O(n^2) time complexity", bubbleSortDescription), bubbleSort);
     initAlgorithm(sortsContainer, getAlgorithmUITemplate("selection", "Selection Sort", "Not Stable, In place, O(n^2) time complexity", selectionSortDescription), selectionSort);
@@ -40,8 +43,9 @@ function init() {
     initAlgorithm(sortsContainer, getAlgorithmUITemplate("comb", "Comb Sort", "Not Stable, In place, O(n^2) time complexity", combSortDescription), combSort);
     initAlgorithm(sortsContainer, getAlgorithmUITemplate("circle", "Circle Sort", "Not Stable, In place, O(n^2) time complexity", circleSortDescription), circleSortIterative);
     initAlgorithm(sortsContainer, getAlgorithmUITemplate("insertion", "Insertion Sort", "Stable, In place, O(n^2) time complexity", insertionSortDescription), insertionSort);
-    initAlgorithm(sortsContainer, getAlgorithmUITemplate("binary-insertion", "Binary Insertion Sort", "Stable, O(nlogn) time complexity"), binaryInsertionSort);
-    initAlgorithm(sortsContainer, getAlgorithmUITemplate("pair-insertion", "Pair Insertion Sort", "Stable, Not In place, O(n^2) time complexity"), pairInsertionSort);
+    initAlgorithm(sortsContainer, getAlgorithmUITemplate("binary-insertion", "Binary Insertion Sort", "Stable, O(n^2) time complexity", binaryInsertionSortDescription), binaryInsertionSort);
+    initAlgorithm(sortsContainer, getAlgorithmUITemplate("pair-insertion", "Pair Insertion Sort", "Stable, In place, O(n^2) time complexity", pairInsertionSortDescription), pairInsertionSort);
+    initAlgorithm(sortsContainer, getAlgorithmUITemplate("pin-insertion", "Pin Insertion Sort", "Stable, In place, O(n^2) time complexity", pinInsertionSortDescription), pinInsertionSort);
     initAlgorithm(sortsContainer, getAlgorithmUITemplate("comb-insertion", "Comb-Insertion Sort", "Not Stable, In place, O(n^2) time complexity", combInsertionSortDescription), combInsertionSort);
     initAlgorithm(sortsContainer, getAlgorithmUITemplate("shell", "Shell Sort", "Not Stable, In place, O(n^2) time complexity", shellSortDescription), shellSort);
     initAlgorithm(sortsContainer, getAlgorithmUITemplate("sleep", "Sleep Sort", "Not Stable, O(n) time complexity", sleepSortDescription), sleepSort);
@@ -168,12 +172,16 @@ class SortTask {
     async visit(...toVisit) {
         const prev = new Array(toVisit.length);
         for (let i = 0; i < toVisit.length; ++i) {
-            prev[i] = this.sortStatus[toVisit[i]];
-            this.sortStatus[toVisit[i]] = VISITED;
+            if (toVisit[i] < this.sortStatus.length) {
+                prev[i] = this.sortStatus[toVisit[i]];
+                this.sortStatus[toVisit[i]] = VISITED;
+            }
         }
         await this.sleep();
         for (let i = 0; i < toVisit.length; ++i) {
-            this.sortStatus[toVisit[i]] = prev[i];
+            if (toVisit[i] < this.sortStatus.length) {
+                this.sortStatus[toVisit[i]] = prev[i];
+            }
         }
     }
     setMs(ms) {
@@ -322,24 +330,26 @@ function initAlgorithm(sortsContainer, getTemplate = getAlgorithmUITemplate, sor
             copyElement.addEventListener('click', () => {
                 if (isCopy) {
                     sortTask.isStarted = false;
-                    elements = [...copiedElements];
-                    rangePercent = copiedRangePercent;
-                    maxNumber = copiedMaxNumber;
-                    minNumber = copiedMinNumber;
-                    s = copiedS;
-                    arraySize.min = copiedArraySizeMin;
-                    arraySize.max = copiedArraySizeMax;
-                    arraySize.value = copiedArraySizeValue;
-                    numbersRange.min = copiedNumbersRangeMin;
-                    numbersRange.max = copiedNumbersRangeMax;
-                    numbersRange.value = copiedNumbersRangeValue;
-                    elementsScale = copiedElementsScale;
                     setTimeout(() => {
+                        elements = [...copiedElements];
+                        rangePercent = copiedRangePercent;
+                        maxNumber = copiedMaxNumber;
+                        minNumber = copiedMinNumber;
+                        s = copiedS;
+                        arraySize.min = copiedArraySizeMin;
+                        arraySize.max = copiedArraySizeMax;
+                        arraySize.value = copiedArraySizeValue;
+                        numbersRange.min = copiedNumbersRangeMin;
+                        numbersRange.max = copiedNumbersRangeMax;
+                        numbersRange.value = copiedNumbersRangeValue;
+                        elementsScale = copiedElementsScale;
                         toSort = [...elements];
+                        sortTask.sortStatus = new Array(elements.length);
                         sortTask.sortStatus.fill(0);
                         sortTask.operations = 0;
                     }, 100);
                     isCopy = false;
+
                     for (el of document.getElementsByClassName("copy-numbers-btn")) {
                         el.innerHTML = "Copy Numbers";
                     }

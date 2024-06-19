@@ -392,9 +392,9 @@ async function binaryInsertionSort(toSort, sortTask) {
                 left = mid + 1;
             }
         }
-        sortTask.increment(2);
-        // consider this a block operation
         for (let j = i; j > left - 1; j--) {
+            sortTask.increment();
+            await sortTask.visit(j);
             toSort[j] = toSort[j - 1];
             sortTask.sortStatus[j] = SORTED;
         }
@@ -403,9 +403,11 @@ async function binaryInsertionSort(toSort, sortTask) {
 }
 // PAIR INSERTION
 async function pairInsertionSort(toSort, sortTask) {
-    let i = 0, low = 0;
-    for (; low < toSort.length && sortTask.isStarted; ++low) {
-        let left = toSort[i = low], right = toSort[++low];
+    let i = 0,
+        low = 0;
+    for (; low < toSort.length - 1 && sortTask.isStarted; ++low) {
+        let left = toSort[i = low],
+            right = toSort[++low];
         if (left > right) {
             while (left < toSort[--i] && sortTask.isStarted) {
                 sortTask.increment();
@@ -448,7 +450,58 @@ async function pairInsertionSort(toSort, sortTask) {
             sortTask.increment(2);
         }
     }
+    if (toSort.length % 2 == 1) {
+        await insertionBackstepLoop(toSort, sortTask, toSort.length - 1, 1);
+    }
 }
+// PIN INSERTION SORT
+async function pinInsertionSort(toSort, sortTask) {
+    let i, low = 0,
+        high = toSort.length - 1,
+        p = high
+    pin = toSort[high];
+    for (; ++low < toSort.length && sortTask.isStarted;) {
+        let a = toSort[i = low];
+        if (a < toSort[i - 1]) {
+            sortTask.sortStatus[i] = SORTED;
+            toSort[i] = toSort[--i];
+            await sortTask.visit(i);
+            sortTask.increment();
+            while (a < toSort[--i] && sortTask.isStarted) {
+                await sortTask.visit(i);
+                sortTask.increment();
+                toSort[i + 1] = toSort[i];
+                sortTask.sortStatus[i + 1] = SORTED;
+            }
+            toSort[i + 1] = a;
+            sortTask.sortStatus[i + 1] = SORTED;
+            await sortTask.visit(i + 1);
+            sortTask.increment();
+        } else if (p > i && a > pin) {
+            while (toSort[--p] > pin && sortTask.isStarted) {
+                await sortTask.visit(p);
+                sortTask.increment();
+            }
+
+            if (p > i) {
+                sortTask.increment();
+                a = toSort[p];
+                await sortTask.visit(p, i);
+                toSort[p] = toSort[i];
+                sortTask.sortStatus[p] = GREATER;
+            }
+            while (a < toSort[--i] && sortTask.isStarted) {
+                await sortTask.visit(i);
+                toSort[i + 1] = toSort[i];
+                sortTask.sortStatus[i + 1] = SORTED;
+            }
+            await sortTask.visit(i + 1);
+            toSort[i + 1] = a;
+            sortTask.sortStatus[i + 1] = SORTED;
+        }
+    }
+}
+
 // COMB SORT
 async function combSort(toSort, sortTask) {
     let n = toSort.length;
