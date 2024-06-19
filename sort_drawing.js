@@ -137,7 +137,7 @@ class SortTask {
     }
 
     async doSort() {
-        if (this.isStarted) return;
+        if (this.isStarted) return true;
         this.sortStatus.fill(0);
         this.operations = 0;
         this.isStarted = true;
@@ -147,7 +147,7 @@ class SortTask {
         const toSort = arguments[0];
         let lastVerified;
         for (let i = 1; i < toSort.length; i++) {
-            if (!this.isStarted) return;
+            if (!this.isStarted) return false;
             if (toSort[i - 1] <= toSort[i]) {
                 this.sortStatus[i - 1] = VERIFIED_SORTED;
                 this.sortStatus[i] = VERIFIED_SORTED;
@@ -163,12 +163,12 @@ class SortTask {
             await this.sleep();
         }
         for (let i = lastVerified; i >= 0; i--) {
-            if (!this.isStarted) return;
+            if (!this.isStarted) return false;
             this.sortStatus[i] = NOT_SORTED;
             await this.sleep();
         }
         // finish
-        this.isStarted = false;
+        return this.isStarted = false;
     }
     async visit(...toVisit) {
         const prev = new Array(toVisit.length);
@@ -311,12 +311,14 @@ function initAlgorithm(sortsContainer, template, sort, compSorts, currentCompSor
                 elementsScale = getElementScale(w, s);
                 sortTask.isStarted = false;
                 elements = getRandomElementsWithZero(s, -minNumber, maxNumber);
+                sketch.loop();
                 setTimeout(() => {
                     toSort.length = 0;
                     toSort.push(...elements)
                     sortTask.sortStatus.length = elements.length;
                     sortTask.sortStatus.fill(0);
                     sortTask.operations = 0;
+                    sketch.noLoop();
                 }, 100);
             };
 
@@ -335,18 +337,35 @@ function initAlgorithm(sortsContainer, template, sort, compSorts, currentCompSor
             document.getElementById(`reset-${sortId}-btn`).addEventListener('click', () => {
                 sortTask.isStarted = false;
                 setTimeout(() => {
+                    sketch.loop();
                     toSort = [...elements];
                     sortTask.sortStatus.fill(0);
                     sortTask.operations = 0;
+                    setTimeout(() => {
+                        sketch.noLoop();
+                    }, 20);
                 }, 100);
             });
             // sort
             document.getElementById(`sort-${sortId}-btn`).addEventListener('click', async () => {
-                await sortTask.doSort(toSort, sortTask);
+                sketch.loop();
+                const interrupted = await sortTask.doSort(toSort, sortTask);
+                if (!interrupted) {
+                    sketch.noLoop();
+                }
             });
             // see numbers
             document.getElementById(`tgl-numbers-${sortId}-btn`).addEventListener('click', async () => {
+                const isLooping = sketch.isLooping();
+                if (!isLooping) {
+                    sketch.loop();
+                }
                 sortTask.seeNumbers = !sortTask.seeNumbers;
+                setTimeout(() => {
+                    if (!isLooping) {
+                        sketch.noLoop();
+                    }
+                }, 20);
             });
             // colour mode
             const HSB = 1;
@@ -354,17 +373,31 @@ function initAlgorithm(sortsContainer, template, sort, compSorts, currentCompSor
             var currentMode = HSB;
             var nextMode = DISTINCT;
             document.getElementById(`tgl-colour-mode-${sortId}-btn`).addEventListener('click', async () => {
+                const isLooping = sketch.isLooping();
+                if (!isLooping) {
+                    sketch.loop();
+                }
                 [currentMode, nextMode] = [nextMode, currentMode];
+                setTimeout(() => {
+                    if (!isLooping) {
+                        sketch.noLoop();
+                    }
+                }, 20);
             });
             // numbers range
             const numbersRange = document.getElementById(`${sortId}-range`);
             numbersRange.oninput = () => {
+                sketch.loop();
                 maxNumber = updateElementsRange(parseInt(numbersRange.value) / 100, toSort, elements, sortTask);
+                setTimeout(() => {
+                    sketch.noLoop();
+                }, 20);
             };
             // copy numbers
             const copyElement = document.getElementById(`copy-numbers-${sortId}-btn`);
             copyElement.addEventListener('click', () => {
                 if (isCopy) {
+                    sketch.loop();
                     sortTask.isStarted = false;
                     setTimeout(() => {
                         elements = [...copiedElements];
@@ -383,6 +416,7 @@ function initAlgorithm(sortsContainer, template, sort, compSorts, currentCompSor
                         sortTask.sortStatus = new Array(elements.length);
                         sortTask.sortStatus.fill(0);
                         sortTask.operations = 0;
+                        sketch.noLoop();
                     }, 100);
                     isCopy = false;
 
