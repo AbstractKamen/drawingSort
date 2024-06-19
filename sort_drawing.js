@@ -51,7 +51,7 @@ function init() {
     initAlgorithm(sortsContainer, getAlgorithmUITemplate("sleep", "Sleep Sort", "Not Stable, O(n) time complexity", sleepSortDescription), sleepSort);
     initAlgorithm(sortsContainer, getAlgorithmUITemplate("patience", "Patience Sort", "Stable, Not In place, O(n^2) time complexity", patienceSortDescription), patienceSort);
     initAlgorithm(sortsContainer, getAlgorithmUITemplate("counting", "Counting Sort", "Not Stable, O(n) time complexity", countingSortDescription), countingSort);
-    initAlgorithm(sortsContainer, getAlgorithmUITemplate("bucket", "Bucket Sort", "Stable, O(n log n) time complexity", bucketSortDescription), bucketSort, BUCKET_COMP_SORTS, BUCKET_COMP_SORTS[0]);
+    initAlgorithm(sortsContainer, getAlgorithmUITemplate("bucket", "Bucket Sort", "Stable, O(n log n) time complexity", bucketSortDescription, "Individual Bucket Sort: "), bucketSort, BUCKET_COMP_SORTS, BUCKET_COMP_SORTS[0]);
     initAlgorithm(sortsContainer, getAlgorithmUITemplate("tim", "Tim Sort", "Stable, O(nlogn) time complexity"), timSort);
     initAlgorithm(sortsContainer, getAlgorithmUITemplate("quick", "Quick Sort", "Not Stable, In place, O(n log n) time complexity", quickSortDescription), quickSort);
     initAlgorithm(sortsContainer, getAlgorithmUITemplate("iterative-quick", "Iterative Quick Sort", "Not Stable, Not In place, O(n log n) time complexity", iterativeQuickSortDescription), iterativeQuickSort);
@@ -79,7 +79,7 @@ function init() {
     }
 }
 
-function getAlgorithmUITemplate(id = undefined, name = "TODO", characteristics = "TODO", description = "TODO") {
+function getAlgorithmUITemplate(id = undefined, name = "TODO", characteristics = "TODO", description = "TODO", compSortLabel = "Complementary Sort: ") {
     if (id == undefined) {
         throw new Error("id must be defined!");
     }
@@ -96,7 +96,8 @@ function getAlgorithmUITemplate(id = undefined, name = "TODO", characteristics =
         valueSpeed: 0,
         minSize: 40,
         maxSize: 1200,
-        valueSize: 4
+        valueSize: 4,
+        compSortLabel: compSortLabel
     };
 }
 
@@ -234,7 +235,7 @@ function initAlgorithm(sortsContainer, getTemplate = getAlgorithmUITemplate, sor
     const sortId = template.idPrefix;
     const listItem = document.createElement('li');
     listItem.innerHTML = `
-        <div class="btns"><b>${sortLabel}</b><br>
+        <div id="${sortId}-btns" class="btns"><b>${sortLabel}</b><br>
             <button id="sort-${sortId}-btn" class="sort-btn">Sort</button>
             <button id="reset-${sortId}-btn">Clear</button>
             <button class="collapsible">Click for description
@@ -385,9 +386,31 @@ function initAlgorithm(sortsContainer, getTemplate = getAlgorithmUITemplate, sor
                 }
             };
             // comp sorts
-            const compSortBtn = document.getElementById(`${sortId}-comp-sort-btn`);
-            if (compSortBtn != undefined && compSorts != undefined) {
-                const compSortContent = document.getElementById(`${sortId}-comp-sort-content`);
+            const btnsHolder = document.getElementById(`${sortId}-btns`);
+            if (compSorts != undefined) {
+                const compSortDropdown = document.createElement("div");
+                compSortDropdown.textContent = template.compSortLabel;
+                compSortDropdown.setAttribute("id", `${sortId}-comp-sort-dropdown`);
+                compSortDropdown.setAttribute("class", "dropdown");
+                btnsHolder.insertBefore(compSortDropdown, numbersRange);
+
+                const compSortBtn = document.createElement("button");
+                compSortBtn.setAttribute("id", `${sortId}-comp-sort-btn`);
+                compSortBtn.setAttribute("class", "dropbtn");
+
+                const compSortContent = document.createElement("div");
+                compSortDropdown.appendChild(compSortBtn);
+                compSortDropdown.appendChild(compSortContent);
+                compSortContent.setAttribute("id", `${sortId}-comp-sort-content`);
+                compSortContent.setAttribute("class", "dropdown-content");
+
+                btnsHolder.insertBefore(document.createElement("br"), numbersRange);
+
+                // <div id="bucket-comp-sort-dropdown" class="dropdown">Individual Bucket Sort:
+                //     <button id="bucket-comp-sort-btn" class="dropbtn"></button>
+                //     <div id="bucket-comp-sort-content" class="dropdown-content"></div>
+                // </div>
+
                 compSortBtn.textContent = currentCompSort.label();
                 loadDropDownContent(compSortContent, compSortBtn, compSorts, (selection) => {
                     currentCompSort = compSorts[selection];
