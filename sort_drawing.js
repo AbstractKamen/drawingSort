@@ -51,8 +51,8 @@ function init() {
     initAlgorithm(sortsContainer, getAlgorithmUITemplate("sleep", "Sleep Sort", "Not Stable, O(n) time complexity", sleepSortDescription), sleepSort);
     initAlgorithm(sortsContainer, getAlgorithmUITemplate("patience", "Patience Sort", "Stable, Not In place, O(n^2) time complexity", patienceSortDescription), patienceSort);
     initAlgorithm(sortsContainer, getAlgorithmUITemplate("counting", "Counting Sort", "Not Stable, O(n) time complexity", countingSortDescription), countingSort);
-    initAlgorithm(sortsContainer, getAlgorithmUITemplate("bucket", "Bucket Sort", "Stable, O(n log n) time complexity", bucketSortDescription, "Individual Bucket Sort: "), bucketSort, BUCKET_COMP_SORTS, BUCKET_COMP_SORTS[0]);
-    initAlgorithm(sortsContainer, getAlgorithmUITemplate("tim", "Tim Sort", "Stable, O(nlogn) time complexity"), timSort);
+    initAlgorithm(sortsContainer, getAlgorithmUITemplate("bucket", "Bucket Sort", "Stable, O(n log n) time complexity", bucketSortDescription, "Individual Bucket Sort: "), bucketSort, COMP_SORTS, COMP_SORTS[0]);
+    initAlgorithm(sortsContainer, getAlgorithmUITemplate("tim", "Tim Sort", "Stable, O(nlogn) time complexity"), timSort, COMP_SORTS, COMP_SORTS[0]);
     initAlgorithm(sortsContainer, getAlgorithmUITemplate("quick", "Quick Sort", "Not Stable, In place, O(n log n) time complexity", quickSortDescription), quickSort);
     initAlgorithm(sortsContainer, getAlgorithmUITemplate("iterative-quick", "Iterative Quick Sort", "Not Stable, Not In place, O(n log n) time complexity", iterativeQuickSortDescription), iterativeQuickSort);
     initAlgorithm(sortsContainer, getAlgorithmUITemplate("median-of-three-quick", "Median of Three Quick Sort", "Not Stable, In place, O(n log n) time complexity"), medianOfThreeQuickSort);
@@ -102,23 +102,53 @@ function getAlgorithmUITemplate(id = undefined, name = "TODO", characteristics =
 }
 
 onload = init;
-const BUCKET_COMP_SORTS = [{
+const COMP_SORTS = [{
         'label': function () {
             return "Insertion Sort";
         },
-        sort: bucketInsertionSort
+        sort: compInsertionSort
+    },
+    {
+        'label': function () {
+            return "Pin Insertion Sort";
+        },
+        sort: pinInsertionSort
+    },
+    {
+        'label': function () {
+            return "Pair Insertion Sort";
+        },
+        sort: pairInsertionSort
+    },
+    {
+        'label': function () {
+            return "Binary Insertion Sort";
+        },
+        sort: binaryInsertionSort
     },
     {
         'label': function () {
             return "Quick Sort";
         },
-        sort: bucketQuickSort
+        sort: compQuickSort
     },
     {
         'label': function () {
             return "Merge Sort";
         },
-        sort: bucketMergeSort
+        sort: mergeSort
+    },
+    {
+        'label': function () {
+            return "Circle Sort";
+        },
+        sort: circleSort
+    },
+    {
+        'label': function () {
+            return "Iterative Merge Sort";
+        },
+        sort: iterativeMergeSort
     }
 ];
 class SortTask {
