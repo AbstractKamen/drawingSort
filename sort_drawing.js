@@ -41,7 +41,8 @@ function init() {
     initAlgorithm(sortsContainer, getAlgorithmUITemplate("brick", "Brick Sort", "Stable, In place, O(n^2) time complexity", brickSortDescription), brickSort);
     initAlgorithm(sortsContainer, getAlgorithmUITemplate("shaker", "Shaker Sort", "Stable, In place, O(n^2) time complexity", shakerSortDescription), shakerSort);
     initAlgorithm(sortsContainer, getAlgorithmUITemplate("comb", "Comb Sort", "Not Stable, In place, O(n^2) time complexity", combSortDescription), combSort);
-    initAlgorithm(sortsContainer, getAlgorithmUITemplate("circle", "Circle Sort", "Not Stable, In place, O(n^2) time complexity", circleSortDescription), circleSortIterative);
+    initAlgorithm(sortsContainer, getAlgorithmUITemplate("circle", "Circle Sort", "Not Stable, In place, O(n^2) time complexity", circleSortDescription), circleSort);
+    initAlgorithm(sortsContainer, getAlgorithmUITemplate("iterative-circle", "Iterative Circle Sort", "Not Stable, In place, O(n^2) time complexity"), iterativeCircleSort);
     initAlgorithm(sortsContainer, getAlgorithmUITemplate("insertion", "Insertion Sort", "Stable, In place, O(n^2) time complexity", insertionSortDescription), insertionSort);
     initAlgorithm(sortsContainer, getAlgorithmUITemplate("binary-insertion", "Binary Insertion Sort", "Stable, O(n^2) time complexity", binaryInsertionSortDescription), binaryInsertionSort);
     initAlgorithm(sortsContainer, getAlgorithmUITemplate("pair-insertion", "Pair Insertion Sort", "Stable, In place, O(n^2) time complexity", pairInsertionSortDescription), pairInsertionSort);
@@ -267,10 +268,20 @@ const COMP_SORTS = [
     makeCompSort(pairInsertionSort, "Pair Insertion Sort"),
     makeCompSort(binaryInsertionSort, "Binary Insertion Sort"),
     makeCompSort(quickSort, "Quick Sort", getQuickSortArguments()),
+    makeCompSort(iterativeQuickSort, "Iterative Quick Sort", getQuickSortArguments()),
     makeCompSort(mergeSort, "Merge Sort"),
     makeCompSort(iterativeMergeSort, "Iterative Merge Sort"),
     makeCompSort(circleSort, "Circle Sort"),
-    makeCompSort(heapSort, "Heap Sort")
+    makeCompSort(iterativeCircleSort, "Iterative Circle Sort"),
+    makeCompSort(heapSort, "Heap Sort"),
+    makeCompSort(bubbleSort, "Bubble Sort"),
+    makeCompSort(selectionSort, "Selection Sort"),
+    makeCompSort(shakerSort, "Shaker Sort"),
+    makeCompSort(brickSort, "Brick Sort"),
+    makeCompSort(combSort, "Comb Sort"),
+    makeCompSort(sleepSort, "Sleep Sort"),
+    makeCompSort(shellSort, "Shell Sort"),
+    makeCompSort(countingSort, "Counting Sort")
 ];
 class SortTask {
     constructor(sketch, sortLabel, sortFunc, ms, s, sortArgs) {

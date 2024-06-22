@@ -155,7 +155,7 @@ async function medianOfThreePartition(toSort, sortTask, low, high) {
     return i + 1;
 }
 async function randomPartition(toSort, sortTask, low, high) {
-    const p = Math.floor(Math.random() * (high - low + 1)) + low ;
+    const p = Math.floor(Math.random() * (high - low + 1)) + low;
     swap(toSort, p, high);
     await sortTask.visit(high, p);
     return await alwaysLastPartition(toSort, sortTask, low, high);
@@ -217,28 +217,27 @@ async function pushDown(toSort, sortTask, root, lo, hi) {
 }
 // BUBBLE SORT
 async function bubbleSort(toSort, sortTask, lo = 0, hi = toSort.length - 1, end = toSort.length) {
-    var i, j;
+    let i, n = end;
     var swapped;
     for (i = lo; i < hi; i++) {
+        console.log(i, lo, hi, end);
         if (sortTask.isFinished()) return;
         sortTask.increment();
-        swapped = await bubbleSortInner(toSort, sortTask, j => j < toSort.length - i - 1, lo);
+        swapped = await bubbleSortInner(toSort, sortTask, lo, 1, hi);
 
         if (swapped === false) {
-            for (k = 0; k < hi; k++) {
+            for (k = lo; k < hi; k++) {
                 sortTask.sortStatus[k] = SORTED;
             }
             break;
-        } else {
-            sortTask.sortStatus[j] = SORTED;
         }
     }
     sortTask.sortStatus[lo] = SORTED;
 }
-async function bubbleSortInner(toSort, sortTask, loopPred, init = 0, step = 1) {
+async function bubbleSortInner(toSort, sortTask, lo = 0, step = 1, hi = toSort.length - 1) {
     var swapped = false;
-    let j = init;
-    for (; loopPred(j); j += step) {
+    var j = lo;
+    for (; j < hi ; j += step) {
         if (sortTask.isFinished()) return;
         sortTask.increment();
         await sortTask.visit(j);
@@ -247,50 +246,46 @@ async function bubbleSortInner(toSort, sortTask, loopPred, init = 0, step = 1) {
             swapped = true;
         }
     }
-    if (toSort.length > j) {
+    if (hi >= j) {
         sortTask.sortStatus[j] = SORTED;
     }
     return swapped;
 }
 // BUBBLE SORT
-async function brickSort(toSort, sortTask) {
+async function brickSort(toSort, sortTask, lo = 0, hi = toSort.length - 1, end = toSort.length) {
     var swapped = true;
     while (swapped) {
         if (sortTask.isFinished()) return;
         sortTask.increment();
-        swapped = await bubbleSortInner(toSort, sortTask, i => i < toSort.length - 1, 1, 2);
-        swapped = await bubbleSortInner(toSort, sortTask, i => i < toSort.length - 1, 0, 2);
+        swapped = await bubbleSortInner(toSort, sortTask, lo + 1, 2, hi);
+        swapped = await bubbleSortInner(toSort, sortTask, lo, 2, hi);
 
         if (swapped === false) {
-            for (k = 0; k < toSort.length; k++) {
+            for (k = lo; k < end; k++) {
                 sortTask.sortStatus[k] = SORTED;
             }
         }
     }
 }
 // SHAKER SORT
-async function shakerSort(toSort, sortTask) {
-    var i, j = 0,
-        m;
-    var swapped;
-    for (i = 0; i < toSort.length - 1; ++i) {
+async function shakerSort(toSort, sortTask, lo = 0, hi = toSort.length - 1, end = toSort.length) {
+    let i, j = lo, high = hi;
+    for (i = lo; i < hi; ++i) {
         if (sortTask.isFinished()) return;
         swapped = false;
         sortTask.increment();
-        for (; j < toSort.length - i - 1; ++j) {
+        for (; j < high; ++j) {
             if (sortTask.isFinished()) return;
             sortTask.increment();
             await sortTask.visit(j);
             if (toSort[j] > toSort[j + 1]) {
-                m = j + 1;
-                p = m;
                 swap(toSort, j, j + 1);
                 swapped = true;
             }
         }
-
+        high--;
         if (swapped === false) {
-            for (k = 0; k < toSort.length - 1; ++k) {
+            for (k = lo; k < hi; ++k) {
                 sortTask.sortStatus[k] = SORTED;
             }
             break;
@@ -303,15 +298,13 @@ async function shakerSort(toSort, sortTask) {
             sortTask.increment();
             await sortTask.visit(j);
             if (toSort[j] < toSort[j - 1]) {
-                m = j - 1;
-                p = m;
                 swap(toSort, j, j - 1);
                 swapped = true;
             }
         }
 
         if (swapped === false) {
-            for (k = 0; k < toSort.length - 1; k++) {
+            for (k = lo; k < hi; k++) {
                 sortTask.sortStatus[k] = SORTED;
             }
             break;
@@ -319,11 +312,11 @@ async function shakerSort(toSort, sortTask) {
             sortTask.sortStatus[j] = SORTED;
         }
     }
-    sortTask.sortStatus[0] = SORTED;
+    sortTask.sortStatus[lo] = SORTED;
 }
 // SHELL SORT
-async function shellSort(toSort, sortTask) {
-    var n = toSort.length;
+async function shellSort(toSort, sortTask, lo = 0, hi = toSort.length - 1, end = toSort.length) {
+    var n = end;
     const factor = 2.3;
     // start with half gap then decrease by half again
     for (let g = Math.round(n / factor); g > 0; g = Math.round(g / factor)) {
@@ -331,7 +324,7 @@ async function shellSort(toSort, sortTask) {
         // gapped insertion sort for this gap size
         for (let i = g; i < n; ++i) {
             if (sortTask.isFinished()) return;
-            await insertionBackstepLoop(toSort, sortTask, 0, i, g, async j => {
+            await insertionBackstepLoop(toSort, sortTask, lo, i, g, async j => {
                 await sortTask.visit(i, j);
             });
         }
@@ -541,8 +534,8 @@ async function pinInsertionSort(toSort, sortTask, lo = 0, high = toSort.length -
 }
 
 // COMB SORT
-async function combSort(toSort, sortTask) {
-    let n = toSort.length;
+async function combSort(toSort, sortTask, lo = 0, hi = toSort.length - 1, end = toSort.length) {
+    let n = end;
     let comb = n;
     let swapped = true;
     while (comb != 1 || swapped === true) {
@@ -551,7 +544,7 @@ async function combSort(toSort, sortTask) {
         comb = getNextComb(comb);
         swapped = false;
 
-        for (let i = 0; i < n - comb; i++) {
+        for (let i = lo; i < n - comb; i++) {
             if (sortTask.isFinished()) return;
             sortTask.increment();
             await sortTask.visit(i, i + comb);
@@ -571,9 +564,9 @@ async function combSort(toSort, sortTask) {
     }
 }
 // SELECTION SORT
-async function selectionSort(toSort, sortTask) {
-    var min_idx, j, n = toSort.length;
-    for (let i = 0; i < n - 1; i++) {
+async function selectionSort(toSort, sortTask, lo = 0, hi = toSort.length - 1, end = toSort.length) {
+    var min_idx, j, n = end;
+    for (let i = lo; i < n - 1; i++) {
         if (sortTask.isFinished()) return;
         sortTask.increment();
 
@@ -969,10 +962,10 @@ async function circleSortRec(toSort, sortTask, low, high, end) {
     return swapped || firstHalf || secondHalf;
 }
 // ITERATIVE CIRCLE SORT
-async function circleSortIterative(toSort, sortTask) {
+async function iterativeCircleSort(toSort, sortTask, lo = 0, hi = toSort.length - 1, end = toSort.length) {
     const startCycle = {
-        low: 0,
-        high: toSort.length - 1
+        low: lo,
+        high: hi
     };
     const loHiStack = [startCycle];
     while (loHiStack.length > 0) {
@@ -1029,11 +1022,11 @@ async function circleSortIterative(toSort, sortTask) {
     }
 }
 // COUNTING SORT
-async function countingSort(toSort, sortTask) {
-    var n, i, j = 0,
+async function countingSort(toSort, sortTask, lo = 0, hi = toSort.length - 1, end = toSort.length) {
+    var n, i, j = lo,
         max = -((1 << 32) - 1),
         min = 1 << 32;
-    for (i = 0; i < toSort.length; i++) {
+    for (i = lo; i < end; i++) {
         if (sortTask.isFinished()) return;
         await sortTask.visit(i);
         sortTask.increment();
@@ -1045,7 +1038,7 @@ async function countingSort(toSort, sortTask) {
         const min_abs = abs(min);
         n = max + min_abs + 1;
         count = new Array(n);
-        for (i = 0; i < toSort.length; i++) {
+        for (i = lo; i < end; i++) {
             if (sortTask.isFinished()) return;
             sortTask.increment();
             if (count[min_abs + toSort[i]]) {
@@ -1072,7 +1065,7 @@ async function countingSort(toSort, sortTask) {
     } else {
         n = max + 1;
         count = new Array(n);
-        for (i = 0; i < toSort.length; i++) {
+        for (i = lo; i < end; i++) {
             if (sortTask.isFinished()) return;
             if (count[toSort[i]]) {
                 count[toSort[i]]++;
@@ -1080,7 +1073,7 @@ async function countingSort(toSort, sortTask) {
                 count[toSort[i]] = 1;
             }
         }
-        for (i = 0, j = 0; i < n; i++) {
+        for (i = 0, j = lo; i < n; i++) {
             if (sortTask.isFinished()) return;
             if (count[i] > 0) {
                 while (count[i] > 0) {
