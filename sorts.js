@@ -1,6 +1,11 @@
 // QUICK SORT
-async function quickSort(toSort, sortTask, lo = 0, hi = toSort.length - 1, end = toSort.length) {
-    await quickSortRec(toSort, sortTask, lo, hi);
+async function quickSort(toSort, sortTask, sortArgs, lo = 0, hi = toSort.length - 1, end = toSort.length) {
+    if (sortArgs == undefined || sortArgs.partitioner == undefined || sortArgs.partitioner.partition == undefined) {
+        await quickSortRec(toSort, sortTask, lo, hi);
+
+    } else {
+        await quickSortRec(toSort, sortTask, lo, hi, sortArgs.partitioner.partition);
+    }
 }
 async function quickSortRec(toSort, sortTask, low, high, partitionFunc = alwaysLastPartition) {
     if (sortTask.isFinished()) return;
@@ -20,15 +25,18 @@ async function quickSortRec(toSort, sortTask, low, high, partitionFunc = alwaysL
         }
     }
 }
-// MEDIAN OF THREE QUICK SORT
-async function medianOfThreeQuickSort(toSort, sortTask, lo = 0, hi = toSort.length - 1, end = toSort.length) {
-    await quickSortRec(toSort, sortTask, lo, hi, medianOfThreePartition);
-}
 // HYBRID QUICK SORT
-async function cutoffQuickSort(toSort, sortTask, compSort) {
-    await cutOffquickSortRec(toSort, sortTask, 0, toSort.length - 1, (Math.log(toSort.length) << 1) + Math.log(Math.log(toSort.length) << 11));
-    console.log(compSort);
-    await compSort.sort(toSort, sortTask, 0, toSort.length - 1);
+async function cutoffQuickSort(toSort, sortTask, sortArgs) {
+    var cutoff = sortArgs.cutoff;
+    if (cutoff < 0) {
+        cutoff = (Math.log(toSort.length) << 1) + Math.log(Math.log(toSort.length) << 11);
+    }
+    await cutOffquickSortRec(toSort, sortTask, 0, toSort.length - 1, cutoff, sortArgs.partitionFunc);
+    if (sortArgs.compSort.sortArgs()) {
+        await sortArgs.compSort.sort(toSort, sortTask, sortArgs.compSort.sortArgs(), 0, toSort.length - 1);
+    } else {
+        await sortArgs.compSort.sort(toSort, sortTask, 0, toSort.length - 1);
+    }
 }
 async function cutOffquickSortRec(toSort, sortTask, low, high, cutoff, partitionFunc = alwaysLastPartition) {
     if (sortTask.isFinished()) return;
@@ -44,7 +52,7 @@ async function cutOffquickSortRec(toSort, sortTask, low, high, cutoff, partition
     }
 }
 // ITERATIVE QUICK SORT
-async function iterativeQuickSort(toSort, sortTask, low = 0, high = toSort.length - 1, end = toSort.length) {
+async function iterativeQuickSort(toSort, sortTask, sortArgs, low = 0, high = toSort.length - 1, end = toSort.length) {
     const loHiStack = [{
         low: low,
         high: high
@@ -57,7 +65,7 @@ async function iterativeQuickSort(toSort, sortTask, low = 0, high = toSort.lengt
         } = loHiStack.pop();
         if (low < high) {
             sortTask.increment();
-            let pi = await alwaysLastPartition(toSort, sortTask, low, high);
+            let pi = await sortArgs.partitioner.partition(toSort, sortTask, low, high);
             sortTask.sortStatus[pi] = SORTED;
             sortTask.sortStatus[pi - 1] = SORTED;
             sortTask.sortStatus[pi + 1] = SORTED;
@@ -73,7 +81,7 @@ async function iterativeQuickSort(toSort, sortTask, low = 0, high = toSort.lengt
     }
 
 }
-
+// QUICK SORT PARTITION FUNCTIONS
 async function alwaysLastPartition(toSort, sortTask, low, high) {
     if (sortTask.isFinished()) return;
     await sortTask.sleep();
@@ -320,7 +328,7 @@ async function shellSort(toSort, sortTask) {
     return toSort;
 }
 // COMB-HYBRID SORT
-async function combHybridSort(toSort, sortTask, compSort) {
+async function combHybridSort(toSort, sortTask, sortArgs) {
     let n = toSort.length;
     let comb = n;
     let swapped = true;
@@ -330,7 +338,12 @@ async function combHybridSort(toSort, sortTask, compSort) {
         comb = getNextComb(comb);
         swapped = false;
         if (comb <= 7) {
-            await compSort.sort(toSort, sortTask);
+            await sortArgs.compSort.sort(toSort, sortTask);
+            if (sortArgs.compSort.sortArgs()) {
+                await sortArgs.compSort.sort(toSort, sortTask, sortArgs.compSort.sortArgs());
+            } else {
+                await sortArgs.compSort.sort(toSort, sortTask);
+            }
             return;
         }
         for (let i = 0; i < n - comb; i++) {
@@ -358,7 +371,6 @@ async function insertionSort(toSort, sortTask, lo = 0, hi = toSort.length - 1, e
         n = end;
     for (; i < n; i++) {
         if (sortTask.isFinished()) return;
-        await sortTask.visit(i);
         await insertionBackstepLoop(toSort, sortTask, lo, i, 1);
     }
 }
@@ -642,7 +654,7 @@ async function merge(toSort, sortTask, l, m, r, end) {
     }
 }
 // BUCKET SORT
-async function bucketSort(toSort, sortTask, compSort) {
+async function bucketSort(toSort, sortTask, sortArgs) {
     let n = toSort.length;
     var max = -(1 << 32),
         min = 1 << 32;
@@ -680,30 +692,26 @@ async function bucketSort(toSort, sortTask, compSort) {
     for (let k = 0; k < buckets.length; k++) {
         sortTask.increment();
         const bucket = buckets[k];
-        await compSort.sort(toSort, sortTask, index, index + bucket.length - 1, index + bucket.length);
+        if (sortArgs.compSort.sortArgs()) {
+            await sortArgs.compSort.sort(toSort, sortTask, sortArgs.compSort.sortArgs(), index, index + bucket.length - 1, index + bucket.length);
+        } else {
+            await sortArgs.compSort.sort(toSort, sortTask, index, index + bucket.length - 1, index + bucket.length);
+        }
         index += bucket.length;
     }
 }
 
 // TIM SORT
-async function timSort(toSort, sortTask, compSort, MIN_MERGE = 16) {
-    function minRunLength(n) {
-        let r = 0;
-        while (n >= MIN_MERGE) {
-            r |= (n & 1);
-            n >>>= 1;
-        }
-        return n + r;
-    }
-
+async function timSort(toSort, sortTask, sortArgs) {
     const n = toSort.length;
-    const minRun = minRunLength(n);
-
-    // Sort individual subarrays of size RUN
-
+    const minRun = minRunLength(n, sortArgs.runLimit);
     for (let i = 0; i < n; i += minRun) {
         const end = Math.min(i + minRun, n);
-        await compSort.sort(toSort, sortTask, i, end - 1, end);
+        if (sortArgs.compSort.sortArgs()) {
+            await sortArgs.compSort.sort(toSort, sortTask, sortArgs.compSort.sortArgs(), i, end - 1, end);
+        } else {
+            await sortArgs.compSort.sort(toSort, sortTask, i, end - 1, end);
+        }
     }
 
     for (let size = minRun; size < n; size = 2 * size) {
@@ -715,6 +723,15 @@ async function timSort(toSort, sortTask, compSort, MIN_MERGE = 16) {
             }
         }
     }
+}
+
+function minRunLength(n, runLimit) {
+    let r = 0;
+    while (n >= runLimit) {
+        r |= (n & 1);
+        n >>>= 1;
+    }
+    return n + r;
 }
 // ITERATIVE MERGE SORT
 async function iterativeMergeSort(toSort, sortTask, lo = 0, hi = toSort.length - 1, end = toSort.length) {

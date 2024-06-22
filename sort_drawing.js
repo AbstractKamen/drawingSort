@@ -46,17 +46,16 @@ function init() {
     initAlgorithm(sortsContainer, getAlgorithmUITemplate("binary-insertion", "Binary Insertion Sort", "Stable, O(n^2) time complexity", binaryInsertionSortDescription), binaryInsertionSort);
     initAlgorithm(sortsContainer, getAlgorithmUITemplate("pair-insertion", "Pair Insertion Sort", "Stable, In place, O(n^2) time complexity", pairInsertionSortDescription), pairInsertionSort);
     initAlgorithm(sortsContainer, getAlgorithmUITemplate("pin-insertion", "Pin Insertion Sort", "Stable, In place, O(n^2) time complexity", pinInsertionSortDescription), pinInsertionSort);
-    initAlgorithm(sortsContainer, getAlgorithmUITemplate("comb-insertion", "Comb-Hybrid Sort", "Not Stable, In place, O(n^2) time complexity", combInsertionSortDescription), combHybridSort, COMP_SORTS, COMP_SORTS[0]);
+    initAlgorithm(sortsContainer, getAlgorithmUITemplate("comb-insertion", "Comb-Hybrid Sort", "Not Stable, In place, O(n^2) time complexity", combInsertionSortDescription), combHybridSort, getHybridSortArguments());
     initAlgorithm(sortsContainer, getAlgorithmUITemplate("shell", "Shell Sort", "Not Stable, In place, O(n^2) time complexity", shellSortDescription), shellSort);
     initAlgorithm(sortsContainer, getAlgorithmUITemplate("sleep", "Sleep Sort", "Not Stable, O(n) time complexity", sleepSortDescription), sleepSort);
     initAlgorithm(sortsContainer, getAlgorithmUITemplate("patience", "Patience Sort", "Stable, Not In place, O(n^2) time complexity", patienceSortDescription), patienceSort);
     initAlgorithm(sortsContainer, getAlgorithmUITemplate("counting", "Counting Sort", "Not Stable, O(n) time complexity", countingSortDescription), countingSort);
-    initAlgorithm(sortsContainer, getAlgorithmUITemplate("bucket", "Bucket Sort", "Stable, O(n log n) time complexity", bucketSortDescription, "Individual Bucket Sort: "), bucketSort, COMP_SORTS, COMP_SORTS[0]);
-    initAlgorithm(sortsContainer, getAlgorithmUITemplate("tim", "Tim Sort", "Stable, O(nlogn) time complexity"), timSort, COMP_SORTS, COMP_SORTS[0]);
-    initAlgorithm(sortsContainer, getAlgorithmUITemplate("quick", "Quick Sort", "Not Stable, In place, O(n log n) time complexity", quickSortDescription), quickSort);
-    initAlgorithm(sortsContainer, getAlgorithmUITemplate("iterative-quick", "Iterative Quick Sort", "Not Stable, Not In place, O(n log n) time complexity", iterativeQuickSortDescription), iterativeQuickSort);
-    initAlgorithm(sortsContainer, getAlgorithmUITemplate("median-of-three-quick", "Median of Three Quick Sort", "Not Stable, In place, O(n log n) time complexity"), medianOfThreeQuickSort);
-    initAlgorithm(sortsContainer, getAlgorithmUITemplate("quick-cut", "Quick Sort Cutoff", "Not Stable, In place, O(n log n) time complexity", "desc todo", "Sort After Cutoff: "), cutoffQuickSort, COMP_SORTS, COMP_SORTS[0]);
+    initAlgorithm(sortsContainer, getAlgorithmUITemplate("bucket", "Bucket Sort", "Stable, O(n log n) time complexity", bucketSortDescription, "Individual Bucket Sort: "), bucketSort, getHybridSortArguments());
+    initAlgorithm(sortsContainer, getAlgorithmUITemplate("tim", "Tim Sort", "Stable, O(nlogn) time complexity"), timSort, getHybridTimSortSortArguments());
+    initAlgorithm(sortsContainer, getAlgorithmUITemplate("quick", "Quick Sort", "Not Stable, In place, O(n log n) time complexity", quickSortDescription), quickSort, getQuickSortArguments());
+    initAlgorithm(sortsContainer, getAlgorithmUITemplate("iterative-quick", "Iterative Quick Sort", "Not Stable, Not In place, O(n log n) time complexity", iterativeQuickSortDescription), iterativeQuickSort, getQuickSortArguments());
+    initAlgorithm(sortsContainer, getAlgorithmUITemplate("quick-cut", "Cutoff Quick Sort", "Not Stable, In place, O(n log n) time complexity", "desc todo", "Sort After Cutoff: "), cutoffQuickSort, getHybridQuickSortArguments());
     initAlgorithm(sortsContainer, getAlgorithmUITemplate("merge", "Merge Sort", "Stable, Not In place, O(n log n) time complexity", mergeSortDescription), mergeSort);
     initAlgorithm(sortsContainer, getAlgorithmUITemplate("iterative-merge", "Iterative Merge Sort", "Stable, Not In place, O(n log n) time complexity", iterativeMergeSortDescription), iterativeMergeSort);
     initAlgorithm(sortsContainer, getAlgorithmUITemplate("heap", "Heap Sort", "Not Stable, In place, O(n log n) time complexity", heapSortDescription), heapSort);
@@ -80,6 +79,22 @@ function init() {
     }
 }
 
+function getHybridSortArguments(compSort = COMP_SORTS[0]) {
+    return new SortArguments(compSort, undefined, undefined, undefined);
+}
+
+function getHybridTimSortSortArguments(compSort = COMP_SORTS[0]) {
+    return new SortArguments(compSort, undefined, 8, undefined);
+}
+
+function getQuickSortArguments(partitioner = PARTITIONERS[0]) {
+    return new SortArguments(undefined, undefined, undefined, partitioner);
+}
+
+function getHybridQuickSortArguments(compSort = COMP_SORTS[0], partitioner = PARTITIONERS[0]) {
+    return new SortArguments(compSort, -1, undefined, partitioner);
+}
+
 function getAlgorithmUITemplate(id = undefined, name = "TODO", characteristics = "TODO", description = "TODO", compSortLabel = "Complementary Sort: ") {
     if (id == undefined) {
         throw new Error("id must be defined!");
@@ -98,68 +113,165 @@ function getAlgorithmUITemplate(id = undefined, name = "TODO", characteristics =
         minSize: 40,
         maxSize: 1200,
         valueSize: 4,
-        compSortLabel: compSortLabel
+        compSortLabel: compSortLabel,
+        compSorts: [...COMP_SORTS]
     };
 }
 
 onload = init;
-const COMP_SORTS = [{
+const PARTITIONERS = [{
         'label': function () {
-            return "Insertion Sort";
+            return "Median of Three";
         },
-        sort: insertionSort
+        partition: medianOfThreePartition
     },
     {
         'label': function () {
-            return "Pin Insertion Sort";
+            return "Always First";
         },
-        sort: pinInsertionSort
+        partition: alwaysFirstPartition
     },
     {
         'label': function () {
-            return "Pair Insertion Sort";
+            return "Always Last";
         },
-        sort: pairInsertionSort
-    },
-    {
-        'label': function () {
-            return "Binary Insertion Sort";
-        },
-        sort: binaryInsertionSort
-    },
-    {
-        'label': function () {
-            return "Quick Sort";
-        },
-        sort: quickSort
-    },
-    {
-        'label': function () {
-            return "Merge Sort";
-        },
-        sort: mergeSort
-    },
-    {
-        'label': function () {
-            return "Circle Sort";
-        },
-        sort: circleSort
-    },
-    {
-        'label': function () {
-            return "Iterative Merge Sort";
-        },
-        sort: iterativeMergeSort
-    },
-    {
-        'label': function () {
-            return "Heap Sort";
-        },
-        sort: heapSort
+        partition: alwaysLastPartition
     }
 ];
+
+function makeCompSort(sort, label, sortArgs) {
+    return {
+        'label': function () {
+            return label
+        },
+        'sortArgs': function () {
+            return sortArgs
+        },
+        sort: sort
+    };
+}
+class SortArguments {
+    constructor(compSort, cutoff, runLimit, partitioner) {
+        this.compSort = compSort;
+        this.cutoff = cutoff;
+        this.runLimit = runLimit;
+        this.partitioner = partitioner;
+    }
+
+    getAdditionalSettingsHtml(template) {
+        var html = '';
+        const sortId = template.idPrefix;
+        if (this.compSort) {
+            html += `
+            <div class="additional-settings-element">
+                <div id="${sortId}-comp-sort-dropdown" class="dropdown">${template.compSortLabel}
+                    <button id="${sortId}-comp-sort-btn" class="dropbtn"></button>
+                    <div id="${sortId}-comp-sort-content" class="dropdown-content"></div>
+                </div>
+            </div>`
+        }
+        if (this.partitioner) {
+            html += `
+            <div class="additional-settings-element">
+                <div id="${sortId}-sort-partition-dropdown" class="dropdown">Partition Function: 
+                    <button id="${sortId}-sort-partition-btn" class="dropbtn"></button>
+                    <div id="${sortId}-sort-partition-content" class="dropdown-content"></div>
+                </div>
+            </div>`
+        }
+        if (this.runLimit) {
+            html += `
+            <div class="additional-settings-element">
+                <label>
+                    <label id="${sortId}-run-limit-label"></label>
+                    <input id="${sortId}-run-limit" type="range" min="1" max="512" value="${this.runLimit}" class="slider">
+                </label>
+            </div>`
+        }
+        return html;
+    }
+
+    loadAdditionalSettingsHtmlElements(template, sortTask, sketch, resetFunc) {
+        const sortId = template.idPrefix;
+        const thisSortArgs = this;
+
+        if (thisSortArgs.compSort) {
+            const compSortBtn = document.getElementById(`${sortId}-comp-sort-btn`);
+            const compSortContent = document.getElementById(`${sortId}-comp-sort-content`);
+            compSortBtn.textContent = thisSortArgs.compSort.label();
+            loadDropDownContent(compSortContent, compSortBtn, template.compSorts, (selection) => {
+                thisSortArgs.compSort = template.compSorts[selection];
+                compSortBtn.textContent = thisSortArgs.compSort.label();
+                compSortContent.classList.toggle("show");
+                return false;
+            });
+        }
+
+        if (thisSortArgs.partitioner) {
+            const partitionBtn = document.getElementById(`${sortId}-sort-partition-btn`);
+            const partitionContent = document.getElementById(`${sortId}-sort-partition-content`);
+            partitionBtn.textContent = thisSortArgs.partitioner.label();
+            loadDropDownContent(partitionContent, partitionBtn, PARTITIONERS, (selection) => {
+                thisSortArgs.partitioner = PARTITIONERS[selection];
+                partitionBtn.textContent = thisSortArgs.partitioner.label();
+                partitionContent.classList.toggle("show");
+                return false;
+            });
+        }
+
+        if (thisSortArgs.runLimit) {
+            const runLimitElement = document.getElementById(`${sortId}-run-limit`);
+            runLimitElement.onmouseover = async () => {
+                const isLooping = sketch.isLooping();
+
+                if (!isLooping) {
+                    sketch.loop();
+                }
+                const minRun = minRunLength(sortTask.sortStatus.length, thisSortArgs.runLimit);
+                const toVisit = []
+                for (let i = minRun; i < sortTask.sortStatus.length; i += minRun) {
+                    toVisit.push(i);
+                }
+                await sortTask.visit(...toVisit);
+                if (!isLooping) {
+                    sketch.noLoop();
+                }
+            }
+            const initialMinRun = minRunLength(sortTask.sortStatus.length, thisSortArgs.runLimit);
+            let initialMinRuns = 1;
+            for (let i = initialMinRun; i < sortTask.sortStatus.length; i += initialMinRun) {
+                initialMinRuns++;
+            }
+            const runLimitLabelElement = document.getElementById(`${sortId}-run-limit-label`);
+            runLimitLabelElement.textContent = `Run Limit: ${thisSortArgs.runLimit} Run Length: ${initialMinRun} Total Runs: ${initialMinRuns}`;
+
+            runLimitElement.oninput = async () => {
+                const minRun = minRunLength(sortTask.sortStatus.length, thisSortArgs.runLimit);
+                let minRuns = 1;
+                for (let i = minRun; i < sortTask.sortStatus.length; i += minRun) {
+                    minRuns++;
+                }
+                runLimitLabelElement.textContent = `Run Limit: ${thisSortArgs.runLimit} Run Length: ${minRun} Total Runs: ${minRuns}`;
+                thisSortArgs.runLimit = parseInt(runLimitElement.value);
+                sketch.loop();
+                setTimeout(() => resetFunc(), 100);
+            };
+        }
+    }
+}
+const COMP_SORTS = [
+    makeCompSort(insertionSort, "Insertion Sort"),
+    makeCompSort(pinInsertionSort, "Pin Insertion Sort"),
+    makeCompSort(pairInsertionSort, "Pair Insertion Sort"),
+    makeCompSort(binaryInsertionSort, "Binary Insertion Sort"),
+    makeCompSort(quickSort, "Quick Sort", getQuickSortArguments()),
+    makeCompSort(mergeSort, "Merge Sort"),
+    makeCompSort(iterativeMergeSort, "Iterative Merge Sort"),
+    makeCompSort(circleSort, "Circle Sort"),
+    makeCompSort(heapSort, "Heap Sort")
+];
 class SortTask {
-    constructor(sketch, sortLabel, sortFunc, ms, s, ...additionalArgs) {
+    constructor(sketch, sortLabel, sortFunc, ms, s, sortArgs) {
         this.sketch = sketch;
         this.sortLabel = sortLabel;
         this.isStarted = false;
@@ -170,7 +282,7 @@ class SortTask {
         this.sortStatus = new Array(s).fill(0);
         this.mms = ms;
         this.msC = 5;
-        this.additionalArgs = additionalArgs;
+        this.sortArgs = sortArgs;
     }
 
     async doSort() {
@@ -178,7 +290,7 @@ class SortTask {
         this.sortStatus.fill(0);
         this.operations = 0;
         this.isStarted = true;
-        const args = [...arguments, ...this.additionalArgs]
+        const args = [...arguments, this.sortArgs]
         await this.sortFunc.apply(this, args);
         // verify
         const toSort = arguments[0];
@@ -208,6 +320,9 @@ class SortTask {
         return this.isStarted = false;
     }
     async visit(...toVisit) {
+        await this.visitSleep(this.sleep, toVisit)
+    }
+    async visitSleep(sleepFunc, toVisit) {
         const prev = new Array(toVisit.length);
         for (let i = 0; i < toVisit.length; ++i) {
             if (toVisit[i] < this.sortStatus.length) {
@@ -266,11 +381,11 @@ var copiedNumbersRangeMax;
 var copiedNumbersRangeValue;
 var copiedElementsScale;
 
-function initAlgorithm(sortsContainer, template, sort, compSorts, currentCompSort) {
+function initAlgorithm(sortsContainer, template, sort, sortArgs) {
     const sortLabel = template.name;
     const sortId = template.idPrefix;
     const listItem = document.createElement('li');
-    if (compSorts != undefined) {
+    if (sortArgs != undefined) {
         listItem.innerHTML = `
         <b>${sortLabel}</b>
         <div id="${sortId}-btns" class="btns">
@@ -288,10 +403,7 @@ function initAlgorithm(sortsContainer, template, sort, compSorts, currentCompSor
                     <label>Sort Speed: <input id="${sortId}-millis-range" type="range" min="${template.minSpeed}" max="${template.maxSpeed}" value="${template.valueSpeed}" class="slider"></label>
                 </div>
                 <div class="additional-settings-btns">
-                    <div id="${sortId}-comp-sort-dropdown" class="dropdown">${template.compSortLabel}
-                        <button id="${sortId}-comp-sort-btn" class="dropbtn"></button>
-                        <div id="${sortId}-comp-sort-content" class="dropdown-content"></div>
-                    </div>
+                    ${sortArgs.getAdditionalSettingsHtml(template)}
                 </div>
             </div>
 
@@ -355,6 +467,7 @@ function initAlgorithm(sortsContainer, template, sort, compSorts, currentCompSor
                     sortTask.sortStatus.length = elements.length;
                     sortTask.sortStatus.fill(0);
                     sortTask.operations = 0;
+                    template.valueSize = toSort.length;
                     sketch.noLoop();
                 }, 100);
             };
@@ -365,23 +478,23 @@ function initAlgorithm(sortsContainer, template, sort, compSorts, currentCompSor
             const msMin = parseInt(millis.min);
             var ms = msMax - parseInt(millis.value);
             // sort task init
-            var sortTask = new SortTask(sketch, sortLabel, sort, ms, s, currentCompSort);
+            var sortTask = new SortTask(sketch, sortLabel, sort, ms, s, sortArgs);
             millis.oninput = () => {
                 sortTask.setMs(msMax - parseInt(millis.value) + msMin);
             };
-
+            const resetFunc = () => {
+                sketch.loop();
+                toSort = [...elements];
+                sortTask.sortStatus.fill(0);
+                sortTask.operations = 0;
+                setTimeout(() => {
+                    sketch.noLoop();
+                }, 20);
+            };
             // reset
             document.getElementById(`reset-${sortId}-btn`).addEventListener('click', () => {
                 sortTask.isStarted = false;
-                setTimeout(() => {
-                    sketch.loop();
-                    toSort = [...elements];
-                    sortTask.sortStatus.fill(0);
-                    sortTask.operations = 0;
-                    setTimeout(() => {
-                        sketch.noLoop();
-                    }, 20);
-                }, 100);
+                setTimeout(resetFunc, 100);
             });
             // sort
             document.getElementById(`sort-${sortId}-btn`).addEventListener('click', async () => {
@@ -450,6 +563,7 @@ function initAlgorithm(sortsContainer, template, sort, compSorts, currentCompSor
                         numbersRange.value = copiedNumbersRangeValue;
                         elementsScale = copiedElementsScale;
                         toSort = [...elements];
+                        template.valueSize = toSort.length;
                         sortTask.sortStatus = new Array(elements.length);
                         sortTask.sortStatus.fill(0);
                         sortTask.operations = 0;
@@ -491,19 +605,9 @@ function initAlgorithm(sortsContainer, template, sort, compSorts, currentCompSor
                         drawElementsColourCoded(sketch, toSort, elementsScale, maxNumber, sortTask);
                 }
             };
-            // comp sorts
-            if (compSorts != undefined) {
-                const compSortBtn = document.getElementById(`${sortId}-comp-sort-btn`);
-                const compSortContent = document.getElementById(`${sortId}-comp-sort-content`);
-                compSortBtn.textContent = currentCompSort.label();
-                loadDropDownContent(compSortContent, compSortBtn, compSorts, (selection) => {
-                    currentCompSort = compSorts[selection];
-                    // todo
-                    sortTask.additionalArgs = [currentCompSort];
-                    compSortBtn.textContent = currentCompSort.label();
-                    compSortContent.classList.toggle("show");
-                    return false;
-                });
+            // additional settings
+            if (sortArgs != undefined) {
+                sortArgs.loadAdditionalSettingsHtmlElements(template, sortTask, sketch, resetFunc);
             }
         },
         `${sortId}-sort`);
