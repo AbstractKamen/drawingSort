@@ -141,12 +141,8 @@ const PARTITIONERS = [{
 
 function makeCompSort(sort, label, sortArgs) {
     return {
-        'label': function () {
-            return label
-        },
-        'sortArgs': function () {
-            return sortArgs
-        },
+        'label': () => label,
+        'sortArgs': () => sortArgs,
         sort: sort
     };
 }

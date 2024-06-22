@@ -230,7 +230,8 @@ async function bubbleSort(toSort, sortTask, lo = 0, hi = toSort.length - 1, end 
 }
 async function bubbleSortInner(toSort, sortTask, loopPred, init = 0, step = 1) {
     var swapped = false;
-    for (j = init; loopPred(j); j += step) {
+    let j = init;
+    for (; loopPred(j); j += step) {
         if (sortTask.isFinished()) return;
         sortTask.increment();
         await sortTask.visit(j);
@@ -238,6 +239,9 @@ async function bubbleSortInner(toSort, sortTask, loopPred, init = 0, step = 1) {
             swap(toSort, j, j + 1);
             swapped = true;
         }
+    }
+    if (toSort.length > j) {
+        sortTask.sortStatus[j] = SORTED;
     }
     return swapped;
 }
