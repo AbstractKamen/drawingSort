@@ -133,6 +133,12 @@ const PARTITIONERS = [{
     },
     {
         'label': function () {
+            return "Random";
+        },
+        partition: randomPartition
+    },
+    {
+        'label': function () {
             return "Always Last";
         },
         partition: alwaysLastPartition

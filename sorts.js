@@ -138,6 +138,7 @@ async function medianOfThreePartition(toSort, sortTask, low, high) {
 
     if (sortTask.isFinished()) return;
     let pIndex = await medianOfThree(toSort, sortTask, low, high);
+
     let pivot = toSort[pIndex];
     swap(toSort, pIndex, high);
     let i = low - 1;
@@ -152,6 +153,12 @@ async function medianOfThreePartition(toSort, sortTask, low, high) {
     }
     swap(toSort, i + 1, high);
     return i + 1;
+}
+async function randomPartition(toSort, sortTask, low, high) {
+    const p = Math.floor(Math.random() * (high - low + 1)) + low ;
+    swap(toSort, p, high);
+    await sortTask.visit(high, p);
+    return await alwaysLastPartition(toSort, sortTask, low, high);
 }
 // SLEEP SORT
 async function sleepSort(toSort, sortTask, lo = 0, hi = toSort.length - 1, end = toSort.length) {
