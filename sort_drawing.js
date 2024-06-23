@@ -708,7 +708,13 @@ function stats(sketch, elements, sortTask) {
     sketch.strokeWeight(1);
     sketch.textSize(12);
     sketch.fill(255);
-    sketch.text(`${sortTask.sortLabel} ≈ ${sortTask.operations} operations to sort ${elements.length} elements.`, w * 0.005, h * 0.05);
+    let label;
+    if (sortTask.sortArgs != undefined && sortTask.sortArgs.compSort != undefined) {
+        label = sortTask.sortLabel.split(' ')[0] + ` ${sortTask.sortArgs.compSort.label()}`;
+    } else {
+        label = sortTask.sortLabel;
+    }
+    sketch.text(`${label} ≈ ${sortTask.operations} operations to sort ${elements.length} elements.`, w * 0.005, h * 0.05);
 }
 
 function drawElementNumbers(sketch, elements, elementsScale, sortTask) {
