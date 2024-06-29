@@ -60,24 +60,6 @@ function init() {
     initAlgorithm(sortsContainer, getAlgorithmUITemplate("merge", "Merge Sort", "Stable, Not In place, O(n log n) time complexity", mergeSortDescription), mergeSort);
     initAlgorithm(sortsContainer, getAlgorithmUITemplate("iterative-merge", "Iterative Merge Sort", "Stable, Not In place, O(n log n) time complexity", iterativeMergeSortDescription), iterativeMergeSort);
     initAlgorithm(sortsContainer, getAlgorithmUITemplate("heap", "Heap Sort", "Not Stable, In place, O(n log n) time complexity", heapSortDescription), heapSort);
-
-    // collapsible descriptions
-    var elements = document.getElementsByClassName("collapsible");
-    for (let i = 0; i < elements.length; i++) {
-        elements[i].addEventListener("click", function () {
-            this.classList.toggle("active");
-            const subElements = elements[i].getElementsByClassName("collapsible-content");
-            for (let j = 0; j < subElements.length; j++) {
-                var content = subElements[j];
-                if (content.style.display === "block") {
-                    content.style.display = "none";
-                } else {
-                    content.style.display = "block";
-                }
-            }
-
-        });
-    }
 }
 
 function getHybridSortArguments(compSort = COMP_SORTS[0]) {
@@ -395,235 +377,301 @@ var copiedNumbersRangeValue;
 var copiedElementsScale;
 
 function initAlgorithm(sortsContainer, template, sort, sortArgs) {
+    var sortDrawingP5;
     const sortLabel = template.name;
     const sortId = template.idPrefix;
     const listItem = document.createElement('li');
-    if (sortArgs != undefined) {
-        listItem.innerHTML = `
-        <b>${sortLabel}</b>
-        <div id="${sortId}-btns" class="btns">
-             <div class="action-btns">Actions<br>
-                <button id="sort-${sortId}-btn" class="sort-btn">Sort</button>
-                <button id="reset-${sortId}-btn">Clear</button>
-                <button class="copy-numbers-btn" id="copy-numbers-${sortId}-btn">Copy Numbers</button>
-            </div>
-            <div class="settings-btns">Settings<br>
-                <button id="tgl-numbers-${sortId}-btn">Toggle Numbers</button>
-                <button id="tgl-colour-mode-${sortId}-btn">Colour Mode</button>
-                <div class="range-btns">
-                    <label>Numbers Range: <input id="${sortId}-range" type="range" min="${template.minRange}" max="${template.maxRange}" value="${template.valueRange}" class="slider"></label>
-                    <label>Array Size: <input id="${sortId}-elements-range" type="range" min="${template.minSize}" max="${template.maxSize}" value="${template.valueSize}" class="slider"></label>
-                    <label>Sort Speed: <input id="${sortId}-millis-range" type="range" min="${template.minSpeed}" max="${template.maxSpeed}" value="${template.valueSpeed}" class="slider"></label>
-                </div>
-                <div class="additional-settings-btns">
-                    ${sortArgs.getAdditionalSettingsHtml(template)}
-                </div>
-            </div>
-
-        </div>
-        <div id="${sortId}-sort" class="sort"></div>
-    `;
-    } else {
-        listItem.innerHTML = `
-        <b>${sortLabel}</b>
-        <div id="${sortId}-btns" class="btns">
-            <button class="collapsible">Click for description
-                <div class="collapsible-content">
-                    <p>Characteristics:<strong> ${template.characteristics}</strong></p>
-                    <p>${template.description}</p>
-                </div>
-            </button>
-            <div class="action-btns">Actions<br>
-                <button id="sort-${sortId}-btn" class="sort-btn">Sort</button>
-                <button id="reset-${sortId}-btn">Clear</button>
-                <button class="copy-numbers-btn" id="copy-numbers-${sortId}-btn">Copy Numbers</button>
-            </div>
-            <div class="settings-btns">Settings<br>
-                <button id="tgl-numbers-${sortId}-btn">Toggle Numbers</button>
-                <button id="tgl-colour-mode-${sortId}-btn">Colour Mode</button>
-                <div class="range-btns">
-                    <label>Numbers Range: <input id="${sortId}-range" type="range" min="${template.minRange}" max="${template.maxRange}" value="${template.valueRange}" class="slider"></label>
-                    <label>Array Size: <input id="${sortId}-elements-range" type="range" min="${template.minSize}" max="${template.maxSize}" value="${template.valueSize}" class="slider"></label>
-                    <label>Sort Speed: <input id="${sortId}-millis-range" type="range" min="${template.minSpeed}" max="${template.maxSpeed}" value="${template.valueSpeed}" class="slider"></label>
-                </div>
-            </div>
-        </div>
-        <div id="${sortId}-sort" class="sort"></div>
-    `;
+    var isExpanded = false;
+    const previewToggle = {
+        toggle: false,
+        sortId: sortId
     }
+    listItem.innerHTML = `
+    <div>
+        <b>${sortLabel}</b>
+        <button id="expand-${sortId}-btn">Expand Sort</button>
+        <button id="${sortId}-description" class="collapsible">Expand Description
+        <div id="${sortId}-description-content" class="collapsible-content">
+            <p>Characteristics:<strong> ${template.characteristics}</strong></p>
+            <p>${template.description}</p>
+        </div>
+    </div>
+    <div id="${sortId}-container">
+        <div id="${sortId}-canvas-container">
+            <div id="${sortId}-preview-container">
+                <img id="${sortId}-preview" src="images/${sortId}_preview.png" alt="${sortLabel} Preview"/>
+            </div>
+        </div>
+    </div>
+    `;
     sortsContainer.appendChild(listItem);
+    var img = document.getElementById(`${sortId}-preview`);
+    img.addEventListener('click', () => {
+        if (previewToggle.toggle) {
+            previewToggle.toggle = false;
+            img.src = `images/${previewToggle.sortId}_preview.gif`;
+        } else {
+            previewToggle.toggle = true;
+            img.src = `images/${previewToggle.sortId}_preview.png`;
+        }
+        return false;
+    });
+    // collapsible description
+    var element = document.getElementById(`${sortId}-description`);
+    element.addEventListener("click", function () {
+        this.classList.toggle("active");
+        const subElement = document.getElementById(`${sortId}-description-content`);
+        var content = subElement;
+        if (content.style.display === "block") {
+            content.style.display = "none";
+        } else {
+            content.style.display = "block";
+        }
+    });
 
-    new p5(
-        (sketch) => {
-            sketch.frameRate(FRAME_RATE);
-            const arraySize = document.getElementById(`${sortId}-elements-range`);
-            var s = Math.min(parseInt(arraySize.value), w);
-            arraySize.max = w;
-            var elementsScale = getElementScale(w, s);
-
-            var rangePercent = 0; // 1 / 100
-            var maxNumber = h - h * rangePercent;
-            var minNumber = h * rangePercent;
-            var elements = getRandomElementsWithZero(s, -minNumber, maxNumber);
-            var toSort = [...elements];
-
-            // array size
-            arraySize.oninput = async () => {
-                s = Math.min(parseInt(arraySize.value), w);
-                elementsScale = getElementScale(w, s);
-                sortTask.isStarted = false;
-                elements = getRandomElementsWithZero(s, -minNumber, maxNumber);
-                sketch.loop();
-                setTimeout(() => {
-                    toSort.length = 0;
-                    toSort.push(...elements)
-                    sortTask.sortStatus.length = elements.length;
-                    sortTask.sortStatus.fill(0);
-                    sortTask.operations = 0;
-                    template.valueSize = toSort.length;
-                    sketch.noLoop();
-                }, 100);
-            };
-
-            // millis to sleep for 'animation' effect
-            const millis = document.getElementById(`${sortId}-millis-range`);
-            const msMax = parseInt(millis.max);
-            const msMin = parseInt(millis.min);
-            var ms = msMax - parseInt(millis.value);
-            // sort task init
-            var sortTask = new SortTask(sketch, sortLabel, sort, ms, s, sortArgs);
-            millis.oninput = () => {
-                sortTask.setMs(msMax - parseInt(millis.value) + msMin);
-            };
-            const resetFunc = () => {
-                sketch.loop();
-                toSort = [...elements];
-                sortTask.sortStatus.fill(0);
-                sortTask.operations = 0;
-                setTimeout(() => {
-                    sketch.noLoop();
-                }, 20);
-            };
-            // reset
-            document.getElementById(`reset-${sortId}-btn`).addEventListener('click', () => {
-                sortTask.isStarted = false;
-                setTimeout(resetFunc, 100);
-            });
-            // sort
-            document.getElementById(`sort-${sortId}-btn`).addEventListener('click', async () => {
-                sketch.loop();
-                const interrupted = await sortTask.doSort(toSort, sortTask);
-                if (!interrupted) {
-                    sketch.noLoop();
+    const sortCanvasContainer = document.getElementById(`${sortId}-canvas-container`);
+    document.getElementById(`expand-${sortId}-btn`).addEventListener('click', () => {
+        if (isExpanded) {
+            sortDrawingP5.remove();
+            isExpanded = false;
+            sortCanvasContainer.innerHTML = `
+                <div id="${sortId}-preview-container">
+                    <img id="${sortId}-preview" src="images/${sortId}_preview.png" alt="${sortLabel} Preview"/>
+                </div>
+            `;
+            img = document.getElementById(`${sortId}-preview`);
+            img.addEventListener('click', () => {
+                if (previewToggle.toggle) {
+                    previewToggle.toggle = false;
+                    img.src = `images/${previewToggle.sortId}_preview.gif`;
+                } else {
+                    previewToggle.toggle = true;
+                    img.src = `images/${previewToggle.sortId}_preview.png`;
                 }
+                return false;
             });
-            // see numbers
-            document.getElementById(`tgl-numbers-${sortId}-btn`).addEventListener('click', async () => {
-                const isLooping = sketch.isLooping();
-                if (!isLooping) {
-                    sketch.loop();
-                }
-                sortTask.seeNumbers = !sortTask.seeNumbers;
-                setTimeout(() => {
-                    if (!isLooping) {
-                        sketch.noLoop();
-                    }
-                }, 20);
-            });
-            // colour mode
-            const HSB = 1;
-            const DISTINCT = 2;
-            var currentMode = HSB;
-            var nextMode = DISTINCT;
-            document.getElementById(`tgl-colour-mode-${sortId}-btn`).addEventListener('click', async () => {
-                const isLooping = sketch.isLooping();
-                if (!isLooping) {
-                    sketch.loop();
-                }
-                [currentMode, nextMode] = [nextMode, currentMode];
-                setTimeout(() => {
-                    if (!isLooping) {
-                        sketch.noLoop();
-                    }
-                }, 20);
-            });
-            // numbers range
-            const numbersRange = document.getElementById(`${sortId}-range`);
-            numbersRange.oninput = () => {
-                sketch.loop();
-                maxNumber = updateElementsRange(parseInt(numbersRange.value) / 100, toSort, elements, sortTask);
-                setTimeout(() => {
-                    sketch.noLoop();
-                }, 20);
-            };
-            // copy numbers
-            const copyElement = document.getElementById(`copy-numbers-${sortId}-btn`);
-            copyElement.addEventListener('click', () => {
-                if (isCopy) {
-                    sketch.loop();
-                    sortTask.isStarted = false;
-                    setTimeout(() => {
-                        elements = [...copiedElements];
-                        rangePercent = copiedRangePercent;
-                        maxNumber = copiedMaxNumber;
-                        minNumber = copiedMinNumber;
-                        s = copiedS;
-                        arraySize.min = copiedArraySizeMin;
-                        arraySize.max = copiedArraySizeMax;
-                        arraySize.value = copiedArraySizeValue;
-                        numbersRange.min = copiedNumbersRangeMin;
-                        numbersRange.max = copiedNumbersRangeMax;
-                        numbersRange.value = copiedNumbersRangeValue;
-                        elementsScale = copiedElementsScale;
+        } else {
+            isExpanded = true;
+            if (sortArgs != undefined) {
+                sortCanvasContainer.innerHTML = `
+                <div id="${sortId}-btns" class="btns">
+                    </button>
+                     <div class="action-btns">Actions<br>
+                        <button id="sort-${sortId}-btn" class="sort-btn">Sort</button>
+                        <button id="reset-${sortId}-btn">Clear</button>
+                        <button class="copy-numbers-btn" id="copy-numbers-${sortId}-btn">Copy Numbers</button>
+                    </div>
+                    <div class="settings-btns">Settings<br>
+                        <button id="tgl-numbers-${sortId}-btn">Toggle Numbers</button>
+                        <button id="tgl-colour-mode-${sortId}-btn">Colour Mode</button>
+                        <div class="range-btns">
+                            <label>Numbers Range: <input id="${sortId}-range" type="range" min="${template.minRange}" max="${template.maxRange}" value="${template.valueRange}" class="slider"></label>
+                            <label>Array Size: <input id="${sortId}-elements-range" type="range" min="${template.minSize}" max="${template.maxSize}" value="${template.valueSize}" class="slider"></label>
+                            <label>Sort Speed: <input id="${sortId}-millis-range" type="range" min="${template.minSpeed}" max="${template.maxSpeed}" value="${template.valueSpeed}" class="slider"></label>
+                        </div>
+                        <div class="additional-settings-btns">
+                            ${sortArgs.getAdditionalSettingsHtml(template)}
+                        </div>
+                    </div>
+                </div>
+                <div id="${sortId}-sort" class="sort"></div>
+            `;
+            } else {
+                sortCanvasContainer.innerHTML = `
+                <div id="${sortId}-btns" class="btns">
+                    <div class="action-btns">Actions<br>
+                        <button id="sort-${sortId}-btn" class="sort-btn">Sort</button>
+                        <button id="reset-${sortId}-btn">Clear</button>
+                        <button class="copy-numbers-btn" id="copy-numbers-${sortId}-btn">Copy Numbers</button>
+                    </div>
+                    <div class="settings-btns">Settings<br>
+                        <button id="tgl-numbers-${sortId}-btn">Toggle Numbers</button>
+                        <button id="tgl-colour-mode-${sortId}-btn">Colour Mode</button>
+                        <div class="range-btns">
+                            <label>Numbers Range: <input id="${sortId}-range" type="range" min="${template.minRange}" max="${template.maxRange}" value="${template.valueRange}" class="slider"></label>
+                            <label>Array Size: <input id="${sortId}-elements-range" type="range" min="${template.minSize}" max="${template.maxSize}" value="${template.valueSize}" class="slider"></label>
+                            <label>Sort Speed: <input id="${sortId}-millis-range" type="range" min="${template.minSpeed}" max="${template.maxSpeed}" value="${template.valueSpeed}" class="slider"></label>
+                        </div>
+                    </div>
+                </div>
+                <div id="${sortId}-sort" class="sort"></div>
+            `;
+            }
+
+            sortDrawingP5 = new p5(
+                (sketch) => {
+                    sketch.frameRate(FRAME_RATE);
+                    const arraySize = document.getElementById(`${sortId}-elements-range`);
+                    var s = Math.min(parseInt(arraySize.value), w);
+                    arraySize.max = w;
+                    var elementsScale = getElementScale(w, s);
+
+                    var rangePercent = 0; // 1 / 100
+                    var maxNumber = h - h * rangePercent;
+                    var minNumber = h * rangePercent;
+                    var elements = getRandomElementsWithZero(s, -minNumber, maxNumber);
+                    var toSort = [...elements];
+
+                    // array size
+                    arraySize.oninput = async () => {
+                        s = Math.min(parseInt(arraySize.value), w);
+                        elementsScale = getElementScale(w, s);
+                        sortTask.isStarted = false;
+                        elements = getRandomElementsWithZero(s, -minNumber, maxNumber);
+                        sketch.loop();
+                        setTimeout(() => {
+                            toSort.length = 0;
+                            toSort.push(...elements)
+                            sortTask.sortStatus.length = elements.length;
+                            sortTask.sortStatus.fill(0);
+                            sortTask.operations = 0;
+                            template.valueSize = toSort.length;
+                            sketch.noLoop();
+                        }, 100);
+                    };
+
+                    // millis to sleep for 'animation' effect
+                    const millis = document.getElementById(`${sortId}-millis-range`);
+                    const msMax = parseInt(millis.max);
+                    const msMin = parseInt(millis.min);
+                    var ms = msMax - parseInt(millis.value);
+                    // sort task init
+                    var sortTask = new SortTask(sketch, sortLabel, sort, ms, s, sortArgs);
+                    millis.oninput = () => {
+                        sortTask.setMs(msMax - parseInt(millis.value) + msMin);
+                    };
+                    const resetFunc = () => {
+                        sketch.loop();
                         toSort = [...elements];
-                        template.valueSize = toSort.length;
-                        sortTask.sortStatus = new Array(elements.length);
                         sortTask.sortStatus.fill(0);
                         sortTask.operations = 0;
-                        sketch.noLoop();
-                    }, 100);
-                    isCopy = false;
+                        setTimeout(() => {
+                            sketch.noLoop();
+                        }, 20);
+                    };
+                    // reset
+                    document.getElementById(`reset-${sortId}-btn`).addEventListener('click', () => {
+                        sortTask.isStarted = false;
+                        setTimeout(resetFunc, 100);
+                    });
+                    // sort
+                    document.getElementById(`sort-${sortId}-btn`).addEventListener('click', async () => {
+                        // sketch.saveGif(`${sortId}_preview`, 10);
+                        sketch.loop();
+                        const interrupted = await sortTask.doSort(toSort, sortTask);
+                        if (!interrupted) {
+                            sketch.noLoop();
+                        }
+                    });
+                    // see numbers
+                    document.getElementById(`tgl-numbers-${sortId}-btn`).addEventListener('click', async () => {
+                        const isLooping = sketch.isLooping();
+                        if (!isLooping) {
+                            sketch.loop();
+                        }
+                        sortTask.seeNumbers = !sortTask.seeNumbers;
+                        setTimeout(() => {
+                            if (!isLooping) {
+                                sketch.noLoop();
+                            }
+                        }, 20);
+                    });
+                    // colour mode
+                    const HSB = 1;
+                    const DISTINCT = 2;
+                    var currentMode = HSB;
+                    var nextMode = DISTINCT;
+                    document.getElementById(`tgl-colour-mode-${sortId}-btn`).addEventListener('click', async () => {
+                        const isLooping = sketch.isLooping();
+                        if (!isLooping) {
+                            sketch.loop();
+                        }
+                        [currentMode, nextMode] = [nextMode, currentMode];
+                        setTimeout(() => {
+                            if (!isLooping) {
+                                sketch.noLoop();
+                            }
+                        }, 20);
+                    });
+                    // numbers range
+                    const numbersRange = document.getElementById(`${sortId}-range`);
+                    numbersRange.oninput = () => {
+                        sketch.loop();
+                        maxNumber = updateElementsRange(parseInt(numbersRange.value) / 100, toSort, elements, sortTask);
+                        setTimeout(() => {
+                            sketch.noLoop();
+                        }, 20);
+                    };
+                    // copy numbers
+                    const copyElement = document.getElementById(`copy-numbers-${sortId}-btn`);
+                    copyElement.addEventListener('click', () => {
+                        if (isCopy) {
+                            sketch.loop();
+                            sortTask.isStarted = false;
+                            setTimeout(() => {
+                                elements = [...copiedElements];
+                                rangePercent = copiedRangePercent;
+                                maxNumber = copiedMaxNumber;
+                                minNumber = copiedMinNumber;
+                                s = copiedS;
+                                arraySize.min = copiedArraySizeMin;
+                                arraySize.max = copiedArraySizeMax;
+                                arraySize.value = copiedArraySizeValue;
+                                numbersRange.min = copiedNumbersRangeMin;
+                                numbersRange.max = copiedNumbersRangeMax;
+                                numbersRange.value = copiedNumbersRangeValue;
+                                elementsScale = copiedElementsScale;
+                                toSort = [...elements];
+                                template.valueSize = toSort.length;
+                                sortTask.sortStatus = new Array(elements.length);
+                                sortTask.sortStatus.fill(0);
+                                sortTask.operations = 0;
+                                sketch.noLoop();
+                            }, 100);
+                            isCopy = false;
 
-                    for (el of document.getElementsByClassName("copy-numbers-btn")) {
-                        el.innerHTML = "Copy Numbers";
+                            for (el of document.getElementsByClassName("copy-numbers-btn")) {
+                                el.innerHTML = "Copy Numbers";
+                            }
+                        } else {
+                            copiedElements = [...elements];
+                            copiedRangePercent = rangePercent;
+                            copiedMaxNumber = maxNumber;
+                            copiedMinNumber = minNumber;
+                            copiedS = s;
+                            copiedArraySizeMin = parseInt(arraySize.min);
+                            copiedArraySizeMax = parseInt(arraySize.max);
+                            copiedArraySizeValue = parseInt(arraySize.value);
+                            copiedNumbersRangeMin = parseInt(numbersRange.min);
+                            copiedNumbersRangeMax = parseInt(numbersRange.max);
+                            copiedNumbersRangeValue = parseInt(numbersRange.value);
+                            copiedElementsScale = elementsScale;
+                            isCopy = true;
+                            for (el of document.getElementsByClassName("copy-numbers-btn")) {
+                                el.innerHTML = "Paste Numbers";
+                            }
+                        }
+                    });
+                    sketch.setup = () => {
+                        sketch.createCanvas(w, h);
+                    };
+                    sketch.draw = () => {
+                        switch (currentMode) {
+                            case HSB:
+                                drawElementsHSBMode(sketch, toSort, elementsScale, minNumber, maxNumber, sortTask);
+                                break;
+                            default:
+                                drawElementsColourCoded(sketch, toSort, elementsScale, maxNumber, sortTask);
+                        }
+                    };
+                    // additional settings
+                    if (sortArgs != undefined) {
+                        sortArgs.loadAdditionalSettingsHtmlElements(template, sortTask, sketch, resetFunc);
                     }
-                } else {
-                    copiedElements = [...elements];
-                    copiedRangePercent = rangePercent;
-                    copiedMaxNumber = maxNumber;
-                    copiedMinNumber = minNumber;
-                    copiedS = s;
-                    copiedArraySizeMin = parseInt(arraySize.min);
-                    copiedArraySizeMax = parseInt(arraySize.max);
-                    copiedArraySizeValue = parseInt(arraySize.value);
-                    copiedNumbersRangeMin = parseInt(numbersRange.min);
-                    copiedNumbersRangeMax = parseInt(numbersRange.max);
-                    copiedNumbersRangeValue = parseInt(numbersRange.value);
-                    copiedElementsScale = elementsScale;
-                    isCopy = true;
-                    for (el of document.getElementsByClassName("copy-numbers-btn")) {
-                        el.innerHTML = "Paste Numbers";
-                    }
-                }
-            });
-            sketch.setup = () => {
-                sketch.createCanvas(w, h);
-            };
-            sketch.draw = () => {
-                switch (currentMode) {
-                    case HSB:
-                        drawElementsHSBMode(sketch, toSort, elementsScale, minNumber, maxNumber, sortTask);
-                        break;
-                    default:
-                        drawElementsColourCoded(sketch, toSort, elementsScale, maxNumber, sortTask);
-                }
-            };
-            // additional settings
-            if (sortArgs != undefined) {
-                sortArgs.loadAdditionalSettingsHtmlElements(template, sortTask, sketch, resetFunc);
-            }
-        },
-        `${sortId}-sort`);
+                },
+                `${sortId}-sort`);
+        }
+    });
 }
 
 function loadDropDownContent(contentHtmlElement, contentBtn, labeledContent, onClickFunc) {
@@ -710,7 +758,7 @@ function stats(sketch, elements, sortTask) {
     sketch.fill(255);
     let label;
     if (sortTask.sortArgs != undefined && sortTask.sortArgs.compSort != undefined) {
-        label = sortTask.sortLabel.split(' ')[0] + ` ${sortTask.sortArgs.compSort.label()}`;
+        label = sortTask.sortLabel.replace(' Sort', '') + ` ${sortTask.sortArgs.compSort.label()}`;
     } else {
         label = sortTask.sortLabel;
     }

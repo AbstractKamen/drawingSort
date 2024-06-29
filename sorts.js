@@ -2,7 +2,6 @@
 async function quickSort(toSort, sortTask, sortArgs, lo = 0, hi = toSort.length - 1, end = toSort.length) {
     if (sortArgs == undefined || sortArgs.partitioner == undefined || sortArgs.partitioner.partition == undefined) {
         await quickSortRec(toSort, sortTask, lo, hi);
-
     } else {
         await quickSortRec(toSort, sortTask, lo, hi, sortArgs.partitioner.partition);
     }
@@ -31,7 +30,7 @@ async function cutoffQuickSort(toSort, sortTask, sortArgs) {
     if (cutoff < 0) {
         cutoff = (Math.log(toSort.length) << 1) + Math.log(Math.log(toSort.length) << 11);
     }
-    await cutOffquickSortRec(toSort, sortTask, 0, toSort.length - 1, cutoff, sortArgs.partitionFunc);
+    await cutOffquickSortRec(toSort, sortTask, 0, toSort.length - 1, cutoff, sortArgs.partitioner.partition);
     if (sortArgs.compSort.sortArgs()) {
         await sortArgs.compSort.sort(toSort, sortTask, sortArgs.compSort.sortArgs(), 0, toSort.length - 1);
     } else {
@@ -220,7 +219,6 @@ async function bubbleSort(toSort, sortTask, lo = 0, hi = toSort.length - 1, end 
     let i, n = end;
     var swapped;
     for (i = lo; i < hi; i++) {
-        console.log(i, lo, hi, end);
         if (sortTask.isFinished()) return;
         sortTask.increment();
         swapped = await bubbleSortInner(toSort, sortTask, lo, 1, hi);
@@ -618,6 +616,41 @@ async function mergeSortRec(toSort, sortTask, leftI, rightI, end) {
         sortTask.sortStatus[m + 1] = SORTED;
     }
 }
+// ITERATIVE MERGE SORT
+async function iterativeMergeSort(toSort, sortTask, lo = 0, hi = toSort.length - 1, end = toSort.length) {
+    const n = end;
+    var minLen = 1;
+    while (minLen < n) {
+        var i = lo;
+        while (i < n) {
+            var leftStart = i;
+            var leftEnd = i + minLen - 1;
+            var rightStart = i + minLen;
+            var rightEnd = i + 2 * minLen - 1;
+            if (rightStart >= n) {
+                break;
+            }
+            if (rightEnd >= n) {
+                rightEnd = n - 1;
+            }
+            sortTask.increment();
+            if (toSort[leftEnd] > toSort[rightStart]) { // best case condition
+                const temp = await itMerge(lo, n, toSort, sortTask, leftStart, leftEnd, rightStart, rightEnd);
+                const limit = rightEnd - leftStart + 1;
+                for (let j = 0; j < limit && sortTask.isStarted; j++) {
+                    await sortTask.visit(i + j);
+                    toSort[i + j] = temp[j];
+                    sortTask.sortStatus[j] = SORTED;
+                    sortTask.increment();
+                }
+            }
+            i = i + 2 * minLen;
+        }
+        minLen = 2 * minLen;
+    }
+}
+
+// MERGE FUNCTIONS
 async function merge(toSort, sortTask, l, m, r, end) {
     let leftSize = m - l + 1,
         rightSize = r - m;
@@ -656,6 +689,41 @@ async function merge(toSort, sortTask, l, m, r, end) {
         await sortTask.visit(k++);
         sortTask.increment();
     }
+}
+
+async function itMerge(lo, hi, toSort, sortTask, leftStart, leftEnd, rightStart, rightEnd) {
+    const temp = new Array(hi - lo);
+    var i = 0;
+    while (leftStart <= leftEnd && rightStart <= rightEnd && sortTask.isStarted) {
+        if (toSort[leftStart] <= toSort[rightStart]) {
+            temp[i] = toSort[leftStart];
+            await sortTask.visit(leftStart);
+            leftStart++;
+        } else {
+            temp[i] = toSort[rightStart];
+            await sortTask.visit(rightStart);
+            rightStart++;
+        }
+        sortTask.increment();
+        i++;
+    }
+
+    while (leftStart <= leftEnd && sortTask.isStarted) {
+        temp[i] = toSort[leftStart];
+        await sortTask.visit(leftStart);
+        leftStart++;
+        i++;
+        sortTask.increment();
+    }
+
+    while (rightStart <= rightEnd && sortTask.isStarted) {
+        temp[i] = toSort[rightStart];
+        await sortTask.visit(rightStart);
+        rightStart++;
+        i++;
+        sortTask.increment();
+    }
+    return temp;
 }
 // BUCKET SORT
 async function bucketSort(toSort, sortTask, sortArgs) {
@@ -736,74 +804,6 @@ function minRunLength(n, runLimit) {
         n >>>= 1;
     }
     return n + r;
-}
-// ITERATIVE MERGE SORT
-async function iterativeMergeSort(toSort, sortTask, lo = 0, hi = toSort.length - 1, end = toSort.length) {
-    const n = end;
-    var minLen = 1;
-    while (minLen < n) {
-        var i = lo;
-        while (i < n) {
-            var leftStart = i;
-            var leftEnd = i + minLen - 1;
-            var rightStart = i + minLen;
-            var rightEnd = i + 2 * minLen - 1;
-            if (rightStart >= n) {
-                break;
-            }
-            if (rightEnd >= n) {
-                rightEnd = n - 1;
-            }
-            sortTask.increment();
-            if (toSort[leftEnd] > toSort[rightStart]) { // best case condition
-                const temp = await itMerge(lo, n, toSort, sortTask, leftStart, leftEnd, rightStart, rightEnd);
-                const limit = rightEnd - leftStart + 1;
-                for (let j = 0; j < limit && sortTask.isStarted; j++) {
-                    await sortTask.visit(i + j);
-                    toSort[i + j] = temp[j];
-                    sortTask.sortStatus[j] = SORTED;
-                    sortTask.increment();
-                }
-            }
-            i = i + 2 * minLen;
-        }
-        minLen = 2 * minLen;
-    }
-}
-
-async function itMerge(lo, hi, toSort, sortTask, leftStart, leftEnd, rightStart, rightEnd) {
-    const temp = new Array(hi - lo);
-    var i = 0;
-    while (leftStart <= leftEnd && rightStart <= rightEnd && sortTask.isStarted) {
-        if (toSort[leftStart] <= toSort[rightStart]) {
-            temp[i] = toSort[leftStart];
-            await sortTask.visit(leftStart);
-            leftStart++;
-        } else {
-            temp[i] = toSort[rightStart];
-            await sortTask.visit(rightStart);
-            rightStart++;
-        }
-        sortTask.increment();
-        i++;
-    }
-
-    while (leftStart <= leftEnd && sortTask.isStarted) {
-        temp[i] = toSort[leftStart];
-        await sortTask.visit(leftStart);
-        leftStart++;
-        i++;
-        sortTask.increment();
-    }
-
-    while (rightStart <= rightEnd && sortTask.isStarted) {
-        temp[i] = toSort[rightStart];
-        await sortTask.visit(rightStart);
-        rightStart++;
-        i++;
-        sortTask.increment();
-    }
-    return temp;
 }
 // PATIENCE SORT
 async function patienceSort(toSort, sortTask) {
