@@ -11,6 +11,7 @@ const VERIFIED_SORTED = 4;
 const VISITED = 5;
 const BAR_RATIO = 0.9;
 const FRAME_RATE = 30;
+const imagesPath = 'https://abstractkamen.github.io/drawingSort/images';
 
 function init() {
     const sortsContainer = document.getElementById('sorts');
@@ -399,7 +400,7 @@ function initAlgorithm(sortsContainer, template, sort, sortArgs) {
     <div id="${sortId}-container">
         <div id="${sortId}-canvas-container">
             <div id="${sortId}-preview-container">
-                <img id="${sortId}-preview" src="images/${sortId}_preview.png" alt="${sortLabel} Preview"/>
+                <img id="${sortId}-preview" src="${imagesPath}/${sortId}_preview.png" alt="${sortLabel} Preview"/>
             </div>
         </div>
     </div>
@@ -407,11 +408,11 @@ function initAlgorithm(sortsContainer, template, sort, sortArgs) {
     sortsContainer.appendChild(listItem);
     var img = document.getElementById(`${sortId}-preview`);
     img.addEventListener('click', () => {
-        if (previewToggle.toggle) {
-            previewToggle.toggle = false;
+        if (!previewToggle.toggle) {
+            previewToggle.toggle = true;
             img.src = `images/${previewToggle.sortId}_preview.gif`;
         } else {
-            previewToggle.toggle = true;
+            previewToggle.toggle = false;
             img.src = `images/${previewToggle.sortId}_preview.png`;
         }
         return false;
@@ -436,17 +437,17 @@ function initAlgorithm(sortsContainer, template, sort, sortArgs) {
             isExpanded = false;
             sortCanvasContainer.innerHTML = `
                 <div id="${sortId}-preview-container">
-                    <img id="${sortId}-preview" src="images/${sortId}_preview.png" alt="${sortLabel} Preview"/>
+                    <img id="${sortId}-preview" src="${imagesPath}/${sortId}_preview.png" alt="${sortLabel} Preview"/>
                 </div>
             `;
             img = document.getElementById(`${sortId}-preview`);
             img.addEventListener('click', () => {
-                if (previewToggle.toggle) {
-                    previewToggle.toggle = false;
-                    img.src = `images/${previewToggle.sortId}_preview.gif`;
-                } else {
+                if (!previewToggle.toggle) {
                     previewToggle.toggle = true;
-                    img.src = `images/${previewToggle.sortId}_preview.png`;
+                    img.src = `${imagesPath}/${previewToggle.sortId}_preview.gif`;
+                } else {
+                    previewToggle.toggle = false;
+                    img.src = `${imagesPath}/${previewToggle.sortId}_preview.png`;
                 }
                 return false;
             });
