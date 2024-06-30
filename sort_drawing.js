@@ -59,6 +59,7 @@ function init() {
     initAlgorithm(sortsContainer, getAlgorithmUITemplate("iterative-quick", "Iterative Quick Sort", "Not Stable, Not In place, O(n log n) time complexity", iterativeQuickSortDescription), iterativeQuickSort, getQuickSortArguments());
     initAlgorithm(sortsContainer, getAlgorithmUITemplate("quick-cut", "Cutoff Quick Sort", "Not Stable, In place, O(n log n) time complexity", "desc todo", "Sort After Cutoff: "), cutoffQuickSort, getHybridQuickSortArguments());
     initAlgorithm(sortsContainer, getAlgorithmUITemplate("merge", "Merge Sort", "Stable, Not In place, O(n log n) time complexity", mergeSortDescription), mergeSort);
+    initAlgorithm(sortsContainer, getAlgorithmUITemplate("inplace-merge", "In Place Merge Sort", "Stable, In place, O(n^2) time complexity"), inPlaceMergeSort);
     initAlgorithm(sortsContainer, getAlgorithmUITemplate("iterative-merge", "Iterative Merge Sort", "Stable, Not In place, O(n log n) time complexity", iterativeMergeSortDescription), iterativeMergeSort);
     initAlgorithm(sortsContainer, getAlgorithmUITemplate("heap", "Heap Sort", "Not Stable, In place, O(n log n) time complexity", heapSortDescription), heapSort);
 }
@@ -537,7 +538,7 @@ function initAlgorithm(sortsContainer, template, sort, sortArgs) {
                     });
                     // sort
                     document.getElementById(`sort-${sortId}-btn`).addEventListener('click', async () => {
-                        // sketch.saveGif(`${sortId}_preview`, 10);
+                        // sketch.saveGif(`${sortId}_preview`, 15);
                         sketch.loop();
                         const interrupted = await sortTask.doSort(toSort, sortTask);
                         if (!interrupted) {

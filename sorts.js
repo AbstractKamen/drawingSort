@@ -235,7 +235,7 @@ async function bubbleSort(toSort, sortTask, lo = 0, hi = toSort.length - 1, end 
 async function bubbleSortInner(toSort, sortTask, lo = 0, step = 1, hi = toSort.length - 1) {
     var swapped = false;
     var j = lo;
-    for (; j < hi ; j += step) {
+    for (; j < hi; j += step) {
         if (sortTask.isFinished()) return;
         sortTask.increment();
         await sortTask.visit(j);
@@ -267,7 +267,8 @@ async function brickSort(toSort, sortTask, lo = 0, hi = toSort.length - 1, end =
 }
 // SHAKER SORT
 async function shakerSort(toSort, sortTask, lo = 0, hi = toSort.length - 1, end = toSort.length) {
-    let i, j = lo, high = hi;
+    let i, j = lo,
+        high = hi;
     for (i = lo; i < hi; ++i) {
         if (sortTask.isFinished()) return;
         swapped = false;
@@ -649,7 +650,37 @@ async function iterativeMergeSort(toSort, sortTask, lo = 0, hi = toSort.length -
         minLen = 2 * minLen;
     }
 }
+// INPLACE MERGE SORT
+async function inPlaceMergeSort(toSort, sortTask, lo = 0, hi = toSort.length - 1, end = toSort.length) {
+    if (sortTask.isFinished() || lo >= hi) {
+        return;
+    }
 
+    let m = ((lo + hi) >>> 1);
+    await inPlaceMergeSort(toSort, sortTask, lo, m, m + 1);
+    await inPlaceMergeSort(toSort, sortTask, m + 1, hi, end);
+
+    let mid = ((lo + hi) >>> 1);
+    let left = lo;
+    let right = mid + 1;
+    while (left <= mid && right <= hi && sortTask.isStarted) {
+        await sortTask.visit(left, right);
+        sortTask.increment();
+        if (toSort[left] <= toSort[right]) {
+            sortTask.sortStatus[left] = SORTED;
+            left++;
+            sortTask.sortStatus[right] = SORTED;
+        } else {
+            const t = toSort[right];
+            shiftRight(toSort, sortTask, left, right);
+            toSort[left] = t;
+            sortTask.sortStatus[left] = SORTED;
+            left++;
+            right++;
+            mid++;
+        }
+    }
+}
 // MERGE FUNCTIONS
 async function merge(toSort, sortTask, l, m, r, end) {
     let leftSize = m - l + 1,
@@ -1127,6 +1158,12 @@ function swap(arr, i, j) {
     let temp = arr[i];
     arr[i] = arr[j];
     arr[j] = temp;
+}
+async function shiftRight(toSort, sortTask, lo, hi) {
+    for (let i = hi; i > lo && sortTask.isStarted; --i) {
+        sortTask.increment();
+        toSort[i] = toSort[i - 1];
+    }
 }
 
 function abs(n) {
