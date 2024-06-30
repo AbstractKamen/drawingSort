@@ -406,17 +406,7 @@ function initAlgorithm(sortsContainer, template, sort, sortArgs) {
     </div>
     `;
     sortsContainer.appendChild(listItem);
-    var img = document.getElementById(`${sortId}-preview`);
-    img.addEventListener('click', () => {
-        if (!previewToggle.toggle) {
-            previewToggle.toggle = true;
-            img.src = `images/${previewToggle.sortId}_preview.gif`;
-        } else {
-            previewToggle.toggle = false;
-            img.src = `images/${previewToggle.sortId}_preview.png`;
-        }
-        return false;
-    });
+    setPreviewToggle(previewToggle);
     // collapsible description
     var element = document.getElementById(`${sortId}-description`);
     element.addEventListener("click", function () {
@@ -440,17 +430,7 @@ function initAlgorithm(sortsContainer, template, sort, sortArgs) {
                     <img id="${sortId}-preview" src="${imagesPath}/${sortId}_preview.png" alt="${sortLabel} Preview"/>
                 </div>
             `;
-            img = document.getElementById(`${sortId}-preview`);
-            img.addEventListener('click', () => {
-                if (!previewToggle.toggle) {
-                    previewToggle.toggle = true;
-                    img.src = `${imagesPath}/${previewToggle.sortId}_preview.gif`;
-                } else {
-                    previewToggle.toggle = false;
-                    img.src = `${imagesPath}/${previewToggle.sortId}_preview.png`;
-                }
-                return false;
-            });
+            setPreviewToggle(previewToggle);
         } else {
             isExpanded = true;
             if (sortArgs != undefined) {
@@ -672,6 +652,20 @@ function initAlgorithm(sortsContainer, template, sort, sortArgs) {
                 },
                 `${sortId}-sort`);
         }
+    });
+}
+
+function setPreviewToggle(previewToggle) {
+    var img = document.getElementById(`${previewToggle.sortId}-preview`);
+    img.addEventListener('click', () => {
+        if (previewToggle.toggle) {
+            previewToggle.toggle = false;
+            img.src = `${imagesPath}/${previewToggle.sortId}_preview.png`;
+        } else {
+            previewToggle.toggle = true;
+            img.src = `${imagesPath}/${previewToggle.sortId}_preview.gif`;
+        }
+        return false;
     });
 }
 
