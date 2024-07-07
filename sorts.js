@@ -221,7 +221,7 @@ async function bubbleSort(toSort, sortTask, lo = 0, hi = toSort.length - 1, end 
     for (i = lo; i < hi; i++) {
         if (sortTask.isFinished()) return;
         sortTask.increment();
-        swapped = await bubbleSortInner(toSort, sortTask, lo, 1, hi);
+        swapped = await bubbleSortInner(toSort, sortTask, lo, 1, hi - i);
 
         if (swapped === false) {
             for (k = lo; k < hi; k++) {
