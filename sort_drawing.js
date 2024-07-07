@@ -401,7 +401,7 @@ function initAlgorithm(sortsContainer, template, sort, sortArgs) {
     <div id="${sortId}-container">
         <div id="${sortId}-canvas-container">
             <div id="${sortId}-preview-container">
-                <img id="${sortId}-preview" src="${imagesPath}/${sortId}_preview.png" alt="${sortLabel} Preview"/>
+                <img id="${sortId}-preview" width="${w}" src="${imagesPath}/${sortId}_preview.png" alt="${sortLabel} Preview"/>
             </div>
         </div>
     </div>
@@ -428,7 +428,7 @@ function initAlgorithm(sortsContainer, template, sort, sortArgs) {
             isExpanded = false;
             sortCanvasContainer.innerHTML = `
                 <div id="${sortId}-preview-container">
-                    <img id="${sortId}-preview" src="${imagesPath}/${sortId}_preview.png" alt="${sortLabel} Preview"/>
+                    <img id="${sortId}-preview" width="${w}" src="${imagesPath}/${sortId}_preview.png" alt="${sortLabel} Preview"/>
                 </div>
             `;
             setPreviewToggle(previewToggle);
