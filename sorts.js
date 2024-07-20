@@ -1052,11 +1052,64 @@ async function iterativeCircleSort(toSort, sortTask, lo = 0, hi = toSort.length 
         }
     }
 }
+// DEPTH FIRST CIRCLE SORT
+async function DFcircleSort(toSort, sortTask, lo = 0, hi = toSort.length - 1, end = toSort.length) {
+    while (await DFcircleSortRec(toSort, sortTask, lo, hi, end));
+    for (k = 0; k < toSort.length - 1; ++k) {
+        sortTask.sortStatus[k] = SORTED;
+    }
+    await sortTask.sleep();
+}
+
+async function DFcircleSortRec(toSort, sortTask, low, high, end) {
+    if (sortTask.isFinished()) return false;
+    let swapped = false;
+    sortTask.increment();
+    if (low === high) {
+        return false;
+    }
+    // only difference from circle sort is we call rec before 
+    let mid = (high - low) >>> 1;
+    let firstHalf = await DFcircleSortRec(toSort, sortTask, low, low + mid);
+    let secondHalf = await DFcircleSortRec(toSort, sortTask, low + mid + 1, high);
+    sortTask.sortStatus[low + mid + 1] = SORTED;
+    
+    let lo = low;
+    let hi = high;
+
+    while (lo < hi) {
+        if (sortTask.isFinished()) return false;
+        if (toSort[lo] > toSort[hi]) {
+            sortTask.increment();
+            await sortTask.visit(lo, hi);
+            sortTask.sortStatus[lo] = NOT_SORTED;
+            sortTask.sortStatus[hi] = NOT_SORTED;
+            swap(toSort, lo, hi);
+            swapped = true;
+        }
+        lo++;
+        hi--;
+    }
+    // central element if it exists
+    if (lo === hi) {
+        sortTask.increment();
+        hi++;
+        if (toSort[lo] > toSort[hi]) {
+            await sortTask.visit(lo, hi);
+            sortTask.sortStatus[lo] = NOT_SORTED;
+            sortTask.sortStatus[hi] = NOT_SORTED;
+            swap(toSort, lo, hi);
+            swapped = true;
+        }
+    }
+
+    return swapped || firstHalf || secondHalf;
+}
 // COUNTING SORT
 async function countingSort(toSort, sortTask, lo = 0, hi = toSort.length - 1, end = toSort.length) {
     var n, i, j = lo,
-        max = -((1 << 32) - 1),
-        min = 1 << 32;
+    max = -((1 << 32) - 1),
+    min = 1 << 32;
     for (i = lo; i < end; i++) {
         if (sortTask.isFinished()) return;
         await sortTask.visit(i);
@@ -1120,9 +1173,53 @@ async function countingSort(toSort, sortTask, lo = 0, hi = toSort.length - 1, en
         }
     }
 }
+// CYCLE SORT
+async function cycleSort(toSort, sortTask, lo = 0, hi = toSort.length - 1, end = toSort.length) {
+    for (let i = lo; i < hi; i++) {
+        if (sortTask.isFinished()) return;
+        await sortTask.visit(i);
+        let item = toSort[i];
+        let pos = i;
+        for (let j = i + 1; j < end; j++) {
+            if (sortTask.isFinished()) return;
+            sortTask.increment();
+            await sortTask.visit(j);
+            if (toSort[j] < item) pos++;
+        }
+        if (pos == i) continue;
+        while (pos < end && item == toSort[pos]) {
+            if (sortTask.isFinished()) return;
+            pos++;
+            sortTask.increment();
+            await sortTask.visit(pos);
+        }
+        item = swapValue(toSort, pos, item);
+        sortTask.sortStatus[pos] = SORTED;
+        while (pos != i) {
+            if (sortTask.isFinished()) return;
+            pos = i;
+            await sortTask.visit(pos);
+            sortTask.increment();
+            for (let j = pos + 1; j < end; j++) {
+                if (sortTask.isFinished()) return;
+                sortTask.increment();
+                await sortTask.visit(j);
+                if (toSort[j] < item) pos++;
+            }
+            while (pos < end && item == toSort[pos]) {
+                if (sortTask.isFinished()) return;
+                pos++;
+                sortTask.increment();
+                await sortTask.visit(pos);
+            }
+            item = swapValue(toSort, pos, item);
+            sortTask.sortStatus[pos] = SORTED;
+        }
+    }
+}
 /*
- * HELPERS
- */
+* HELPERS
+*/
 function binarySearch(sortTask, elements, value,
     // default array access and comparison functions
     getFromElements = (e, i) => e[i],
@@ -1158,6 +1255,11 @@ function swap(arr, i, j) {
     let temp = arr[i];
     arr[i] = arr[j];
     arr[j] = temp;
+}
+function swapValue(arr, i, value) {
+    let temp = arr[i];
+    arr[i] = value;
+    return temp;
 }
 async function shiftRight(toSort, sortTask, lo, hi) {
     for (let i = hi; i > lo && sortTask.isStarted; --i) {
