@@ -101,6 +101,9 @@ function getAlgorithmUITemplate(id = undefined, name = "TODO", characteristics =
         minSize: 40,
         maxSize: 1200,
         valueSize: 4,
+        minSortedness: 0,
+        maxSortedness: 100,
+        valueSortedness: 0,
         compSortLabel: compSortLabel,
         compSorts: [...COMP_SORTS]
     };
@@ -379,6 +382,9 @@ var copiedS;
 var copiedArraySizeMin;
 var copiedArraySizeMax;
 var copiedArraySizeValue;
+var copiedArrayMinSortedness;
+var copiedArrayMaxSortedness;
+var copiedArraySortednessValue;
 var copiedNumbersRangeMin;
 var copiedNumbersRangeMax;
 var copiedNumbersRangeValue;
@@ -455,6 +461,7 @@ function initAlgorithm(sortsContainer, template, sort, sortArgs) {
                         <div class="range-btns">
                             <label>Numbers Range: <input id="${sortId}-range" type="range" min="${template.minRange}" max="${template.maxRange}" value="${template.valueRange}" class="slider"></label>
                             <label>Array Size: <input id="${sortId}-elements-range" type="range" min="${template.minSize}" max="${template.maxSize}" value="${template.valueSize}" class="slider"></label>
+                            <label>Array Size: <input id="${sortId}-elements-sortedness" type="range" min="${template.minSortedness}" max="${template.maxSortedness}" value="${template.valueSortedness}" class="slider"></label>
                             <label>Sort Speed: <input id="${sortId}-millis-range" type="range" min="${template.minSpeed}" max="${template.maxSpeed}" value="${template.valueSpeed}" class="slider"></label>
                         </div>
                         <div class="additional-settings-btns">
@@ -478,6 +485,7 @@ function initAlgorithm(sortsContainer, template, sort, sortArgs) {
                         <div class="range-btns">
                             <label>Numbers Range: <input id="${sortId}-range" type="range" min="${template.minRange}" max="${template.maxRange}" value="${template.valueRange}" class="slider"></label>
                             <label>Array Size: <input id="${sortId}-elements-range" type="range" min="${template.minSize}" max="${template.maxSize}" value="${template.valueSize}" class="slider"></label>
+                            <label>Array Sortedness: <input id="${sortId}-elements-sortedness" type="range" min="${template.minSortedness}" max="${template.maxSortedness}" value="${template.valueSortedness}" class="slider"></label>
                             <label>Sort Speed: <input id="${sortId}-millis-range" type="range" min="${template.minSpeed}" max="${template.maxSpeed}" value="${template.valueSpeed}" class="slider"></label>
                         </div>
                     </div>
@@ -491,13 +499,14 @@ function initAlgorithm(sortsContainer, template, sort, sortArgs) {
                     sketch.frameRate(FRAME_RATE);
                     const arraySize = document.getElementById(`${sortId}-elements-range`);
                     var s = Math.min(parseInt(arraySize.value), w);
+                    var sortedness = 0;
                     arraySize.max = w;
                     var elementsScale = getElementScale(w, s);
 
                     var rangePercent = 0; // 1 / 100
                     var maxNumber = h - h * rangePercent;
                     var minNumber = h * rangePercent;
-                    var elements = getRandomElementsWithZero(s, -minNumber, maxNumber);
+                    var elements = getRandomElementsWithZero(s, -minNumber, maxNumber, sortedness);
                     var toSort = [...elements];
 
                     // array size
@@ -505,7 +514,7 @@ function initAlgorithm(sortsContainer, template, sort, sortArgs) {
                         s = Math.min(parseInt(arraySize.value), w);
                         elementsScale = getElementScale(w, s);
                         sortTask.isStarted = false;
-                        elements = getRandomElementsWithZero(s, -minNumber, maxNumber);
+                        elements = getRandomElementsWithZero(s, -minNumber, maxNumber, sortedness);
                         sketch.loop();
                         setTimeout(() => {
                             toSort.length = 0;
@@ -517,7 +526,24 @@ function initAlgorithm(sortsContainer, template, sort, sortArgs) {
                             sketch.noLoop();
                         }, 100);
                     };
-
+                    // array sortedness
+                    const arraySortedness = document.getElementById(`${sortId}-elements-sortedness`);
+                    arraySortedness.oninput = async () => {
+                        sortedness = parseInt(arraySortedness.value);
+                        sortTask.isStarted = false;
+                        elements = getRandomElementsWithZero(s, -minNumber, maxNumber, sortedness);
+                        sketch.loop();
+                        setTimeout(() => {
+                            toSort.length = 0;
+                            toSort.push(...elements)
+                            sortTask.sortStatus.length = elements.length;
+                            sortTask.sortStatus.fill(0);
+                            sortTask.operations = 0;
+                            template.valueSize = toSort.length;
+                            template.valueSortedness = sortedness;
+                            sketch.noLoop();
+                        }, 300);
+                    };
                     // millis to sleep for 'animation' effect
                     const millis = document.getElementById(`${sortId}-millis-range`);
                     const msMax = parseInt(millis.max);
@@ -585,7 +611,7 @@ function initAlgorithm(sortsContainer, template, sort, sortArgs) {
                     const numbersRange = document.getElementById(`${sortId}-range`);
                     numbersRange.oninput = () => {
                         sketch.loop();
-                        maxNumber = updateElementsRange(parseInt(numbersRange.value) / 100, toSort, elements, sortTask);
+                        maxNumber = updateElementsRange(parseInt(numbersRange.value) / 100, toSort, elements, sortTask, sortedness);
                         setTimeout(() => {
                             sketch.noLoop();
                         }, 20);
@@ -605,6 +631,9 @@ function initAlgorithm(sortsContainer, template, sort, sortArgs) {
                                 arraySize.min = copiedArraySizeMin;
                                 arraySize.max = copiedArraySizeMax;
                                 arraySize.value = copiedArraySizeValue;
+                                arraySortedness.min = copiedArrayMinSortedness;
+                                arraySortedness.max = copiedArrayMaxSortedness;
+                                arraySortedness.value = copiedArraySortednessValue;
                                 numbersRange.min = copiedNumbersRangeMin;
                                 numbersRange.max = copiedNumbersRangeMax;
                                 numbersRange.value = copiedNumbersRangeValue;
@@ -630,6 +659,9 @@ function initAlgorithm(sortsContainer, template, sort, sortArgs) {
                             copiedArraySizeMin = parseInt(arraySize.min);
                             copiedArraySizeMax = parseInt(arraySize.max);
                             copiedArraySizeValue = parseInt(arraySize.value);
+                            copiedArrayMinSortedness = parseInt(arraySortedness.min);  
+                            copiedArrayMaxSortedness = parseInt(arraySortedness.max);
+                            copiedArraySortednessValue = parseInt(arraySortedness.value);;
                             copiedNumbersRangeMin = parseInt(numbersRange.min);
                             copiedNumbersRangeMax = parseInt(numbersRange.max);
                             copiedNumbersRangeValue = parseInt(numbersRange.value);
@@ -689,13 +721,13 @@ function loadDropDownContent(contentHtmlElement, contentBtn, labeledContent, onC
     contentBtn.addEventListener("click", () => contentHtmlElement.classList.toggle("show"));
 }
 
-function updateElementsRange(m, toSort, elements, sortTask) {
+function updateElementsRange(m, toSort, elements, sortTask, sortedness) {
     sortTask.isStarted = false;
     const high = h - h * m;
     const low = h * m;
     const size = elements.length;
     elements.length = 0;
-    elements.push(...getRandomElementsWithZero(size, -low, high));
+    elements.push(...getRandomElementsWithZero(size, -low, high, sortedness));
     setTimeout(() => {
         toSort.length = 0;
         toSort.push(...elements)
@@ -783,10 +815,17 @@ function drawElementNumbers(sketch, elements, elementsScale, sortTask) {
     }
 }
 
-function getRandomElementsWithZero(size, lowerBound, upperBound) {
+function getRandomElementsWithZero(size, lowerBound, upperBound, sortedness = 0) {
     const elements = [];
     for (let i = 0; i < size; i++) {
         elements.push(Math.floor(getRandom(lowerBound, upperBound)));
+    }
+    elements.sort((a, b) => a > b ? 1 : a < b ? -1 : 0);
+    const swaps = Math.floor((1 - (sortedness / 100.0)) * size);
+    for (let i = 0; i < swaps; ++i) {
+        const a = Math.floor(getRandom(0, size));
+        const b = Math.floor(getRandom(0, size));
+        swap(elements, a, b);
     }
     return elements;
 }
