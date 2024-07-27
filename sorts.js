@@ -249,7 +249,7 @@ async function bubbleSortInner(toSort, sortTask, lo = 0, step = 1, hi = toSort.l
     }
     return swapped;
 }
-// BUBBLE SORT
+// BRICK SORT
 async function brickSort(toSort, sortTask, lo = 0, hi = toSort.length - 1, end = toSort.length) {
     var swapped = true;
     while (swapped) {
@@ -391,6 +391,7 @@ async function insertionBackstepLoop(toSort, sortTask, low, cur, backStep,
 ) {
     if (sortTask.isFinished()) return;
     sortTask.increment();
+    await sortTask.visit(cur);
     const key = toSort[cur];
     let j = cur - backStep;
     while (j >= low && toSort[j] > key) {
@@ -479,7 +480,9 @@ async function pairInsertionSort(toSort, sortTask, lo = 0, hi = toSort.length - 
             sortTask.sortStatus[i + 1] = SORTED;
             await sortTask.visit(i, i + 1);
             sortTask.increment();
-        }
+        } else {
+            await sortTask.visit(i);
+            sortTask.increment();        }
     }
     if ((end) % 2 === 1) {
         await insertionBackstepLoop(toSort, sortTask, lo, hi, 1);
@@ -528,6 +531,9 @@ async function pinInsertionSort(toSort, sortTask, lo = 0, high = toSort.length -
             await sortTask.visit(i + 1);
             toSort[i + 1] = a;
             sortTask.sortStatus[i + 1] = SORTED;
+        } else {
+            await sortTask.visit(i);
+            sortTask.increment();
         }
     }
 }
@@ -953,6 +959,7 @@ async function circleSortRec(toSort, sortTask, low, high, end) {
     if (sortTask.isFinished()) return false;
     let swapped = false;
     sortTask.increment();
+    await sortTask.visit(low, high);
     if (low === high) {
         return false;
     }
@@ -1006,6 +1013,7 @@ async function iterativeCircleSort(toSort, sortTask, lo = 0, hi = toSort.length 
             high
         } = loHiStack.pop()
         sortTask.increment();
+        await sortTask.visit(low);
         if (low === high) continue;
         let lo = low;
         let hi = high;
@@ -1065,6 +1073,7 @@ async function DFcircleSortRec(toSort, sortTask, low, high, end) {
     if (sortTask.isFinished()) return false;
     let swapped = false;
     sortTask.increment();
+    await sortTask.visit(low, high);
     if (low === high) {
         return false;
     }
