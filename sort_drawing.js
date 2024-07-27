@@ -276,6 +276,7 @@ const COMP_SORTS = [
     makeCompSort(shellSort, "Shell Sort"),
     makeCompSort(countingSort, "Counting Sort")
 ];
+const SPEEDUP_SECONDS = 3000;
 class SortTask {
     constructor(sketch, sortLabel, sortFunc, ms, s, sortArgs) {
         this.sketch = sketch;
@@ -289,10 +290,11 @@ class SortTask {
         this.mms = ms;
         this.msC = 5;
         this.sortArgs = sortArgs;
+        this.sleepThreshHold = 0;
     }
-
     async doSort() {
         if (this.isStarted) return true;
+        this.startTime = Date.now();
         this.sortStatus.fill(0);
         this.operations = 0;
         this.isStarted = true;
@@ -323,6 +325,7 @@ class SortTask {
             await this.sleep();
         }
         // finish
+        this.sleepThreshHold = 0;
         return this.isStarted = false;
     }
     async visit(...toVisit) {
@@ -355,9 +358,22 @@ class SortTask {
     isFinished() {
         return !this.isStarted;
     }
+    /**
+      * Sleep function for animation simulation.
+      * 
+      * If user has selected lowest possible 'sleep' value try skipping calls to sleep(1). 
+      * Each skip will instead decrease arbitrary 'msC' value by a factor tied to user input 'ms'.
+      * When 'sleepThreshHold' is reached invoke sleep(1). Also, gradually decrease 'sleepThreshHold'
+      * every 'SPEEDUP_SECONDS' to make sleep(1) calls rarer thus 'speeding up' the whole thing.
+      *
+      */
     async sleep() {
         if (this.mms <= 0) {
-            if (this.msC <= 0) {
+            if (this.startTime + SPEEDUP_SECONDS <= Date.now()) {
+                this.sleepThreshHold -= 2000;
+                this.startTime = Date.now();
+            }
+            if (this.msC <= this.sleepThreshHold) {
                 await sleep(1);
                 this.msC = 1000;
             } else {
