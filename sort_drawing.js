@@ -597,7 +597,7 @@ function initAlgorithm(sortsContainer, template, sort, sortArgs) {
                     });
                     // sort
                     document.getElementById(`sort-${sortId}-btn`).addEventListener('click', async () => {
-                        sketch.saveGif(`${sortId}_preview`, 10);
+                        // sketch.saveGif(`${sortId}_preview`, 10);
                         sketch.loop();
                         const interrupted = await sortTask.doSort(toSort, sortTask);
                         if (!interrupted) {
