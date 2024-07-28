@@ -39,6 +39,7 @@ function init() {
     const binaryInsertionSortDescription = "Binary Insertion Sort is a variation of the traditional insertion sort that uses binary search to reduce the number of comparisons needed to find the correct position for the element being inserted. Instead of comparing elements sequentially, binary search is used to find the position in the already sorted portion of the array, which reduces the time complexity of the search to O(logn). However, the shifting of elements to make room for the inserted element still takes O(n) in the worst case, resulting in the same overall time complexity as traditional insertion sort for the entire sorting process.";
 
     initAlgorithm(sortsContainer, getAlgorithmUITemplate("bubble", "Bubble Sort", "Stable, In place, O(n^2) time complexity", bubbleSortDescription), bubbleSort);
+    initAlgorithm(sortsContainer, getAlgorithmUITemplate("gnome", "Gnome Sort", "Stable, In place, O(n^2) time complexity"), gnomeSort);
     initAlgorithm(sortsContainer, getAlgorithmUITemplate("cycle", "Cycle Sort", "Not Stable, In place, O(n^2) time complexity"), cycleSort);
     initAlgorithm(sortsContainer, getAlgorithmUITemplate("selection", "Selection Sort", "Not Stable, In place, O(n^2) time complexity", selectionSortDescription), selectionSort);
     initAlgorithm(sortsContainer, getAlgorithmUITemplate("brick", "Brick Sort", "Stable, In place, O(n^2) time complexity", brickSortDescription), brickSort);
@@ -268,6 +269,7 @@ const COMP_SORTS = [
     makeCompSort(heapSort, "Heap Sort"),
     makeCompSort(bubbleSort, "Bubble Sort"),
     makeCompSort(cycleSort, "Cycle Sort"),
+    makeCompSort(gnomeSort, "Gnome Sort"),
     makeCompSort(selectionSort, "Selection Sort"),
     makeCompSort(shakerSort, "Shaker Sort"),
     makeCompSort(brickSort, "Brick Sort"),

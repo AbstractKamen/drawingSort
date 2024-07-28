@@ -482,7 +482,8 @@ async function pairInsertionSort(toSort, sortTask, lo = 0, hi = toSort.length - 
             sortTask.increment();
         } else {
             await sortTask.visit(i);
-            sortTask.increment();        }
+            sortTask.increment();
+        }
     }
     if ((end) % 2 === 1) {
         await insertionBackstepLoop(toSort, sortTask, lo, hi, 1);
@@ -1082,7 +1083,7 @@ async function DFcircleSortRec(toSort, sortTask, low, high, end) {
     let firstHalf = await DFcircleSortRec(toSort, sortTask, low, low + mid);
     let secondHalf = await DFcircleSortRec(toSort, sortTask, low + mid + 1, high);
     sortTask.sortStatus[low + mid + 1] = SORTED;
-    
+
     let lo = low;
     let hi = high;
 
@@ -1117,8 +1118,8 @@ async function DFcircleSortRec(toSort, sortTask, low, high, end) {
 // COUNTING SORT
 async function countingSort(toSort, sortTask, lo = 0, hi = toSort.length - 1, end = toSort.length) {
     var n, i, j = lo,
-    max = -((1 << 32) - 1),
-    min = 1 << 32;
+        max = -((1 << 32) - 1),
+        min = 1 << 32;
     for (i = lo; i < end; i++) {
         if (sortTask.isFinished()) return;
         await sortTask.visit(i);
@@ -1226,9 +1227,29 @@ async function cycleSort(toSort, sortTask, lo = 0, hi = toSort.length - 1, end =
         }
     }
 }
+// GNOME SORT
+async function gnomeSort(toSort, sortTask, lo = 0, hi = toSort.length - 1, end = toSort.length) {
+    let i = lo;
+    while (i < end && sortTask.isStarted) {
+        sortTask.increment();
+        if (i == lo) {
+            await sortTask.visit(i);
+            sortTask.sortStatus[i] = SORTED;
+            i++;
+        } else if (toSort[i] >= toSort[i - 1]) {
+            await sortTask.visit(i);
+            sortTask.sortStatus[i] = SORTED;
+            i++;
+        } else {
+            await sortTask.visit(i);
+            swap(toSort, i, i - 1);
+            i--;
+        }
+    }
+}
 /*
-* HELPERS
-*/
+ * HELPERS
+ */
 function binarySearch(sortTask, elements, value,
     // default array access and comparison functions
     getFromElements = (e, i) => e[i],
@@ -1265,6 +1286,7 @@ function swap(arr, i, j) {
     arr[i] = arr[j];
     arr[j] = temp;
 }
+
 function swapValue(arr, i, value) {
     let temp = arr[i];
     arr[i] = value;
