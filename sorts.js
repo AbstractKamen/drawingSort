@@ -1247,6 +1247,61 @@ async function gnomeSort(toSort, sortTask, lo = 0, hi = toSort.length - 1, end =
         }
     }
 }
+// BITONIC SORT
+async function bitonicSort(toSort, sortTask, lo = 0, hi = toSort.length - 1, end = toSort.length) {
+
+    async function bitonicSortRec(low, n, dir) {
+        if (sortTask.isFinished()) return;
+        if (n > 1) {
+            sortTask.increment();
+            const m = n >> 1;
+            await bitonicSortRec(low, m, !dir);
+            await bitonicSortRec(low + m, n - m, dir);
+            await bitonicMerge(low, n, dir);
+        }
+    }
+
+    await bitonicSortRec(lo, end - lo, true);
+
+    async function bitonicMerge(low, n, dir) {
+        if (sortTask.isFinished()) return;
+        if (n > 1) {
+            const m = prevPowerOfTwo(n);
+            for (let i = low; i < low + n - m && sortTask.isStarted; i++) {
+                await sortTask.visit(i, i + m);
+                sortTask.increment();
+                if ((dir == toSort[i] > toSort[i + m])) {
+                    swap(toSort, i, i + m);
+                }
+            }
+            await bitonicMerge(low, m, dir);
+            await bitonicMerge(low + m, n - m, dir);
+        }
+    }
+}
+// ITERATIVE BITONIC SORT
+async function iterativeBitonicSort(toSort, sortTask, lo = 0, hi = toSort.length - 1, end = toSort.length) {
+    if (!isPowerOfTwo(end)) {
+        end = prevPowerOfTwo(end);
+    }
+    await doItBitonicSort(lo, end);
+
+    async function doItBitonicSort(low, len) {
+        for (let k = 2; k <= len && sortTask.isStarted; k = 2 * k) {
+            for (let j = k >> 1; j > low && sortTask.isStarted; j = j >> 1) {
+                for (i = low; i < len && sortTask.isStarted; i++) {
+                    let ixj = i ^ j;
+                    await sortTask.visit(i, ixj);
+                    sortTask.increment();
+                    if ((ixj) > i) {
+                        if ((i & k) == 0 && toSort[i] > toSort[ixj]) swap(toSort, i, ixj);
+                        if ((i & k) != 0 && toSort[i] < toSort[ixj]) swap(toSort, i, ixj);
+                    }
+                }
+            }
+        }
+    }
+}
 /*
  * HELPERS
  */
@@ -1302,4 +1357,27 @@ async function shiftRight(toSort, sortTask, lo, hi) {
 function abs(n) {
     mask = n >> 31;
     return ((n + mask) ^ mask);
+}
+
+function isPowerOfTwo(n) {
+    return n > 0 && (n & (n - 1)) == 0;
+}
+
+function nextPowerOfTwo(n) {
+    n |= (n >> 16);
+    n |= (n >> 8);
+    n |= (n >> 4);
+    n |= (n >> 2);
+    n |= (n >> 1);
+    return ++n;
+}
+
+function prevPowerOfTwo(n) {
+    n--;
+    n |= (n >> 1);
+    n |= (n >> 2);
+    n |= (n >> 4);
+    n |= (n >> 8);
+    n |= (n >> 16);
+    return n - (n >> 1);
 }

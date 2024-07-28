@@ -1,7 +1,6 @@
 const CANVAS_SCALE = 0.8;
 var w = ((window.innerWidth > 0) ? window.innerWidth : screen.width) * CANVAS_SCALE;
 var h = ((window.innerHeight > 0) ? window.innerHeight : screen.height) * CANVAS_SCALE;
-const MIN_ELEMENTS = 50;
 const COLOURS = ["red", "yellow", "blue", "teal", "green", "white"];
 const NOT_SORTED = 0;
 const SORTED = 1;
@@ -37,7 +36,11 @@ function init() {
     const pinInsertionSortDescription = "Pin Insertion Sort is an extension of the standard insertion sort that optimizes the process of finding the correct position for each element. It leverages a pin element, which is typically the last element in the array, to create an additional boundary for comparisons. This helps reduce the number of comparisons and shifts required for certain elements";
     const pairInsertionSortDescription = "Pair Insertion Sort is an extension of the classic insertion sort that sorts pairs of elements simultaneously. This variation attempts to improve efficiency by reducing the number of comparisons and shifts needed to sort the array. The idea is to take two elements at a time, insert them in their correct positions within the already sorted part of the array, and repeat this process for the entire array.";
     const binaryInsertionSortDescription = "Binary Insertion Sort is a variation of the traditional insertion sort that uses binary search to reduce the number of comparisons needed to find the correct position for the element being inserted. Instead of comparing elements sequentially, binary search is used to find the position in the already sorted portion of the array, which reduces the time complexity of the search to O(logn). However, the shifting of elements to make room for the inserted element still takes O(n) in the worst case, resulting in the same overall time complexity as traditional insertion sort for the entire sorting process.";
+    const bitonicSortDescription = "Bitonic Sort is a parallelizable sorting algorithm particularly well-suited for hardware implementation and used in distributed systems. The algorithm sorts by repeatedly creating and merging bitonic sequences(a sequence that first increases and then decreases) or vice versa. It is also used as a construction method for building a sorting network. The algorithm was devised by Ken Batcher.";
+    const itBitonicSortDescription = "The recursion-free version of Bitonic Sort can only sort arrays with lengths that are a power of two.";
 
+    initAlgorithm(sortsContainer, getAlgorithmUITemplate("bitonic", "Bitonic Sort", "Not Stable, In place, O(n log^2 n) time complexity", bitonicSortDescription), bitonicSort);
+    initAlgorithm(sortsContainer, getAlgorithmUITemplate("iterative-bitonic", "Iterative Bitonic Sort", "Not Stable, In place, O(n log^2 n) time complexity", itBitonicSortDescription), iterativeBitonicSort);
     initAlgorithm(sortsContainer, getAlgorithmUITemplate("bubble", "Bubble Sort", "Stable, In place, O(n^2) time complexity", bubbleSortDescription), bubbleSort);
     initAlgorithm(sortsContainer, getAlgorithmUITemplate("gnome", "Gnome Sort", "Stable, In place, O(n^2) time complexity"), gnomeSort);
     initAlgorithm(sortsContainer, getAlgorithmUITemplate("cycle", "Cycle Sort", "Not Stable, In place, O(n^2) time complexity"), cycleSort);
@@ -276,7 +279,8 @@ const COMP_SORTS = [
     makeCompSort(combSort, "Comb Sort"),
     makeCompSort(sleepSort, "Sleep Sort"),
     makeCompSort(shellSort, "Shell Sort"),
-    makeCompSort(countingSort, "Counting Sort")
+    makeCompSort(countingSort, "Counting Sort"),
+    makeCompSort(bitonicSort, "Bitonic Sort")
 ];
 const SPEEDUP_SECONDS = 3000;
 class SortTask {
@@ -593,7 +597,7 @@ function initAlgorithm(sortsContainer, template, sort, sortArgs) {
                     });
                     // sort
                     document.getElementById(`sort-${sortId}-btn`).addEventListener('click', async () => {
-                        // sketch.saveGif(`${sortId}_preview`, 15);
+                        sketch.saveGif(`${sortId}_preview`, 10);
                         sketch.loop();
                         const interrupted = await sortTask.doSort(toSort, sortTask);
                         if (!interrupted) {
