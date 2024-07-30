@@ -925,32 +925,27 @@ function randomEvenInput(elements, lo, size, lowerBound, upperBound) {
 }
 
 function sawtoothInput(elements, lo, size, lowerBound, upperBound) {
-    let current = getRandomInt(lowerBound, upperBound);
-    let step = Math.floor(Math.random() * ((upperBound - lowerBound) >> 4));
-    let direction = 1;
-    for (let i = lo; i < size; ++i) {
-        elements.push(current);
-        current += direction * step;
-
-        if (current >= upperBound || current <= lowerBound) {
-            direction *= -1
-            step = Math.floor(Math.random() * ((upperBound - lowerBound) >> 4)) + 1;
-        }
-    }
+    regenerateSawtooth(elements, 0, lo, size, lowerBound, upperBound)
     return elements;
 }
 
 function regenerateSawtooth(elements, sortedness, shuffleFrom, shuffleTo, lowerBound, upperBound) {
+    sortedness++;
     let current = getRandomInt(lowerBound, upperBound);
     let step = Math.floor(Math.random() * ((upperBound - lowerBound) >> 4));
     let direction = 1;
     for (let i = shuffleFrom; i < shuffleTo; ++i) {
         elements[i] = current;
-        current += direction * step;
+        current += (direction * step * (1 / sortedness)) ;
 
-        if (current >= upperBound || current <= lowerBound) {
+        if (current >= upperBound) {
             direction *= -1
             step = Math.floor(Math.random() * ((upperBound - lowerBound) >> 4)) + 1;
+            current = upperBound;
+        } else if(current <= lowerBound) {
+            direction *= -1
+            step = Math.floor(Math.random() * ((upperBound - lowerBound) >> 4)) + 1;
+            current = lowerBound;
         }
     }
     return elements;
