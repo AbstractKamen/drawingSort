@@ -393,7 +393,8 @@ class SortTask {
 }
 const ELEMENT_GENERATORS = [
     getElementsGenerator("Evenly Spread Random", randomEvenInput, regenerateRandomEven),
-    getElementsGenerator("Sawtooth Random", sawtoothInput, regenerateSawtooth)
+    getElementsGenerator("Sawtooth Random", sawtoothInput, regenerateSawtooth),
+    getElementsGenerator("Sawtooth Stair Random", sawtoothStairsInput, regenerateSawtoothStairs)
 ]
 
 function getElementsGenerator(label, generateElements, regenerateElements) {
@@ -936,7 +937,7 @@ function regenerateSawtooth(elements, sortedness, shuffleFrom, shuffleTo, lowerB
     let direction = 1;
     for (let i = shuffleFrom; i < shuffleTo; ++i) {
         elements[i] = current;
-        current += (direction * step * (1 / sortedness)) ;
+        current += Math.floor(direction * step * (1 / sortedness)) ;
 
         if (current >= upperBound) {
             direction *= -1
@@ -947,6 +948,36 @@ function regenerateSawtooth(elements, sortedness, shuffleFrom, shuffleTo, lowerB
             step = Math.floor(Math.random() * ((upperBound - lowerBound) >> 4)) + 1;
             current = lowerBound;
         }
+    }
+    return elements;
+}
+
+function sawtoothStairsInput(elements, lo, size, lowerBound, upperBound) {
+    regenerateSawtoothStairs(elements, 0, lo, size, lowerBound, upperBound)
+    return elements;
+}
+
+function regenerateSawtoothStairs(elements, sortedness, shuffleFrom, shuffleTo, lowerBound, upperBound) {
+    sortedness++;
+    let current = getRandomInt(lowerBound, upperBound);
+    let step = Math.floor(Math.random() * ((upperBound - lowerBound) >> 4));
+    let direction = 1;
+    for (let i = shuffleFrom; i < shuffleTo;) {
+        let l = Math.floor(Math.random() * elements.length / 15);
+        current += Math.floor(direction * step * (1 / sortedness)) ;
+        do {
+            elements[i++] = current;
+
+            if (current >= upperBound) {
+                direction *= -1
+                step = Math.floor(Math.random() * ((upperBound - lowerBound) >> 4)) + 1;
+                current = upperBound;
+            } else if(current <= lowerBound) {
+                direction *= -1
+                step = Math.floor(Math.random() * ((upperBound - lowerBound) >> 4)) + 1;
+                current = lowerBound;
+            }
+        } while (--l > 0 && i < shuffleTo);
     }
     return elements;
 }
