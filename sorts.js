@@ -1309,10 +1309,7 @@ async function adaptiveIterativeBitonicSort(toSort, sortTask, lo = 0, hi = toSor
     if (isPowerOfTwo(end)) {
         await doItBitonicSort(lo, end);
     } else {
-        console.log(lo, hi, end);
         const powerOfTwoLengths = getPowerOfTwoLengthsArray(end);
-        console.log('lengths', powerOfTwoLengths);
-
         let len = lo;
 
         for (let i = 0; i < powerOfTwoLengths.length && sortTask.isStarted; ++i) {
@@ -1344,17 +1341,16 @@ async function adaptiveIterativeBitonicSort(toSort, sortTask, lo = 0, hi = toSor
     }
 
 
-    function getPowerOfTwoLengthsArray(totalLen) {
-        let p = prevPowerOfTwo(totalLen);
+    function getPowerOfTwoLengthsArray(n){
+        let p = prevPowerOfTwo(n);
         let powerOfTwoLengths = [];
-        let e = totalLen;
         do {
             powerOfTwoLengths.push(p);
-            if (isPowerOfTwo(e - p) || e - p < threshold) {
-                powerOfTwoLengths.push(e - p);
+            if (isPowerOfTwo(n - p) || n - p < threshold) {
+                powerOfTwoLengths.push(n - p);
                 break;
             } else {
-                p = prevPowerOfTwo(e -= p);
+                p = prevPowerOfTwo(n -= p);
             }
         } while (p > 1);
         return powerOfTwoLengths;
