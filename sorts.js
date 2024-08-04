@@ -214,7 +214,7 @@ async function pushDown(toSort, sortTask, root, lo, hi) {
     }
     sortTask.sortStatus[root] = SORTED;
 }
-// BUBBLE SORT
+// STOOGE SORT
 async function stoogeSort(toSort, sortTask, lo = 0, hi = toSort.length - 1, end = toSort.length) {
     await stoogeRec(lo, hi);
 
@@ -224,6 +224,27 @@ async function stoogeSort(toSort, sortTask, lo = 0, hi = toSort.length - 1, end 
         await sortTask.visit(i, j);
         if (toSort[i] > toSort[j]) {
             swap(toSort, i, j);
+        }
+        if ((j - i + 1) > 2) {
+            let t = Math.floor((j - i + 1) / 3);
+            await stoogeRec(i, j - t);
+            await stoogeRec(i + t, j);
+            await stoogeRec(i, j - t);
+        }
+    }
+}
+// STOOGIFIED SORT
+async function stoogifiedSort(toSort, sortTask, sortArgs) {
+    await stoogeRec(0, toSort.length - 1);
+
+    async function stoogeRec(i, j) {
+        if (sortTask.isFinished()) return;
+        sortTask.increment();
+        await sortTask.visit(i, j);
+        if (sortArgs.compSort.sortArgs()) {
+            await sortArgs.compSort.sort(toSort, sortTask, sortArgs.compSort.sortArgs(), i, j, j + 1);
+        } else {
+            await sortArgs.compSort.sort(toSort, sortTask, i, j, j + 1);
         }
         if ((j - i + 1) > 2) {
             let t = Math.floor((j - i + 1) / 3);

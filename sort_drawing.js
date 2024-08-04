@@ -40,12 +40,14 @@ function init() {
     const itBitonicSortDescription = "The recursion-free version of Bitonic Sort can only sort arrays with lengths that are a power of two.";
     const adaptiveItBitonicSortDescription = "The adaptive version of the recursion-free Bitonic Sort allows the sorting of arrays with arbitrary lengths. It does so by splitting the array into sub-arrays with lengths that are a power of two. Each sub-array is then sorted using the normal Iterative Bitonic Sort. Then after all sub-arrays are sorted they are merged starting from the shortest length up to the longest. The current merge function implementation requires an additional array which translates to O(n) overall space complexity.";
     const stoogeDescription = "Meme algorithm. Can serve as an example for developers why they should try to avoid unnecessary operations.";
+    const stoogfiedDescription = "Based on the Stooge Sort. This variation sorts each third of the array with the selected complementary sort. Time complexity can increase very quickly with some choices of complementary sorts such as Bitonic and Counting Sort.";
 
     initAlgorithm(sortsContainer, getAlgorithmUITemplate("bitonic", "Bitonic Sort", "Not Stable, In place, O(n log^2 n) time complexity", bitonicSortDescription), bitonicSort);
     initAlgorithm(sortsContainer, getAlgorithmUITemplate("iterative-bitonic", "Iterative Bitonic Sort", "Not Stable, In place, O(n log^2 n) time complexity", itBitonicSortDescription), iterativeBitonicSort);
     initAlgorithm(sortsContainer, getAlgorithmUITemplate("adaptive-iterative-bitonic", "Adaptive Iterative Bitonic Sort", "Not Stable, Not In place, O(n log^2 n) time complexity", adaptiveItBitonicSortDescription), adaptiveIterativeBitonicSort);
     initAlgorithm(sortsContainer, getAlgorithmUITemplate("bubble", "Bubble Sort", "Stable, In place, O(n^2) time complexity", bubbleSortDescription), bubbleSort);
     initAlgorithm(sortsContainer, getAlgorithmUITemplate("stooge", "Stooge Sort", "Not Stable, In place, O(n^log 3\\log 1.5) => O(n^2.7095...) time complexity", stoogeDescription), stoogeSort);
+    initAlgorithm(sortsContainer, getAlgorithmUITemplate("stoogified", "Stoogified Sort", "Not Stable, In place, O(n^log 3\\log 1.5) => O(n^2.7095...) time complexity", stoogfiedDescription), stoogifiedSort, getHybridSortArguments());
     initAlgorithm(sortsContainer, getAlgorithmUITemplate("gnome", "Gnome Sort", "Stable, In place, O(n^2) time complexity"), gnomeSort);
     initAlgorithm(sortsContainer, getAlgorithmUITemplate("cycle", "Cycle Sort", "Not Stable, In place, O(n^2) time complexity"), cycleSort);
     initAlgorithm(sortsContainer, getAlgorithmUITemplate("selection", "Selection Sort", "Not Stable, In place, O(n^2) time complexity", selectionSortDescription), selectionSort);
@@ -202,9 +204,17 @@ class SortArguments {
             const compSortContent = document.getElementById(`${sortId}-comp-sort-content`);
             compSortBtn.textContent = thisSortArgs.compSort.label();
             loadDropDownContent(compSortContent, compSortBtn, template.compSorts, (selection) => {
+                const isLooping = sketch.isLooping();
+
+                if (!isLooping) {
+                    sketch.loop();
+                }
                 thisSortArgs.compSort = template.compSorts[selection];
                 compSortBtn.textContent = thisSortArgs.compSort.label();
                 compSortContent.classList.toggle("show");
+                if (!isLooping) {
+                    sketch.noLoop();
+                }
                 return false;
             });
         }
@@ -276,6 +286,7 @@ const COMP_SORTS = [
     makeCompSort(iterativeCircleSort, "Iterative Circle Sort"),
     makeCompSort(heapSort, "Heap Sort"),
     makeCompSort(bubbleSort, "Bubble Sort"),
+    makeCompSort(stoogeSort, "Stooge Sort"),
     makeCompSort(cycleSort, "Cycle Sort"),
     makeCompSort(gnomeSort, "Gnome Sort"),
     makeCompSort(selectionSort, "Selection Sort"),
