@@ -640,6 +640,7 @@ function initAlgorithm(sortsContainer, template, sort, sortArgs) {
                         toSort = [...elements];
                         sortTask.sortStatus.fill(0);
                         sortTask.operations = 0;
+                        template.elementGenerator = elementGenerator;
                         sketch.loop();
                         setTimeout(() => {
                             sketch.noLoop();
@@ -751,10 +752,10 @@ function initAlgorithm(sortsContainer, template, sort, sortArgs) {
                     sketch.draw = () => {
                         switch (currentMode) {
                             case HSB:
-                                drawElementsHSBMode(sketch, toSort, elementsScale, minNumber, maxNumber, sortTask);
+                                drawElementsHSBMode(sketch, toSort, elementsScale, minNumber, maxNumber, sortTask, template);
                                 break;
                             default:
-                                drawElementsColourCoded(sketch, toSort, elementsScale, maxNumber, sortTask);
+                                drawElementsColourCoded(sketch, toSort, elementsScale, maxNumber, sortTask, template);
                         }
                     };
                     // additional settings
@@ -809,7 +810,7 @@ function updateElementsRange(m, toSort, elements, sortTask) {
     return [low, high];
 }
 
-function drawElementsHSBMode(sketch, elements, elementsScale, minNumber, maxNumber, sortTask) {
+function drawElementsHSBMode(sketch, elements, elementsScale, minNumber, maxNumber, sortTask, template) {
     sketch.background(0);
     sketch.push();
     sketch.translate(0, maxNumber);
@@ -833,10 +834,10 @@ function drawElementsHSBMode(sketch, elements, elementsScale, minNumber, maxNumb
         drawBar(sketch, x, y, elementsScale, c);
     }
     drawElementNumbers(sketch, elements, elementsScale, sortTask);
-    stats(sketch, elements, sortTask);
+    stats(sketch, elements, sortTask, template);
 }
 
-function drawElementsColourCoded(sketch, elements, elementsScale, maxNumber, sortTask) {
+function drawElementsColourCoded(sketch, elements, elementsScale, maxNumber, sortTask, template) {
     sketch.background(0);
     sketch.push();
     sketch.translate(0, maxNumber);
@@ -848,16 +849,16 @@ function drawElementsColourCoded(sketch, elements, elementsScale, maxNumber, sor
         drawBar(sketch, x, y, elementsScale, sketch.color(COLOURS[sortTask.sortStatus[x]]))
     }
     drawElementNumbers(sketch, elements, elementsScale, sortTask);
-    stats(sketch, elements, sortTask);
+    stats(sketch, elements, sortTask, template);
 }
 
 function drawBar(sketch, x, y, elementsScale, colour) {
     sketch.stroke(colour);
-    let xS = x * elementsScale + elementsScale / 2
+    let xS = x * elementsScale + (elementsScale >> 1)
     sketch.line(xS, 0, xS, y * BAR_RATIO);
 }
 
-function stats(sketch, elements, sortTask) {
+function stats(sketch, elements, sortTask, template) {
     sketch.pop();
     sketch.stroke(50);
     sketch.strokeWeight(1);
@@ -869,7 +870,8 @@ function stats(sketch, elements, sortTask) {
     } else {
         label = sortTask.sortLabel;
     }
-    sketch.text(`${label} ≈ ${sortTask.operations} operations to sort ${elements.length} elements.`, w * 0.005, h * 0.05);
+    sketch.text(
+        `${label} ≈ ${sortTask.operations} iterations to sort\n${elements.length} elements with of pattern\n'${template.elementGenerator.label()}'`, w * 0.005, h * 0.05);
 }
 
 function drawElementNumbers(sketch, elements, elementsScale, sortTask) {
@@ -939,7 +941,7 @@ function regenerateSawtooth(elements, sortedness, shuffleFrom, shuffleTo, lowerB
     let step = Math.floor(Math.random() * ((upperBound - lowerBound) >> 4));
     let direction = 1;
     for (let i = shuffleFrom; i < shuffleTo; ++i) {
-        elements[i] = current;
+        elements[i] = parseInt(current);
         current += Math.floor(direction * step * (1 / sortedness)) ;
 
         if (current >= upperBound) {
@@ -967,20 +969,19 @@ function regenerateSawtoothStairs(elements, sortedness, shuffleFrom, shuffleTo, 
     let direction = 1;
     for (let i = shuffleFrom; i < shuffleTo;) {
         let l = Math.floor(Math.random() * elements.length / 15);
-        current += Math.floor(direction * step * (1 / sortedness)) ;
         do {
-            elements[i++] = current;
-
+            elements[i++] = parseInt(current);
             if (current >= upperBound) {
-                direction *= -1
+                direction *= -1;
                 step = Math.floor(Math.random() * ((upperBound - lowerBound) >> 4)) + 1;
                 current = upperBound;
             } else if(current <= lowerBound) {
-                direction *= -1
+                direction *= -1;
                 step = Math.floor(Math.random() * ((upperBound - lowerBound) >> 4)) + 1;
                 current = lowerBound;
             }
         } while (--l > 0 && i < shuffleTo);
+        current += Math.floor(direction * step * (1 / sortedness)) ;
     }
     return elements;
 }
