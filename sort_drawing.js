@@ -41,6 +41,7 @@ function init() {
 
     initAlgorithm(sortsContainer, getAlgorithmUITemplate("bitonic", "Bitonic Sort", "Not Stable, In place, O(n log^2 n) time complexity", bitonicSortDescription), bitonicSort);
     initAlgorithm(sortsContainer, getAlgorithmUITemplate("iterative-bitonic", "Iterative Bitonic Sort", "Not Stable, In place, O(n log^2 n) time complexity", itBitonicSortDescription), iterativeBitonicSort);
+    initAlgorithm(sortsContainer, getAlgorithmUITemplate("adaptive-iterative-bitonic", "Adaptive Iterative Bitonic Sort", "Not Stable, In place, O(n log^2 n) time complexity"), adaptiveIterativeBitonicSort);
     initAlgorithm(sortsContainer, getAlgorithmUITemplate("bubble", "Bubble Sort", "Stable, In place, O(n^2) time complexity", bubbleSortDescription), bubbleSort);
     initAlgorithm(sortsContainer, getAlgorithmUITemplate("gnome", "Gnome Sort", "Stable, In place, O(n^2) time complexity"), gnomeSort);
     initAlgorithm(sortsContainer, getAlgorithmUITemplate("cycle", "Cycle Sort", "Not Stable, In place, O(n^2) time complexity"), cycleSort);
@@ -281,6 +282,7 @@ const COMP_SORTS = [
     makeCompSort(sleepSort, "Sleep Sort"),
     makeCompSort(shellSort, "Shell Sort"),
     makeCompSort(countingSort, "Counting Sort"),
+    // TODO makeCompSort(adaptiveIterativeBitonicSort, "Adaptive Iterative Bitonic Sort"),
     makeCompSort(bitonicSort, "Bitonic Sort")
 ];
 const SPEEDUP_SECONDS = 3000;

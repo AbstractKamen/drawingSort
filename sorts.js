@@ -321,7 +321,7 @@ async function shellSort(toSort, sortTask, lo = 0, hi = toSort.length - 1, end =
     for (let g = Math.round(n / factor); g > 0; g = Math.round(g / factor)) {
         if (sortTask.isFinished()) return;
         // gapped insertion sort for this gap size
-        for (let i = g; i < n; ++i) {
+        for (let i = lo + g; i < n; ++i) {
             if (sortTask.isFinished()) return;
             await insertionBackstepLoop(toSort, sortTask, lo, i, g, async j => {
                 await sortTask.visit(i, j);
@@ -815,7 +815,7 @@ async function bucketSort(toSort, sortTask, sortArgs) {
 async function timSort(toSort, sortTask, sortArgs) {
     const n = toSort.length;
     const minRun = minRunLength(n, sortArgs.runLimit);
-    for (let i = 0; i < n; i += minRun) {
+    for (let i = 0; i < n && sortTask.isStarted; i += minRun) {
         const end = Math.min(i + minRun, n);
         if (sortArgs.compSort.sortArgs()) {
             await sortArgs.compSort.sort(toSort, sortTask, sortArgs.compSort.sortArgs(), i, end - 1, end);
@@ -824,8 +824,8 @@ async function timSort(toSort, sortTask, sortArgs) {
         }
     }
 
-    for (let size = minRun; size < n; size = 2 * size) {
-        for (let left = 0; left < n; left += 2 * size) {
+    for (let size = minRun; size < n && sortTask.isStarted; size = 2 * size) {
+        for (let left = 0; left < n && sortTask.isStarted; left += 2 * size) {
             let mid = Math.min(n - 1, left + size - 1);
             let right = Math.min((left + 2 * size - 1), (n - 1));
             if (mid < right) {
@@ -1281,19 +1281,93 @@ async function bitonicSort(toSort, sortTask, lo = 0, hi = toSort.length - 1, end
 }
 // ITERATIVE BITONIC SORT
 async function iterativeBitonicSort(toSort, sortTask, lo = 0, hi = toSort.length - 1, end = toSort.length) {
-    if (!isPowerOfTwo(end)) {
-        end = prevPowerOfTwo(end);
+    if (isPowerOfTwo(end)) {
+        await doItBitonicSort(lo, end);
+    } else {
+        await doItBitonicSort(lo, prevPowerOfTwo(end));
     }
-    await doItBitonicSort(lo, end);
 
     async function doItBitonicSort(low, len) {
-        for (let k = 2; k <= len && sortTask.isStarted; k = 2 * k) {
+        for (let k = 2; k <= len - low && sortTask.isStarted; k = 2 * k) {
             for (let j = k >> 1; j > low && sortTask.isStarted; j = j >> 1) {
                 for (i = low; i < len && sortTask.isStarted; i++) {
                     let ixj = i ^ j;
                     await sortTask.visit(i, ixj);
                     sortTask.increment();
                     if ((ixj) > i) {
+                        if ((i & k) == 0 && toSort[i] > toSort[ixj]) swap(toSort, i, ixj);
+                        if ((i & k) != 0 && toSort[i] < toSort[ixj]) swap(toSort, i, ixj);
+                    }
+                }
+            }
+        }
+    }
+}
+// ADAPTIVE ITERATIVE BITONIC SORT
+async function adaptiveIterativeBitonicSort(toSort, sortTask, lo = 0, hi = toSort.length - 1, end = toSort.length) {
+    const threshold = 2;
+    if (isPowerOfTwo(end)) {
+        await doItBitonicSort(lo, end);
+    } else {
+        console.log(lo, hi, end);
+        const powerOfTwoLengths = getPowerOfTwoLengthsArray(end);
+        console.log('lengths', powerOfTwoLengths);
+
+        let len = lo;
+
+        for (let i = 0; i < powerOfTwoLengths.length && sortTask.isStarted; ++i) {
+            const subLen = powerOfTwoLengths[i]; 
+            if (subLen <= threshold) {
+                await insertionSort(toSort, sortTask, len, len + subLen - 1, len + subLen);
+            } else {
+                await doItBitonicSort(len, subLen + len);
+            }
+            len += subLen;
+        }
+
+        for (let i = powerOfTwoLengths.length - 1; i >= 1 && sortTask.isStarted; --i) {
+
+            let rightEndI = hi;
+            let rightStartI = rightEndI + 1 - powerOfTwoLengths[i];
+            let leftEndI = rightStartI - 1;
+            let leftStartI = leftEndI + 1 - powerOfTwoLengths[i - 1];
+
+            powerOfTwoLengths[i - 1] += powerOfTwoLengths[i];
+            const temp = await itMerge(leftStartI, rightEndI, toSort, sortTask, leftStartI, leftEndI, rightStartI, rightEndI);
+            for (let j = leftStartI; j <= rightEndI && sortTask.isStarted; j++) {
+                await sortTask.visit(j);
+                toSort[j] = temp[j - leftStartI];
+                sortTask.sortStatus[j] = SORTED;
+                sortTask.increment();
+            }
+        }
+    }
+
+
+    function getPowerOfTwoLengthsArray(totalLen) {
+        let p = prevPowerOfTwo(totalLen);
+        let powerOfTwoLengths = [];
+        let e = totalLen;
+        do {
+            powerOfTwoLengths.push(p);
+            if (isPowerOfTwo(e - p) || e - p < threshold) {
+                powerOfTwoLengths.push(e - p);
+                break;
+            } else {
+                p = prevPowerOfTwo(e -= p);
+            }
+        } while (p > 1);
+        return powerOfTwoLengths;
+    }
+
+    async function doItBitonicSort(low, e) {
+        for (let k = 2; k <= e - low && sortTask.isStarted; k = 2 * k) {
+            for (let j = k >> 1; j > 0 && sortTask.isStarted; j = j >> 1) {
+                for (i = low; i < e && sortTask.isStarted; i++) {
+                    let ixj = (i ^ j);
+                    await sortTask.visit(i, ixj);
+                    sortTask.increment();
+                    if (ixj > i) {
                         if ((i & k) == 0 && toSort[i] > toSort[ixj]) swap(toSort, i, ixj);
                         if ((i & k) != 0 && toSort[i] < toSort[ixj]) swap(toSort, i, ixj);
                     }
