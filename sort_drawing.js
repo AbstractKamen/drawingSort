@@ -39,11 +39,13 @@ function init() {
     const bitonicSortDescription = "Bitonic Sort is a parallelizable sorting algorithm particularly well-suited for hardware implementation and used in distributed systems. The algorithm sorts by repeatedly creating and merging bitonic sequences(a sequence that first increases and then decreases) or vice versa. It is also used as a construction method for building a sorting network. The algorithm was devised by Ken Batcher.";
     const itBitonicSortDescription = "The recursion-free version of Bitonic Sort can only sort arrays with lengths that are a power of two.";
     const adaptiveItBitonicSortDescription = "The adaptive version of the recursion-free Bitonic Sort allows the sorting of arrays with arbitrary lengths. It does so by splitting the array into sub-arrays with lengths that are a power of two. Each sub-array is then sorted using the normal Iterative Bitonic Sort. Then after all sub-arrays are sorted they are merged starting from the shortest length up to the longest. The current merge function implementation requires an additional array which translates to O(n) overall space complexity.";
+    const stoogeDescription = "Meme algorithm. Can serve as an example for developers why they should try to avoid unnecessary operations.";
 
     initAlgorithm(sortsContainer, getAlgorithmUITemplate("bitonic", "Bitonic Sort", "Not Stable, In place, O(n log^2 n) time complexity", bitonicSortDescription), bitonicSort);
     initAlgorithm(sortsContainer, getAlgorithmUITemplate("iterative-bitonic", "Iterative Bitonic Sort", "Not Stable, In place, O(n log^2 n) time complexity", itBitonicSortDescription), iterativeBitonicSort);
     initAlgorithm(sortsContainer, getAlgorithmUITemplate("adaptive-iterative-bitonic", "Adaptive Iterative Bitonic Sort", "Not Stable, Not In place, O(n log^2 n) time complexity", adaptiveItBitonicSortDescription), adaptiveIterativeBitonicSort);
     initAlgorithm(sortsContainer, getAlgorithmUITemplate("bubble", "Bubble Sort", "Stable, In place, O(n^2) time complexity", bubbleSortDescription), bubbleSort);
+    initAlgorithm(sortsContainer, getAlgorithmUITemplate("stooge", "Stooge Sort", "Not Stable, In place, O(n^log 3\\log 1.5) => O(n^2.7095...) time complexity", stoogeDescription), stoogeSort);
     initAlgorithm(sortsContainer, getAlgorithmUITemplate("gnome", "Gnome Sort", "Stable, In place, O(n^2) time complexity"), gnomeSort);
     initAlgorithm(sortsContainer, getAlgorithmUITemplate("cycle", "Cycle Sort", "Not Stable, In place, O(n^2) time complexity"), cycleSort);
     initAlgorithm(sortsContainer, getAlgorithmUITemplate("selection", "Selection Sort", "Not Stable, In place, O(n^2) time complexity", selectionSortDescription), selectionSort);
@@ -287,6 +289,7 @@ const COMP_SORTS = [
     makeCompSort(bitonicSort, "Bitonic Sort")
 ];
 const SPEEDUP_SECONDS = 3000;
+const SPEEDUP_THRESHHOLD = 10000000;
 class SortTask {
     constructor(sketch, sortLabel, sortFunc, ms, s, sortArgs) {
         this.sketch = sketch;
@@ -380,8 +383,12 @@ class SortTask {
     async sleep() {
         if (this.mms <= 0) {
             if (this.startTime + SPEEDUP_SECONDS <= Date.now()) {
-                this.sleepThreshHold -= 2000;
-                this.startTime = Date.now();
+                if (this.sleepThreshHold > -SPEEDUP_THRESHHOLD) {
+                    this.sleepThreshHold -= (1000 - Math.floor(this.sleepThreshHold  * 0.33));
+                    this.startTime = Date.now();
+                }else {
+                    this.sleepThreshHold = -SPEEDUP_THRESHHOLD;
+                }
             }
             if (this.msC <= this.sleepThreshHold) {
                 await sleep(1);
