@@ -408,7 +408,7 @@ async function combBrickSort(toSort, sortTask, lo = 0, hi = toSort.length - 1, e
         comb = getNextComb(comb);
         sortTask.increment();
         swapped = false;
-        for (let i = lo + 1; i < hi - comb; i += 2) {
+        for (let i = lo + 1; i <= hi - comb; i += 2) {
             if (sortTask.isFinished()) return;
             sortTask.increment();
             await sortTask.visit(i, i + comb);
@@ -417,7 +417,7 @@ async function combBrickSort(toSort, sortTask, lo = 0, hi = toSort.length - 1, e
                 swapped = true;
             }
         }
-        for (let i = lo; i < hi - comb; i += 2) {
+        for (let i = lo; i <= hi - comb; i += 2) {
             if (sortTask.isFinished()) return;
             sortTask.increment();
             await sortTask.visit(i, i + comb);
