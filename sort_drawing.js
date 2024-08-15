@@ -54,6 +54,8 @@ function init() {
     initAlgorithm(sortsContainer, getAlgorithmUITemplate("brick", "Brick Sort", "Stable, In place, O(n^2) time complexity", brickSortDescription), brickSort);
     initAlgorithm(sortsContainer, getAlgorithmUITemplate("shaker", "Shaker Sort", "Stable, In place, O(n^2) time complexity", shakerSortDescription), shakerSort);
     initAlgorithm(sortsContainer, getAlgorithmUITemplate("comb", "Comb Sort", "Not Stable, In place, O(n^2) time complexity", combSortDescription), combSort);
+    initAlgorithm(sortsContainer, getAlgorithmUITemplate("comb-brick", "Comb Brick Sort", "Stable, In place, O(n^2) time complexity", "'Brick' variation of Comb Sort."), combBrickSort);
+    initAlgorithm(sortsContainer, getAlgorithmUITemplate("comb-shaker", "Comb Shaker Sort", "Stable, In place, O(n^2) time complexity", "'Shaker' variation of Comb Sort"), combShakerSort);
     initAlgorithm(sortsContainer, getAlgorithmUITemplate("df-circle", "Depth First Circle Sort", "Not Stable, In place, O(n^2) time complexity", DFcircleSortDescription), DFcircleSort);
     initAlgorithm(sortsContainer, getAlgorithmUITemplate("circle", "Circle Sort", "Not Stable, In place, O(n^2) time complexity", circleSortDescription), circleSort);
     initAlgorithm(sortsContainer, getAlgorithmUITemplate("iterative-circle", "Iterative Circle Sort", "Not Stable, In place, O(n^2) time complexity"), iterativeCircleSort);
@@ -293,6 +295,8 @@ const COMP_SORTS = [
     makeCompSort(shakerSort, "Shaker Sort"),
     makeCompSort(brickSort, "Brick Sort"),
     makeCompSort(combSort, "Comb Sort"),
+    makeCompSort(combShakerSort, "Comb Brick Sort"),
+    makeCompSort(combBrickSort, "Comb Shaker Sort"),
     makeCompSort(sleepSort, "Sleep Sort"),
     makeCompSort(shellSort, "Shell Sort"),
     makeCompSort(countingSort, "Counting Sort"),

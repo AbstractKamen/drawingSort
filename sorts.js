@@ -353,6 +353,86 @@ async function shakerSort(toSort, sortTask, lo = 0, hi = toSort.length - 1, end 
     }
     sortTask.sortStatus[lo] = SORTED;
 }
+// COMB SHAKER SORT
+async function combShakerSort(toSort, sortTask, lo = 0, hi = toSort.length - 1, end = toSort.length) {
+    let i, j = lo,
+        comb = end,
+        swapped = true;
+    while (comb != 1 || swapped === true) {
+        if (sortTask.isFinished()) return;
+
+        sortTask.increment();
+        comb = getNextComb(comb);
+        swapped = false;
+
+        for (i = lo; i < end - comb; ++i) {
+            if (sortTask.isFinished()) return;
+            sortTask.increment();
+            await sortTask.visit(i, i + comb);
+            if (toSort[i] > toSort[i + comb]) {
+                swap(toSort, i, i + comb);
+                swapped = true;
+            }
+        }
+
+        if (!swapped && comb == 1) break;
+
+        sortTask.increment();
+        comb = getNextComb(comb);
+        swapped = false;
+        for (j = end - comb; j > lo; --j) {
+            if (sortTask.isFinished()) return;
+            sortTask.increment();
+            await sortTask.visit(j, j + comb);
+            if (toSort[j] > toSort[j + comb]) {
+                swap(toSort, j, j + comb);
+                swapped = true;
+            }
+        }
+    }
+
+    function getNextComb(comb) {
+        // shrink comb
+        comb = parseInt(comb / 1.3, 10);
+        if (comb < 1)
+            return 1;
+        return comb;
+    }
+}
+// COMB BRICK SORT
+async function combBrickSort(toSort, sortTask, lo = 0, hi = toSort.length - 1, end = toSort.length) {
+    var swapped = true,
+        comb = end;
+    while (swapped) {
+        if (sortTask.isFinished()) return;
+        comb = getNextComb(comb);
+        sortTask.increment();
+        swapped = false;
+        for (let i = lo + 1; i < hi; i += 2) {
+            if (sortTask.isFinished()) return;
+            sortTask.increment();
+            await sortTask.visit(i);
+            if (toSort[i] > toSort[i + comb]) {
+                swap(toSort, i, i + comb);
+                swapped = true;
+            }
+        }
+        for (let i = lo; i < hi; i += 2) {
+            if (sortTask.isFinished()) return;
+            sortTask.increment();
+            await sortTask.visit(i);
+            if (toSort[i] > toSort[i + comb]) {
+                swap(toSort, i, i + comb);
+                swapped = true;
+            }
+        }
+        if (swapped === false) {
+            for (k = lo; k < end; k++) {
+                sortTask.sortStatus[k] = SORTED;
+            }
+        }
+    }
+}
 // SHELL SORT
 async function shellSort(toSort, sortTask, lo = 0, hi = toSort.length - 1, end = toSort.length) {
     var n = end;
@@ -398,14 +478,6 @@ async function combHybridSort(toSort, sortTask, sortArgs) {
                 swapped = true;
             }
         }
-    }
-
-    function getNextComb(comb) {
-        // shrink comb
-        comb = parseInt(comb / 1.3, 10);
-        if (comb < 1)
-            return 1;
-        return comb;
     }
 }
 // INSERTION SORT
@@ -643,25 +715,26 @@ async function selectionSort(toSort, sortTask, lo = 0, hi = toSort.length - 1, e
 // MERGE SORT
 async function mergeSort(toSort, sortTask, lo = 0, hi = toSort.length - 1, end = toSort.length) {
     await mergeSortRec(toSort, sortTask, lo, hi, end);
-}
-async function mergeSortRec(toSort, sortTask, leftI, rightI, end) {
-    if (sortTask.isFinished()) {
-        return;
-    }
-    if (leftI >= rightI) {
-        return;
-    }
-    sortTask.increment();
-    var m = leftI + ((rightI - leftI) >>> 1);
-    await sortTask.visit(m);
-    await mergeSortRec(toSort, sortTask, leftI, m);
-    await mergeSortRec(toSort, sortTask, m + 1, rightI);
-    if (toSort[m] > toSort[m + 1]) { // best case condition
+
+    async function mergeSortRec(toSort, sortTask, leftI, rightI, end) {
+        if (sortTask.isFinished()) {
+            return;
+        }
+        if (leftI >= rightI) {
+            return;
+        }
         sortTask.increment();
-        await merge(toSort, sortTask, leftI, m, rightI, end);
-    } else {
-        sortTask.sortStatus[m] = SORTED;
-        sortTask.sortStatus[m + 1] = SORTED;
+        var m = leftI + ((rightI - leftI) >>> 1);
+        await sortTask.visit(m);
+        await mergeSortRec(toSort, sortTask, leftI, m);
+        await mergeSortRec(toSort, sortTask, m + 1, rightI);
+        if (toSort[m] > toSort[m + 1]) { // best case condition
+            sortTask.increment();
+            await merge(toSort, sortTask, leftI, m, rightI, end);
+        } else {
+            sortTask.sortStatus[m] = SORTED;
+            sortTask.sortStatus[m + 1] = SORTED;
+        }
     }
 }
 // ITERATIVE MERGE SORT
@@ -1353,7 +1426,7 @@ async function adaptiveIterativeBitonicSort(toSort, sortTask, lo = 0, hi = toSor
         let len = lo;
 
         for (let i = 0; i < powerOfTwoLengths.length && sortTask.isStarted; ++i) {
-            const subLen = powerOfTwoLengths[i]; 
+            const subLen = powerOfTwoLengths[i];
             if (subLen <= threshold) {
                 await insertionSort(toSort, sortTask, len, len + subLen - 1, len + subLen);
             } else {
@@ -1490,4 +1563,11 @@ function prevPowerOfTwo(n) {
     n |= (n >> 8);
     n |= (n >> 16);
     return n - (n >> 1);
+}
+function getNextComb(comb) {
+    // shrink comb
+    comb = parseInt(comb / 1.3, 10);
+    if (comb < 1)
+        return 1;
+    return comb;
 }
