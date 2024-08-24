@@ -1394,79 +1394,10 @@ async function bitonicSort(toSort, sortTask, lo = 0, hi = toSort.length - 1, end
 }
 // ITERATIVE BITONIC SORT
 async function iterativeBitonicSort(toSort, sortTask, lo = 0, hi = toSort.length - 1, end = toSort.length) {
-    if (isPowerOfTwo(end)) {
+    if (isPowerOfTwo(end - lo)) {
         await doItBitonicSort(lo, end);
     } else {
-        await doItBitonicSort(lo, prevPowerOfTwo(end));
-    }
-
-    async function doItBitonicSort(low, len) {
-        for (let k = 2; k <= len - low && sortTask.isStarted; k = 2 * k) {
-            for (let j = k >> 1; j > low && sortTask.isStarted; j = j >> 1) {
-                for (i = low; i < len && sortTask.isStarted; i++) {
-                    let ixj = i ^ j;
-                    await sortTask.visit(i, ixj);
-                    sortTask.increment();
-                    if ((ixj) > i) {
-                        if ((i & k) == 0 && toSort[i] > toSort[ixj]) swap(toSort, i, ixj);
-                        if ((i & k) != 0 && toSort[i] < toSort[ixj]) swap(toSort, i, ixj);
-                    }
-                }
-            }
-        }
-    }
-}
-// ADAPTIVE ITERATIVE BITONIC SORT
-async function adaptiveIterativeBitonicSort(toSort, sortTask, lo = 0, hi = toSort.length - 1, end = toSort.length) {
-    const threshold = 2;
-    if (isPowerOfTwo(end)) {
-        await doItBitonicSort(lo, end);
-    } else {
-        const powerOfTwoLengths = getPowerOfTwoLengthsArray(end);
-        let len = lo;
-
-        for (let i = 0; i < powerOfTwoLengths.length && sortTask.isStarted; ++i) {
-            const subLen = powerOfTwoLengths[i];
-            if (subLen <= threshold) {
-                await insertionSort(toSort, sortTask, len, len + subLen - 1, len + subLen);
-            } else {
-                await doItBitonicSort(len, subLen + len);
-            }
-            len += subLen;
-        }
-
-        for (let i = powerOfTwoLengths.length - 1; i >= 1 && sortTask.isStarted; --i) {
-
-            let rightEndI = hi;
-            let rightStartI = rightEndI + 1 - powerOfTwoLengths[i];
-            let leftEndI = rightStartI - 1;
-            let leftStartI = leftEndI + 1 - powerOfTwoLengths[i - 1];
-
-            powerOfTwoLengths[i - 1] += powerOfTwoLengths[i];
-            const temp = await itMerge(leftStartI, rightEndI, toSort, sortTask, leftStartI, leftEndI, rightStartI, rightEndI);
-            for (let j = leftStartI; j <= rightEndI && sortTask.isStarted; j++) {
-                await sortTask.visit(j);
-                toSort[j] = temp[j - leftStartI];
-                sortTask.sortStatus[j] = SORTED;
-                sortTask.increment();
-            }
-        }
-    }
-
-
-    function getPowerOfTwoLengthsArray(n){
-        let p = prevPowerOfTwo(n);
-        let powerOfTwoLengths = [];
-        do {
-            powerOfTwoLengths.push(p);
-            if (isPowerOfTwo(n - p) || n - p < threshold) {
-                powerOfTwoLengths.push(n - p);
-                break;
-            } else {
-                p = prevPowerOfTwo(n -= p);
-            }
-        } while (p > 1);
-        return powerOfTwoLengths;
+        await doItBitonicSort(lo, lo + prevPowerOfTwo(end - lo));
     }
 
     async function doItBitonicSort(low, e) {
@@ -1483,6 +1414,60 @@ async function adaptiveIterativeBitonicSort(toSort, sortTask, lo = 0, hi = toSor
                 }
             }
         }
+    }
+}
+// ADAPTIVE ITERATIVE BITONIC SORT
+async function adaptiveIterativeBitonicSort(toSort, sortTask, lo = 0, hi = toSort.length - 1, end = toSort.length) {
+    if (isPowerOfTwo(end - lo)) {
+        await iterativeBitonicSort(toSort, sortTask, lo, hi, end);
+    } else {
+        await powerOfTwoAdaptSort(toSort, sortTask, lo, hi, end, iterativeBitonicSort, 2);
+    }
+}
+// ODD-EVEN MERGE SORT
+async function oddEvenMergeSort(toSort, sortTask, lo = 0, hi = toSort.length - 1, end = toSort.length) {
+    if (isPowerOfTwo(end)) {
+        await oddEvenMergeSortRec(lo, end);
+    } else {
+        await oddEvenMergeSortRec(lo, prevPowerOfTwo(end));
+    }
+
+    async function oddEvenMergeSortRec(l, n) {
+        if (n > 1) {
+            const m = n >> 1;
+            await oddEvenMergeSortRec(l, m);
+            await oddEvenMergeSortRec(l + m, m);
+            await oddEvenMerge(l, n, 1);
+        }
+    }
+
+    async function oddEvenMerge(l, n, r) {
+        const m = r << 1;
+        if (m < n) {
+            await oddEvenMerge(l, n, m);
+            await oddEvenMerge(l + r, n, m);
+            for (let i = l + r; i + r < l + n; i += m) {
+                await compare(i, i + r);
+            }
+        } else {
+            await compare(l, l + r);
+        }
+    }
+
+    async function compare(a, b) {
+        await sortTask.visit(a, b);
+        sortTask.increment();
+        if (toSort[a] > toSort[b]) {
+            swap(toSort, a, b);
+        }
+    }
+}
+// ADAPTIVE ODD-EVEN MERGE SORT
+async function adaptiveOddEvenMergeSort(toSort, sortTask, lo = 0, hi = toSort.length - 1, end = toSort.length) {
+    if (isPowerOfTwo(end - lo)) {
+        await oddEvenMergeSort(lo, end);
+    } else {
+        await powerOfTwoAdaptSort(toSort, sortTask, lo, hi, end, oddEvenMergeSort, 15);
     }
 }
 /*
@@ -1512,6 +1497,54 @@ function binarySearch(sortTask, elements, value,
     }
     // return the expected index where value should be -> (-low - 1)
     return -low;
+}
+async function powerOfTwoAdaptSort(toSort, sortTask, lo = 0, hi = toSort.length - 1, end = toSort.length, sortToAdapt, threshold = 2) {
+    const powerOfTwoLengths = getPowerOfTwoLengthsArray(end - lo, threshold);
+    let len = lo;
+    for (let i = 0; i < powerOfTwoLengths.length && sortTask.isStarted; ++i) {
+        const subLen = powerOfTwoLengths[i];
+        if (subLen <= threshold) {
+            await insertionSort(toSort, sortTask, len, len + subLen - 1, len + subLen);
+        } else {
+            await sortToAdapt(toSort, sortTask, len, len + subLen - 1, len + subLen);
+        }
+        len += subLen;
+    }
+    await mergePowerOfTwoSubArrays(lo, hi);
+
+    async function mergePowerOfTwoSubArrays(lo, hi) {
+        for (let i = powerOfTwoLengths.length - 1; i > lo && sortTask.isStarted; --i) {
+
+            let rightEndI = hi;
+            let rightStartI = rightEndI + 1 - powerOfTwoLengths[i];
+            let leftEndI = rightStartI - 1;
+            let leftStartI = leftEndI + 1 - powerOfTwoLengths[i - 1];
+
+            powerOfTwoLengths[i - 1] += powerOfTwoLengths[i];
+            const temp = await itMerge(leftStartI, rightEndI, toSort, sortTask, leftStartI, leftEndI, rightStartI, rightEndI);
+            for (let j = leftStartI; j <= rightEndI && sortTask.isStarted; j++) {
+                await sortTask.visit(j);
+                toSort[j] = temp[j - leftStartI];
+                sortTask.sortStatus[j] = SORTED;
+                sortTask.increment();
+            }
+        }
+    }
+}
+
+function getPowerOfTwoLengthsArray(n, threshold = 2) {
+    let p = prevPowerOfTwo(n);
+    let powerOfTwoLengths = [];
+    do {
+        powerOfTwoLengths.push(p);
+        if (isPowerOfTwo(n - p) || n - p < threshold) {
+            powerOfTwoLengths.push(n - p);
+            break;
+        } else {
+            p = prevPowerOfTwo(n -= p);
+        }
+    } while (p > 1);
+    return powerOfTwoLengths;
 }
 
 function getLastPileItemPS(piles, i) {
@@ -1564,6 +1597,7 @@ function prevPowerOfTwo(n) {
     n |= (n >> 16);
     return n - (n >> 1);
 }
+
 function getNextComb(comb) {
     // shrink comb
     comb = parseInt(comb / 1.3, 10);
