@@ -427,7 +427,10 @@ const ELEMENT_GENERATORS = [
     getElementsGenerator("Evenly Spread Random", randomEvenInput, regenerateRandomEven),
     getElementsGenerator("Sawtooth Random", sawtoothInput, regenerateSawtooth),
     getElementsGenerator("Sawtooth Stair Random", sawtoothStairsInput, regenerateSawtoothStairs),
-    getElementsGenerator("Partly Scrambled", scrambledPartInput, regenerateScrambledPart)
+    getElementsGenerator("Partly Scrambled", scrambledPartInput, regenerateScrambledPart),
+    getElementsGenerator("Reversed Partly Scrambled", reversedScrambledPartInput, regenerateReversedScrambledPart),
+    getElementsGenerator("Uneven Pipeorgan", pipeorganUnevenInput, regeneratePipeorganUneven),
+    getElementsGenerator("Partly Scrambled Uneven Pipeorgan", pipeorganUnevenScrambledPartInput, regeneratePipeorganUnevenScrambledPart)
 ]
 
 function getElementsGenerator(label, generateElements, regenerateElements) {
@@ -1017,30 +1020,118 @@ function regenerateScrambledPart(elements, userInput, shuffleFrom, shuffleTo, lo
 
     let scrambledLen = Math.floor(elements.length * 0.2);
     let scrambledStartIndex = Math.min(elements.length - Math.floor((1 - (userInput / 100.0)) * elements.length), elements.length - scrambledLen);
-    
-    quickSort(shuffleFrom, scrambledStartIndex);
-    quickSort(scrambledStartIndex + scrambledLen, shuffleTo - 1);
 
-    function quickSort(lo, hi) {
-        if (lo >= hi) {
-            return;
+    internalQuickSort(elements, shuffleFrom, scrambledStartIndex);
+    internalQuickSort(elements, scrambledStartIndex + scrambledLen, shuffleTo - 1);
+    return elements;
+}
+
+function reversedScrambledPartInput(elements, lo, size, lowerBound, upperBound) {
+    for (let i = lo; i < size; i++) {
+        elements.push(getRandomInt(lowerBound, upperBound));
+    }
+    regenerateReversedScrambledPart(elements, 0, lo, size, lowerBound, upperBound)
+    return elements;
+}
+
+function regenerateReversedScrambledPart(elements, userInput, shuffleFrom, shuffleTo, lowerBound, upperBound) {
+    userInput++;
+
+    const visitedSwaps = new Set();
+    for (let i = 0; i < elements.length; ++i) {
+
+        let a = getRandomInt(shuffleFrom, shuffleTo);
+        if (visitedSwaps.has(a)) {
+            a = getRandomInt(shuffleFrom, shuffleTo);
         }
-        const p = partition(lo, hi);
-        quickSort(lo, p - 1);
-        quickSort(p + 1, hi);
+
+        visitedSwaps.add(a);
+        let b = getRandomInt(shuffleFrom, shuffleTo);
+        if (visitedSwaps.has(b)) {
+            b = getRandomInt(shuffleFrom, shuffleTo);
+        }
+        visitedSwaps.add(b);
+        swap(elements, a, b);
     }
 
-    function partition(lo, hi) {
-        const p = elements[hi];
-        let pI = lo - 1;
-        for (let i = lo; i < hi; i++) {
-            if (p >= elements[i]) {
-                swap(elements, i, ++pI);
-            }
+    let scrambledLen = Math.floor(elements.length * 0.2);
+    let scrambledStartIndex = Math.min(elements.length - Math.floor((1 - (userInput / 100.0)) * elements.length), elements.length - scrambledLen);
+
+    internalQuickSort(elements, shuffleFrom, scrambledStartIndex, reverseCompare);
+    internalQuickSort(elements, scrambledStartIndex + scrambledLen, shuffleTo - 1, reverseCompare);
+
+    function reverseCompare(a, b) {
+        return b >= a ? 1 : -1;
+    }
+    return elements;
+}
+
+function pipeorganUnevenScrambledPartInput(elements, lo, size, lowerBound, upperBound) {
+    for (let i = lo; i < size; i++) {
+        elements.push(getRandomInt(lowerBound, upperBound));
+    }
+    regeneratePipeorganUnevenScrambledPart(elements, 0, lo, size, lowerBound, upperBound)
+    return elements;
+}
+
+function regeneratePipeorganUnevenScrambledPart(elements, userInput, shuffleFrom, shuffleTo, lowerBound, upperBound) {
+        const visitedSwaps = new Set();
+    for (let i = 0; i < elements.length; ++i) {
+
+        let a = getRandomInt(shuffleFrom, shuffleTo);
+        if (visitedSwaps.has(a)) {
+            a = getRandomInt(shuffleFrom, shuffleTo);
         }
-        elements[hi] = elements[++pI];
-        elements[pI] = p;
-        return pI;
+
+        visitedSwaps.add(a);
+        let b = getRandomInt(shuffleFrom, shuffleTo);
+        if (visitedSwaps.has(b)) {
+            b = getRandomInt(shuffleFrom, shuffleTo);
+        }
+        visitedSwaps.add(b);
+        swap(elements, a, b);
+    }
+    
+    let mid = elements.length >> 1;
+
+    let scrambledLen = Math.floor(elements.length * 0.2);
+    let scrambledStartIndex = Math.min(elements.length - Math.floor((1 - (userInput / 100.0)) * elements.length), elements.length - scrambledLen);
+    if (scrambledStartIndex + scrambledLen < mid) {
+        internalQuickSort(elements, shuffleFrom, scrambledStartIndex);
+        internalQuickSort(elements, scrambledStartIndex + scrambledLen, mid - 1);
+        internalQuickSort(elements, mid, shuffleTo - 1, reverseCompare);
+    } else if (scrambledStartIndex > mid) {
+        internalQuickSort(elements, shuffleFrom, mid - 1);
+        internalQuickSort(elements, mid, scrambledStartIndex, reverseCompare);
+        internalQuickSort(elements, scrambledStartIndex + scrambledLen, shuffleTo - 1, reverseCompare);
+    } else {
+        internalQuickSort(elements, shuffleFrom, scrambledStartIndex - 1);
+        internalQuickSort(elements, scrambledStartIndex + scrambledLen - 1, shuffleTo - 1, reverseCompare);
+    }
+
+
+    function reverseCompare(a, b) {
+        return b >= a ? 1 : -1;
+    }
+    return elements;
+}
+
+function pipeorganUnevenInput(elements, lo, size, lowerBound, upperBound) {
+    for (let i = lo; i < size; i++) {
+        elements.push(getRandomInt(lowerBound, upperBound));
+    }
+    regeneratePipeorganUneven(elements, 0, lo, size, lowerBound, upperBound)
+    return elements;
+}
+
+function regeneratePipeorganUneven(elements, userInput, shuffleFrom, shuffleTo, lowerBound, upperBound) {
+    let mid = elements.length >> 1;
+
+    internalQuickSort(elements, shuffleFrom, mid - 1);
+    internalQuickSort(elements, mid, shuffleTo - 1, reverseCompare);
+
+    function reverseCompare(a, b) {
+        return b >= a ? 1 : -1;
     }
     return elements;
 }
@@ -1072,6 +1163,32 @@ function regenerateSawtoothStairs(elements, sortedness, shuffleFrom, shuffleTo, 
         current += Math.floor(direction * step * (1 / sortedness));
     }
     return elements;
+}
+
+function internalQuickSort(arr, lo, hi, comparator = (a, b) => a >= b ? 1 : -1) {
+    quickSortRec(lo, hi);
+
+    function quickSortRec(lo, hi) {
+        if (lo >= hi) {
+            return;
+        }
+        const p = partition(lo, hi);
+        quickSortRec(lo, p - 1);
+        quickSortRec(p + 1, hi);
+    }
+
+    function partition(lo, hi) {
+        const p = arr[hi];
+        let pI = lo - 1;
+        for (let i = lo; i < hi; i++) {
+            if (comparator(p, arr[i]) > 0) {
+                swap(arr, i, ++pI);
+            }
+        }
+        arr[hi] = arr[++pI];
+        arr[pI] = p;
+        return pI;
+    }
 }
 
 function getRandom(lower, upper) {
