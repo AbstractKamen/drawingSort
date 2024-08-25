@@ -75,9 +75,10 @@ function init() {
     initAlgorithm(sortsContainer, getAlgorithmUITemplate("quick", "Quick Sort", "Not Stable, In place, O(n log n) time complexity", quickSortDescription), quickSort, getQuickSortArguments());
     initAlgorithm(sortsContainer, getAlgorithmUITemplate("iterative-quick", "Iterative Quick Sort", "Not Stable, Not In place, O(n log n) time complexity", iterativeQuickSortDescription), iterativeQuickSort, getQuickSortArguments());
     initAlgorithm(sortsContainer, getAlgorithmUITemplate("quick-cut", "Cutoff Quick Sort", "Not Stable, In place, O(n log n) time complexity", "desc todo", "Sort After Cutoff: "), cutoffQuickSort, getHybridQuickSortArguments());
-    initAlgorithm(sortsContainer, getAlgorithmUITemplate("merge", "Merge Sort", "Stable, Not In place, O(n log n) time complexity",  mergeSortDescription), mergeSort);
+    initAlgorithm(sortsContainer, getAlgorithmUITemplate("merge", "Merge Sort", "Stable, Not In place, O(n log n) time complexity", mergeSortDescription), mergeSort);
     initAlgorithm(sortsContainer, getAlgorithmUITemplate("odd-even-merge", "Odd-Even Merge Sort", "Not Stable, In place, O(n log^2 n) time complexity", oddEvenMergeSortDescription), oddEvenMergeSort);
     initAlgorithm(sortsContainer, getAlgorithmUITemplate("adaptive-odd-even-merge", "Adaptive Odd-Even Merge Sort", "Not Stable, Not In place, O(n log^2 n) time complexity", adaptiveOddEvenMergeSortDescription), adaptiveOddEvenMergeSort);
+    initAlgorithm(sortsContainer, getAlgorithmUITemplate("iterative-odd-even-merge", "Iterative Odd-Even Merge Sort", "Not Stable, Not In place, O(n log^2 n) time complexity"), iterativeOddEvenMergeSort);
     initAlgorithm(sortsContainer, getAlgorithmUITemplate("inplace-merge", "In Place Merge Sort", "Stable, In place, O(n^2) time complexity"), inPlaceMergeSort);
     initAlgorithm(sortsContainer, getAlgorithmUITemplate("iterative-merge", "Iterative Merge Sort", "Stable, Not In place, O(n log n) time complexity", iterativeMergeSortDescription), iterativeMergeSort);
     initAlgorithm(sortsContainer, getAlgorithmUITemplate("heap", "Heap Sort", "Not Stable, In place, O(n log n) time complexity", heapSortDescription), heapSort);
@@ -99,7 +100,7 @@ function getHybridQuickSortArguments(compSort = COMP_SORTS[0], partitioner = PAR
     return new SortArguments(compSort, -1, undefined, partitioner);
 }
 
-function getAlgorithmUITemplate(id = undefined, name = "TODO", characteristics = "TODO", description = "TODO", compSortLabel = "Complementary Sort: ", elementGenerator = ELEMENT_GENERATORS[1]) {
+function getAlgorithmUITemplate(id = undefined, name = "TODO", characteristics = "TODO", description = "TODO", compSortLabel = "Complementary Sort: ", elementGenerator = ELEMENT_GENERATORS[3]) {
     if (id == undefined) {
         throw new Error("id must be defined!");
     }
@@ -305,7 +306,9 @@ const COMP_SORTS = [
     makeCompSort(shellSort, "Shell Sort"),
     makeCompSort(countingSort, "Counting Sort"),
     // TODO makeCompSort(adaptiveIterativeBitonicSort, "Adaptive Iterative Bitonic Sort"),
-    makeCompSort(bitonicSort, "Bitonic Sort")
+    makeCompSort(bitonicSort, "Bitonic Sort"),
+    // TODOmakeCompSort(adaptiveOddEvenMergeSort, "Adaptive Odd Even Merge Sort"),
+    makeCompSort(iterativeOddEvenMergeSort, "Iterative Odd Even Merge Sort")
 ];
 const SPEEDUP_SECONDS = 3000;
 const SPEEDUP_THRESHHOLD = 10000000;
@@ -403,9 +406,9 @@ class SortTask {
         if (this.mms <= 0) {
             if (this.startTime + SPEEDUP_SECONDS <= Date.now()) {
                 if (this.sleepThreshHold > -SPEEDUP_THRESHHOLD) {
-                    this.sleepThreshHold -= (1000 - Math.floor(this.sleepThreshHold  * 0.33));
+                    this.sleepThreshHold -= (1000 - Math.floor(this.sleepThreshHold * 0.33));
                     this.startTime = Date.now();
-                }else {
+                } else {
                     this.sleepThreshHold = -SPEEDUP_THRESHHOLD;
                 }
             }
@@ -423,7 +426,8 @@ class SortTask {
 const ELEMENT_GENERATORS = [
     getElementsGenerator("Evenly Spread Random", randomEvenInput, regenerateRandomEven),
     getElementsGenerator("Sawtooth Random", sawtoothInput, regenerateSawtooth),
-    getElementsGenerator("Sawtooth Stair Random", sawtoothStairsInput, regenerateSawtoothStairs)
+    getElementsGenerator("Sawtooth Stair Random", sawtoothStairsInput, regenerateSawtoothStairs),
+    getElementsGenerator("Partly Scrambled", scrambledPartInput, regenerateScrambledPart)
 ]
 
 function getElementsGenerator(label, generateElements, regenerateElements) {
@@ -968,17 +972,75 @@ function regenerateSawtooth(elements, sortedness, shuffleFrom, shuffleTo, lowerB
     let direction = 1;
     for (let i = shuffleFrom; i < shuffleTo; ++i) {
         elements[i] = parseInt(current);
-        current += Math.floor(direction * step * (1 / sortedness)) ;
+        current += Math.floor(direction * step * (1 / sortedness));
 
         if (current >= upperBound) {
             direction *= -1
             step = Math.floor(Math.random() * ((upperBound - lowerBound) >> 4)) + 1;
             current = upperBound;
-        } else if(current <= lowerBound) {
+        } else if (current <= lowerBound) {
             direction *= -1
             step = Math.floor(Math.random() * ((upperBound - lowerBound) >> 4)) + 1;
             current = lowerBound;
         }
+    }
+    return elements;
+}
+
+function scrambledPartInput(elements, lo, size, lowerBound, upperBound) {
+    for (let i = lo; i < size; i++) {
+        elements.push(getRandomInt(lowerBound, upperBound));
+    }
+    regenerateScrambledPart(elements, 0, lo, size, lowerBound, upperBound)
+    return elements;
+}
+
+function regenerateScrambledPart(elements, userInput, shuffleFrom, shuffleTo, lowerBound, upperBound) {
+    userInput++;
+
+    const visitedSwaps = new Set();
+    for (let i = 0; i < elements.length; ++i) {
+
+        let a = getRandomInt(shuffleFrom, shuffleTo);
+        if (visitedSwaps.has(a)) {
+            a = getRandomInt(shuffleFrom, shuffleTo);
+        }
+
+        visitedSwaps.add(a);
+        let b = getRandomInt(shuffleFrom, shuffleTo);
+        if (visitedSwaps.has(b)) {
+            b = getRandomInt(shuffleFrom, shuffleTo);
+        }
+        visitedSwaps.add(b);
+        swap(elements, a, b);
+    }
+
+    let scrambledLen = Math.floor(elements.length * 0.2);
+    let scrambledStartIndex = Math.min(elements.length - Math.floor((1 - (userInput / 100.0)) * elements.length), elements.length - scrambledLen);
+    
+    quickSort(shuffleFrom, scrambledStartIndex);
+    quickSort(scrambledStartIndex + scrambledLen, shuffleTo - 1);
+
+    function quickSort(lo, hi) {
+        if (lo >= hi) {
+            return;
+        }
+        const p = partition(lo, hi);
+        quickSort(lo, p - 1);
+        quickSort(p + 1, hi);
+    }
+
+    function partition(lo, hi) {
+        const p = elements[hi];
+        let pI = lo - 1;
+        for (let i = lo; i < hi; i++) {
+            if (p >= elements[i]) {
+                swap(elements, i, ++pI);
+            }
+        }
+        elements[hi] = elements[++pI];
+        elements[pI] = p;
+        return pI;
     }
     return elements;
 }
@@ -1001,13 +1063,13 @@ function regenerateSawtoothStairs(elements, sortedness, shuffleFrom, shuffleTo, 
                 direction *= -1;
                 step = Math.floor(Math.random() * ((upperBound - lowerBound) >> 4)) + 1;
                 current = upperBound;
-            } else if(current <= lowerBound) {
+            } else if (current <= lowerBound) {
                 direction *= -1;
                 step = Math.floor(Math.random() * ((upperBound - lowerBound) >> 4)) + 1;
                 current = lowerBound;
             }
         } while (--l > 0 && i < shuffleTo);
-        current += Math.floor(direction * step * (1 / sortedness)) ;
+        current += Math.floor(direction * step * (1 / sortedness));
     }
     return elements;
 }

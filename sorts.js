@@ -1424,6 +1424,7 @@ async function adaptiveIterativeBitonicSort(toSort, sortTask, lo = 0, hi = toSor
         await powerOfTwoAdaptSort(toSort, sortTask, lo, hi, end, iterativeBitonicSort, 2);
     }
 }
+
 // ODD-EVEN MERGE SORT
 async function oddEvenMergeSort(toSort, sortTask, lo = 0, hi = toSort.length - 1, end = toSort.length) {
     if (isPowerOfTwo(end)) {
@@ -1460,6 +1461,39 @@ async function oddEvenMergeSort(toSort, sortTask, lo = 0, hi = toSort.length - 1
         if (toSort[a] > toSort[b]) {
             swap(toSort, a, b);
         }
+    }
+}
+
+// ITERATIVE ODD-EVEN MERGE SORT
+async function iterativeOddEvenMergeSort(toSort, sortTask, lo = 0, hi = toSort.length - 1, end = toSort.length) {
+    await batchsort(lo, hi);
+    // originally from Algorithms in Java, Parts 1-4 (3rd Edition) (Pts.1-4) Authors: Robert Sedgewick
+    async function batchsort(l, r) {
+        let N = r - l + 1;
+        for (let p = 1; p < N && sortTask.isStarted; p += p) {
+            for (let k = p; k > 0 && sortTask.isStarted; k = k >> 1) {
+                let swapped = false;
+                for (let j = k % p; j + k < N && sortTask.isStarted; j += (k + k)) {
+                    for (let i = 0; i < N - j - k && sortTask.isStarted; i++) {
+                        if (Math.floor((j + i) / (p + p)) === Math.floor((j + i + k) / (p + p))) {
+                            swapped = await compare(l + j + i, l + j + i + k);
+                        }
+                    }
+                    if (!swapped) break;
+                }
+            }
+        }
+
+    }
+
+    async function compare(a, b) {
+        await sortTask.visit(a, b);
+        sortTask.increment();
+        if (toSort[a] > toSort[b]) {
+            swap(toSort, a, b);
+            return true;
+        }
+        return false;
     }
 }
 // ADAPTIVE ODD-EVEN MERGE SORT
