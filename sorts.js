@@ -1434,7 +1434,7 @@ async function oddEvenMergeSort(toSort, sortTask, lo = 0, hi = toSort.length - 1
     }
 
     async function oddEvenMergeSortRec(l, n) {
-        if (n > 1) {
+        if (n > 1 && sortTask.isStarted) {
             const m = n >> 1;
             await oddEvenMergeSortRec(l, m);
             await oddEvenMergeSortRec(l + m, m);
@@ -1444,10 +1444,10 @@ async function oddEvenMergeSort(toSort, sortTask, lo = 0, hi = toSort.length - 1
 
     async function oddEvenMerge(l, n, r) {
         const m = r << 1;
-        if (m < n) {
+        if (m < n && sortTask.isStarted) {
             await oddEvenMerge(l, n, m);
             await oddEvenMerge(l + r, n, m);
-            for (let i = l + r; i + r < l + n; i += m) {
+            for (let i = l + r; i + r < l + n && sortTask.isStarted; i += m) {
                 await compare(i, i + r);
             }
         } else {
@@ -1501,7 +1501,7 @@ async function adaptiveOddEvenMergeSort(toSort, sortTask, lo = 0, hi = toSort.le
     if (isPowerOfTwo(end - lo)) {
         await oddEvenMergeSort(lo, end);
     } else {
-        await powerOfTwoAdaptSort(toSort, sortTask, lo, hi, end, oddEvenMergeSort, 15);
+        await powerOfTwoAdaptSort(toSort, sortTask, lo, hi, end, oddEvenMergeSort);
     }
 }
 /*
