@@ -11,6 +11,7 @@ const VISITED = 5;
 const BAR_RATIO = 0.9;
 const FRAME_RATE = 30;
 const imagesPath = 'https://abstractkamen.github.io/drawingSort/images';
+const MAX_SEE_NUMBERS = 256;
 
 function init() {
     const sortsContainer = document.getElementById('sorts');
@@ -116,15 +117,15 @@ function getAlgorithmUITemplate(id = undefined, name = "TODO", characteristics =
         maxSpeed: 50,
         valueSpeed: 0,
         minSize: 40,
-        maxSize: 1200,
+        maxSize: 10000,
         valueSize: 4,
         minSortedness: 0,
         maxSortedness: 100,
         valueSortedness: 0,
         compSortLabel: compSortLabel,
         compSorts: [...COMP_SORTS],
-        elementGenerator: elementGenerator, 
-        drawMode:DRAW_MODES[0]
+        elementGenerator: elementGenerator,
+        drawMode: DRAW_MODES[0]
     };
 }
 
@@ -437,18 +438,16 @@ const ELEMENT_GENERATORS = [
 ];
 const DRAW_MODES = [{
         label: "Draw Bars",
-        doDraw: (sketch, x, y, elementsScale, colour) => {
+        doDraw: (sketch, x, y, colour) => {
             sketch.stroke(colour);
-            let xS = x * elementsScale + (elementsScale >> 1)
-            sketch.line(xS, 0, xS, y * BAR_RATIO);
+            sketch.line(x, 0, x, y * BAR_RATIO);
         }
     },
     {
         label: "Draw Points",
-        doDraw: (sketch, x, y, elementsScale, colour) => {
+        doDraw: (sketch, x, y, colour) => {
             sketch.stroke(colour);
-            let xS = x * elementsScale + (elementsScale >> 1)
-            sketch.point(xS, y * BAR_RATIO);
+            sketch.point(x, y * BAR_RATIO);
         }
     }
 ];
@@ -462,7 +461,7 @@ function getElementsGenerator(label, generateElements, regenerateElements) {
 }
 
 function getElementScale(width, elements) {
-    return width > elements ? width / elements : elements / width;
+    return width / elements;
 }
 
 var isCopy;
@@ -558,7 +557,10 @@ function initAlgorithm(sortsContainer, template, sort, sortArgs) {
                                 <div id="${sortId}-sort-input-content" class="dropdown-content"></div>
                             </div>
                             <label>Numbers Range: <input id="${sortId}-range" type="range" min="${template.minRange}" max="${template.maxRange}" value="${template.valueRange}" class="slider"></label>
-                            <label>Array Size: <input id="${sortId}-elements-range" type="range" min="${template.minSize}" max="${template.maxSize}" value="${template.valueSize}" class="slider"></label>
+                            <div>
+                                <button id="tgl-poweroftwo-${sortId}-btn">Toggle Power of Two</button>
+                                <label>Array Size: <input id="${sortId}-elements-range" type="range" min="${template.minSize}" max="${template.maxSize}" value="${template.valueSize}" class="slider"></label>
+                            </div>
                             <label>Array Sortedness: <input id="${sortId}-elements-sortedness" type="range" min="${template.minSortedness}" max="${template.maxSortedness}" value="${template.valueSortedness}" class="slider"></label>
                             <label>Sort Speed: <input id="${sortId}-millis-range" type="range" min="${template.minSpeed}" max="${template.maxSpeed}" value="${template.valueSpeed}" class="slider"></label>
                         </div>
@@ -587,7 +589,10 @@ function initAlgorithm(sortsContainer, template, sort, sortArgs) {
                                 <div id="${sortId}-sort-input-content" class="dropdown-content"></div>
                             </div>
                             <label>Numbers Range: <input id="${sortId}-range" type="range" min="${template.minRange}" max="${template.maxRange}" value="${template.valueRange}" class="slider"></label>
-                            <label>Array Size: <input id="${sortId}-elements-range" type="range" min="${template.minSize}" max="${template.maxSize}" value="${template.valueSize}" class="slider"></label>
+                            <div>
+                                <button id="tgl-poweroftwo-${sortId}-btn">Toggle Power of Two</button>
+                                <label>Array Size: <input id="${sortId}-elements-range" type="range" min="${template.minSize}" max="${template.maxSize}" value="${template.valueSize}" class="slider"></label>
+                            </div>
                             <label>Array Sortedness: <input id="${sortId}-elements-sortedness" type="range" min="${template.minSortedness}" max="${template.maxSortedness}" value="${template.valueSortedness}" class="slider"></label>
                             <label>Sort Speed: <input id="${sortId}-millis-range" type="range" min="${template.minSpeed}" max="${template.maxSpeed}" value="${template.valueSpeed}" class="slider"></label>
                         </div>
@@ -600,9 +605,10 @@ function initAlgorithm(sortsContainer, template, sort, sortArgs) {
                 (sketch) => {
                     sketch.frameRate(FRAME_RATE);
                     const arraySize = document.getElementById(`${sortId}-elements-range`);
-                    var s = Math.min(parseInt(arraySize.value), w);
+                    var s = parseInt(arraySize.value);
+                    var powerOfTwoToggled = false;
                     var sortedness = 0;
-                    arraySize.max = w;
+                    arraySize.max = template.maxSize;
                     var elementsScale = getElementScale(w, s);
 
                     var rangePercent = 0; // 1 / 100
@@ -623,10 +629,24 @@ function initAlgorithm(sortsContainer, template, sort, sortArgs) {
                     };
                     // array size
                     arraySize.oninput = async () => {
-                        s = Math.min(parseInt(arraySize.value), w);
-                        elementsScale = getElementScale(w, s);
                         sortTask.isStarted = false;
+                        if (s > MAX_SEE_NUMBERS) sortTask.seeNumbers = false;
 
+                        if (powerOfTwoToggled) {
+                            const newSizeValue = parseInt(arraySize.value);
+                            if (!isPowerOfTwo(newSizeValue)) {
+                                const powerOfTwo = prevPowerOfTwo(newSizeValue);
+                                if (s === powerOfTwo) {
+                                    // early exit if no size change *******************************
+                                    return false;
+                                }
+                                s = powerOfTwo;
+                            }
+                        } else {
+                            s = parseInt(arraySize.value);
+                        }
+
+                        elementsScale = getElementScale(w, s);
                         elements = getResizedElements(elements, s, -minNumber, maxNumber, elementGenerator.generateElements);
                         elementGenerator.regenerateElements(elements, sortedness, 0, s, -minNumber, maxNumber);
 
@@ -704,6 +724,7 @@ function initAlgorithm(sortsContainer, template, sort, sortArgs) {
                     });
                     // see numbers
                     document.getElementById(`tgl-numbers-${sortId}-btn`).addEventListener('click', async () => {
+                        if (elements.length > MAX_SEE_NUMBERS) return false;
                         const isLooping = sketch.isLooping();
                         if (!isLooping) {
                             sketch.loop();
@@ -733,8 +754,6 @@ function initAlgorithm(sortsContainer, template, sort, sortArgs) {
                         }, 20);
                     });
                     // toggle draw mode
-                    var drawBar = 1;
-                    var drawPoint = 2;
                     const drawModeButton = document.getElementById(`tgl-draw-mode-${sortId}-btn`)
                     drawModeButton.addEventListener('click', async () => {
                         const isLooping = sketch.isLooping();
@@ -752,6 +771,11 @@ function initAlgorithm(sortsContainer, template, sort, sortArgs) {
                                 sketch.noLoop();
                             }
                         }, 20);
+                    });
+                    // toggle power of two mode
+                    document.getElementById(`tgl-poweroftwo-${sortId}-btn`).addEventListener('click', async () => {
+                        powerOfTwoToggled = !powerOfTwoToggled;
+                        await arraySize.oninput();
                     });
                     // numbers range
                     const numbersRange = document.getElementById(`${sortId}-range`);
@@ -891,23 +915,54 @@ function drawElementsHSBMode(sketch, elements, elementsScale, minNumber, maxNumb
     sketch.push();
     sketch.translate(0, maxNumber);
     sketch.scale(1, -1);
-    sketch.strokeWeight(1 * elementsScale);
     //sketch.strokeCap(sketch.SQUARE);
     sketch.colorMode(sketch.HSB, 360, 100, 100);
     const yPart = 1 / Math.max(100, absDifference(0, maxNumber));
     const yPartNeg = 1 / Math.max(100, absDifference(0, minNumber));
-    for (let x = 0; x < elements.length; x++) {
-        const y = elements[x];
-        const xSortStatus = sortTask.sortStatus[x];
-        var sb = 70;
-        if (xSortStatus == VISITED) {
-            sb = 100;
+    if (elements.length <= w) {
+        sketch.strokeWeight(1 * elementsScale);
+        for (let i = 0; i < elements.length; i++) {
+            const y = elements[i];
+            const xSortStatus = sortTask.sortStatus[i];
+            var sb;
+            if (xSortStatus == VISITED) {
+                sb = 100;
+            } else {
+                sb = 70;
+            }
+            var c;
+            if (y < 0) {
+                c = sketch.color(360 - (((1 - yPartNeg) * -y)), sb, sb);
+            } else {
+                c = sketch.color(yPart * y * 360, sb, sb)
+            }
+            let x = i * elementsScale + (elementsScale >> 1);
+            template.drawMode.doDraw(sketch, x, y, c);
         }
-        var c = sketch.color(yPart * y * 360, sb, sb);
-        if (y < 0) {
-            c = sketch.color(360 - (((1 - yPartNeg) * -y)), sb, sb);
+    } else {
+        let drawAcc = 0;
+        let x = 0;
+        for (let i = 0; i < elements.length; i++) {
+            drawAcc += elementsScale;
+            if (drawAcc >= 1) {
+                const y = elements[i];
+                const xSortStatus = sortTask.sortStatus[i];
+                var sb;
+                if (xSortStatus == VISITED) {
+                    sb = 100;
+                } else {
+                    sb = 70;
+                }
+                var c;
+                if (y < 0) {
+                    c = sketch.color(360 - (((1 - yPartNeg) * -y)), sb, sb);
+                } else {
+                    c = sketch.color(yPart * y * 360, sb, sb)
+                }
+                template.drawMode.doDraw(sketch, x++, y, c);
+                drawAcc -= 1;
+            }
         }
-        template.drawMode.doDraw(sketch, x, y, elementsScale, c);
     }
     drawElementNumbers(sketch, elements, elementsScale, sortTask);
     stats(sketch, elements, sortTask, template);
@@ -918,11 +973,26 @@ function drawElementsColourCoded(sketch, elements, elementsScale, maxNumber, sor
     sketch.push();
     sketch.translate(0, maxNumber);
     sketch.scale(1, -1);
-    sketch.strokeWeight(1 * elementsScale);
     // sketch.strokeCap(sketch.SQUARE);
-    for (let x = 0; x < elements.length; x++) {
-        const y = elements[x];
-        template.drawMode.doDraw(sketch, x, y, elementsScale, sketch.color(COLOURS[sortTask.sortStatus[x]]))
+    if (elements.length <= w) {
+        sketch.strokeWeight(1 * elementsScale);
+        for (let i = 0; i < elements.length; ++i) {
+            const ix = Math.floor(i);
+            const y = elements[ix];
+            let x = i * elementsScale + (elementsScale >> 1);
+            template.drawMode.doDraw(sketch, x, y, sketch.color(COLOURS[sortTask.sortStatus[ix]]));
+        }
+    } else {
+        let drawAcc = 0;
+        let x = 0;
+        for (let i = 0; i < elements.length; ++i) {
+            drawAcc += elementsScale;
+            if (drawAcc >= 1) {
+                const y = elements[i];
+                template.drawMode.doDraw(sketch, x++, y, sketch.color(COLOURS[sortTask.sortStatus[i]]));
+                drawAcc -= 1;
+            }
+        }
     }
     drawElementNumbers(sketch, elements, elementsScale, sortTask);
     stats(sketch, elements, sortTask, template);
