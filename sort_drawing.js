@@ -942,14 +942,16 @@ function drawElementsHSBMode(sketch, elements, elementsScale, minNumber, maxNumb
     } else {
         let drawAcc = 0;
         let x = 0;
+        let mustVisit = false;
         for (let i = 0; i < elements.length; i++) {
             drawAcc += elementsScale;
+            mustVisit = mustVisit || sortTask.sortStatus[i] == VISITED;
             if (drawAcc >= 1) {
                 const y = elements[i];
-                const xSortStatus = sortTask.sortStatus[i];
                 var sb;
-                if (xSortStatus == VISITED) {
+                if (mustVisit) {
                     sb = 100;
+                    mustVisit = false;
                 } else {
                     sb = 70;
                 }
@@ -985,11 +987,20 @@ function drawElementsColourCoded(sketch, elements, elementsScale, maxNumber, sor
     } else {
         let drawAcc = 0;
         let x = 0;
+        let mustVisit = false;
         for (let i = 0; i < elements.length; ++i) {
+            mustVisit = mustVisit || sortTask.sortStatus[i] == VISITED;
             drawAcc += elementsScale;
             if (drawAcc >= 1) {
                 const y = elements[i];
-                template.drawMode.doDraw(sketch, x++, y, sketch.color(COLOURS[sortTask.sortStatus[i]]));
+                let c;
+                if (mustVisit) {
+                    c = sketch.color(COLOURS[VISITED]);
+                    mustVisit = false;
+                } else {
+                    c = sketch.color(COLOURS[sortTask.sortStatus[i]]);
+                }
+                template.drawMode.doDraw(sketch, x++, y, c);
                 drawAcc -= 1;
             }
         }
