@@ -123,7 +123,8 @@ function getAlgorithmUITemplate(id = undefined, name = "TODO", characteristics =
         valueSortedness: 0,
         compSortLabel: compSortLabel,
         compSorts: [...COMP_SORTS],
-        elementGenerator: elementGenerator
+        elementGenerator: elementGenerator, 
+        drawMode:DRAW_MODES[0]
     };
 }
 
@@ -433,7 +434,24 @@ const ELEMENT_GENERATORS = [
     getElementsGenerator("Min Heapified Pipeorgan", minHeapifiedPipeorganUnevenInput, regenerateMinHeapifiedPipeorganUneven),
     getElementsGenerator("Max Heapified Pipeorgan", maxHeapifiedPipeorganUnevenInput, regenerateMaxHeapifiedPipeorganUneven),
     getElementsGenerator("Partly Scrambled Uneven Pipeorgan", pipeorganUnevenScrambledPartInput, regeneratePipeorganUnevenScrambledPart)
-]
+];
+const DRAW_MODES = [{
+        label: "Draw Bars",
+        doDraw: (sketch, x, y, elementsScale, colour) => {
+            sketch.stroke(colour);
+            let xS = x * elementsScale + (elementsScale >> 1)
+            sketch.line(xS, 0, xS, y * BAR_RATIO);
+        }
+    },
+    {
+        label: "Draw Points",
+        doDraw: (sketch, x, y, elementsScale, colour) => {
+            sketch.stroke(colour);
+            let xS = x * elementsScale + (elementsScale >> 1)
+            sketch.point(xS, y * BAR_RATIO);
+        }
+    }
+];
 
 function getElementsGenerator(label, generateElements, regenerateElements) {
     return {
@@ -533,6 +551,7 @@ function initAlgorithm(sortsContainer, template, sort, sortArgs) {
                     <div class="settings-btns">Settings<br>
                         <button id="tgl-numbers-${sortId}-btn">Toggle Numbers</button>
                         <button id="tgl-colour-mode-${sortId}-btn">Colour Mode</button>
+                        <button id="tgl-draw-mode-${sortId}-btn">${template.drawMode.label}</button>
                         <div class="range-btns">
                             <div id="${sortId}-sort-input" class="dropdown">Sort Input Pattern:
                                 <button id="${sortId}-sort-input-btn" class="dropbtn"></button>
@@ -561,6 +580,7 @@ function initAlgorithm(sortsContainer, template, sort, sortArgs) {
                     <div class="settings-btns">Settings<br>
                         <button id="tgl-numbers-${sortId}-btn">Toggle Numbers</button>
                         <button id="tgl-colour-mode-${sortId}-btn">Colour Mode</button>
+                        <button id="tgl-draw-mode-${sortId}-btn">${template.drawMode.label}</button>
                         <div class="range-btns">
                             <div id="${sortId}-sort-input" class="dropdown"> Sort Input Pattern: 
                                 <button id="${sortId}-sort-input-btn" class="dropbtn"></button>
@@ -706,6 +726,27 @@ function initAlgorithm(sortsContainer, template, sort, sortArgs) {
                             sketch.loop();
                         }
                         [currentMode, nextMode] = [nextMode, currentMode];
+                        setTimeout(() => {
+                            if (!isLooping) {
+                                sketch.noLoop();
+                            }
+                        }, 20);
+                    });
+                    // toggle draw mode
+                    var drawBar = 1;
+                    var drawPoint = 2;
+                    const drawModeButton = document.getElementById(`tgl-draw-mode-${sortId}-btn`)
+                    drawModeButton.addEventListener('click', async () => {
+                        const isLooping = sketch.isLooping();
+                        if (!isLooping) {
+                            sketch.loop();
+                        }
+                        if (template.drawMode == DRAW_MODES[0]) {
+                            template.drawMode = DRAW_MODES[1];
+                        } else {
+                            template.drawMode = DRAW_MODES[0];
+                        }
+                        drawModeButton.innerText = template.drawMode.label;
                         setTimeout(() => {
                             if (!isLooping) {
                                 sketch.noLoop();
@@ -866,7 +907,7 @@ function drawElementsHSBMode(sketch, elements, elementsScale, minNumber, maxNumb
         if (y < 0) {
             c = sketch.color(360 - (((1 - yPartNeg) * -y)), sb, sb);
         }
-        drawBar(sketch, x, y, elementsScale, c);
+        template.drawMode.doDraw(sketch, x, y, elementsScale, c);
     }
     drawElementNumbers(sketch, elements, elementsScale, sortTask);
     stats(sketch, elements, sortTask, template);
@@ -881,16 +922,10 @@ function drawElementsColourCoded(sketch, elements, elementsScale, maxNumber, sor
     // sketch.strokeCap(sketch.SQUARE);
     for (let x = 0; x < elements.length; x++) {
         const y = elements[x];
-        drawBar(sketch, x, y, elementsScale, sketch.color(COLOURS[sortTask.sortStatus[x]]))
+        template.drawMode.doDraw(sketch, x, y, elementsScale, sketch.color(COLOURS[sortTask.sortStatus[x]]))
     }
     drawElementNumbers(sketch, elements, elementsScale, sortTask);
     stats(sketch, elements, sortTask, template);
-}
-
-function drawBar(sketch, x, y, elementsScale, colour) {
-    sketch.stroke(colour);
-    let xS = x * elementsScale + (elementsScale >> 1)
-    sketch.line(xS, 0, xS, y * BAR_RATIO);
 }
 
 function stats(sketch, elements, sortTask, template) {
