@@ -737,6 +737,79 @@ async function mergeSort(toSort, sortTask, lo = 0, hi = toSort.length - 1, end =
         }
     }
 }
+// SHUFFLE MERGE SORT
+async function shuffleMergeSort(toSort, sortTask, sortArgs) {
+    await shuffleMergeSortRec(0, toSort.length - 1);
+
+    async function shuffleMergeSortRec(leftI, rightI) {
+        if (sortTask.isFinished()) {
+            return;
+        }
+        if (leftI >= rightI) {
+            return;
+        }
+        sortTask.increment();
+        var m = leftI + ((rightI - leftI) >>> 1);
+        await sortTask.visit(m);
+        await shuffleMergeSortRec(leftI, m);
+        await shuffleMergeSortRec(m + 1, rightI);
+        if (toSort[m] > toSort[m + 1]) { // best case condition
+            sortTask.increment();
+            await shuffleMerge(leftI, m, rightI);
+        } else {
+            sortTask.sortStatus[m] = SORTED;
+            sortTask.sortStatus[m + 1] = SORTED;
+        }
+    }
+
+    async function shuffleMerge(l, m, r) {
+        let leftSize = m - l + 1,
+            rightSize = r - m;
+        let left = new Array(leftSize);
+        let right = new Array(rightSize);
+        for (let i = 0; i < leftSize && sortTask.isStarted; i++) {
+            left[i] = toSort[l + i];
+            sortTask.increment();
+        }
+        for (let i = 0; i < rightSize && sortTask.isStarted; i++) {
+            right[i] = toSort[m + 1 + i];
+            sortTask.increment();
+        }
+        const mergeLimit = l + leftSize + rightSize;
+        for (let i = l, j = 0, k = 0; i < mergeLimit && sortTask.isStarted;) {
+            if (left[(leftSize >> 1)] > right[(rightSize >> 1)]) {
+                if (k < leftSize) {
+                    await sortTask.visit(i);
+                    toSort[i++] = left[k++];
+                    sortTask.increment();
+                }
+                if (j < rightSize) {
+                    await sortTask.visit(i);
+                    toSort[i++] = right[j++];
+                    sortTask.increment();
+                }
+            } else {
+                if (j < rightSize) {
+                    await sortTask.visit(i);
+                    toSort[i++] = right[j++];
+                    sortTask.increment();
+                }
+                if (k < leftSize) {
+                    await sortTask.visit(i);
+                    toSort[i++] = left[k++];
+                    sortTask.increment();
+                }
+            }
+        }
+
+        if (sortArgs.compSort.sortArgs()) {
+            await sortArgs.compSort.sort(toSort, sortTask, sortArgs.compSort.sortArgs(), l, mergeLimit - 1, mergeLimit);
+        } else {
+            await sortArgs.compSort.sort(toSort, sortTask, l, mergeLimit - 1, mergeLimit);
+        }
+
+    }
+}
 // ITERATIVE MERGE SORT
 async function iterativeMergeSort(toSort, sortTask, lo = 0, hi = toSort.length - 1, end = toSort.length) {
     const n = end;

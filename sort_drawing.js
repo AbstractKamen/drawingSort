@@ -77,6 +77,7 @@ function init() {
     initAlgorithm(sortsContainer, getAlgorithmUITemplate("iterative-quick", "Iterative Quick Sort", "Not Stable, Not In place, O(n log n) time complexity", iterativeQuickSortDescription), iterativeQuickSort, getQuickSortArguments());
     initAlgorithm(sortsContainer, getAlgorithmUITemplate("quick-cut", "Cutoff Quick Sort", "Not Stable, In place, O(n log n) time complexity", "desc todo", "Sort After Cutoff: "), cutoffQuickSort, getHybridQuickSortArguments());
     initAlgorithm(sortsContainer, getAlgorithmUITemplate("merge", "Merge Sort", "Stable, Not In place, O(n log n) time complexity", mergeSortDescription), mergeSort);
+    initAlgorithm(sortsContainer, getAlgorithmUITemplate("shuffle-merge", "Shuffle Merge Sort", "Stable, Not In place, O(n^2) time complexity"), shuffleMergeSort, getHybridSortArguments());
     initAlgorithm(sortsContainer, getAlgorithmUITemplate("odd-even-merge", "Odd-Even Merge Sort", "Not Stable, In place, O(n log^2 n) time complexity", oddEvenMergeSortDescription), oddEvenMergeSort);
     initAlgorithm(sortsContainer, getAlgorithmUITemplate("adaptive-odd-even-merge", "Adaptive Odd-Even Merge Sort", "Not Stable, Not In place, O(n log^2 n) time complexity", adaptiveOddEvenMergeSortDescription), adaptiveOddEvenMergeSort);
     initAlgorithm(sortsContainer, getAlgorithmUITemplate("iterative-odd-even-merge", "Iterative Odd-Even Merge Sort", "Not Stable, Not In place, O(n log^2 n) time complexity"), iterativeOddEvenMergeSort);
