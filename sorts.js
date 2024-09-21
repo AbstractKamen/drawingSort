@@ -949,6 +949,7 @@ async function itMerge(lo, hi, toSort, sortTask, leftStart, leftEnd, rightStart,
     }
     return temp;
 }
+
 // BUCKET SORT
 async function bucketSort(toSort, sortTask, sortArgs) {
     let n = toSort.length;
@@ -1577,6 +1578,28 @@ async function adaptiveOddEvenMergeSort(toSort, sortTask, lo = 0, hi = toSort.le
         await powerOfTwoAdaptSort(toSort, sortTask, lo, hi, end, oddEvenMergeSort);
     }
 }
+// PANCAKE SORT
+async function pancakeSort(toSort, sortTask, lo = 0, hi = toSort.length - 1, end = toSort.length) {
+    for (let i = hi; i > lo && sortTask.isStarted; --i) {
+        const m = await getMaxAndIndex(toSort, sortTask, lo, i);
+        await reverse(toSort, sortTask, lo, m);
+        await reverse(toSort, sortTask, lo, i);
+        // await reverse(toSort, sortTask, lo, i - m - 1); burnt pancake
+    }
+}
+async function getMaxAndIndex(toSort, sortTask, lo, hi) {
+    let max = toSort[lo];
+    let index = lo;
+    for (let j = lo; j <= hi && sortTask.isStarted; ++j) {
+        await sortTask.visit(j);
+        sortTask.increment();
+        if (max < toSort[j]) {
+            index = j;
+            max = toSort[j];
+        }
+    }
+    return index;
+}
 /*
  * HELPERS
  */
@@ -1596,6 +1619,26 @@ function binarySearch(sortTask, elements, value,
             // increase the minimum boundary and skip mid which has been visited
             low = mid + 1;
         } else if (compareToRes > 0) {
+            // lower the maximum boundary
+            high = mid - 1;
+        } else {
+            return mid;
+        }
+    }
+    // return the expected index where value should be -> (-low - 1)
+    return -low;
+}
+
+function binarySearchPlain(elements, value) {
+    let low = 0;
+    let high = elements.length - 1;
+    while (low <= high) {
+        let mid = (low + high) >>> 1;
+        const cur = elements[mid];
+        if (cur < value) {
+            // increase the minimum boundary and skip mid which has been visited
+            low = mid + 1;
+        } else if (cur > value) {
             // lower the maximum boundary
             high = mid - 1;
         } else {
@@ -1674,6 +1717,13 @@ async function shiftRight(toSort, sortTask, lo, hi) {
     for (let i = hi; i > lo && sortTask.isStarted; --i) {
         sortTask.increment();
         toSort[i] = toSort[i - 1];
+    }
+}
+async function reverse(toSort, sortTask, lo, hi) {
+    for (let i = lo, j = hi; i < j && sortTask.isStarted; ++i, --j) {
+        sortTask.increment();
+        await sortTask.visit(i, j);
+        swap(toSort, i, j);
     }
 }
 

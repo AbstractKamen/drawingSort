@@ -48,6 +48,7 @@ function init() {
     initAlgorithm(sortsContainer, getAlgorithmUITemplate("bitonic", "Bitonic Sort", "Not Stable, In place, O(n log^2 n) time complexity", bitonicSortDescription), bitonicSort);
     initAlgorithm(sortsContainer, getAlgorithmUITemplate("iterative-bitonic", "Iterative Bitonic Sort", "Not Stable, In place, O(n log^2 n) time complexity", itBitonicSortDescription), iterativeBitonicSort);
     initAlgorithm(sortsContainer, getAlgorithmUITemplate("adaptive-iterative-bitonic", "Adaptive Iterative Bitonic Sort", "Not Stable, Not In place, O(n log^2 n) time complexity", adaptiveItBitonicSortDescription), adaptiveIterativeBitonicSort);
+    initAlgorithm(sortsContainer, getAlgorithmUITemplate("pancake", "Pancake Sort", "Not Stable, In place, O(n^2) time complexity"), pancakeSort);
     initAlgorithm(sortsContainer, getAlgorithmUITemplate("bubble", "Bubble Sort", "Stable, In place, O(n^2) time complexity", bubbleSortDescription), bubbleSort);
     initAlgorithm(sortsContainer, getAlgorithmUITemplate("stooge", "Stooge Sort", "Not Stable, In place, O(n^log 3\\log 1.5) => O(n^2.7095...) time complexity", stoogeDescription), stoogeSort);
     initAlgorithm(sortsContainer, getAlgorithmUITemplate("stoogified", "Stoogified Sort", "Not Stable, In place, O(n^log 3\\log 1.5) => O(n^2.7095...) time complexity", stoogfiedDescription), stoogifiedSort, getHybridSortArguments());
@@ -307,6 +308,7 @@ const COMP_SORTS = [
     makeCompSort(combBrickSort, "Comb Shaker Sort"),
     makeCompSort(sleepSort, "Sleep Sort"),
     makeCompSort(shellSort, "Shell Sort"),
+    makeCompSort(pancakeSort, "Pancake Sort"),
     makeCompSort(countingSort, "Counting Sort"),
     // TODO makeCompSort(adaptiveIterativeBitonicSort, "Adaptive Iterative Bitonic Sort"),
     makeCompSort(bitonicSort, "Bitonic Sort"),
@@ -944,11 +946,18 @@ function drawElementsHSBMode(sketch, elements, elementsScale, minNumber, maxNumb
         let drawAcc = 0;
         let x = 0;
         let mustVisit = false;
+        const pixelBuffer = [];
         for (let i = 0; i < elements.length; i++) {
             drawAcc += elementsScale;
             mustVisit = mustVisit || sortTask.sortStatus[i] == VISITED;
+            const y = elements[i];
+            const index = binarySearchPlain(pixelBuffer, y);
+            if (index < 0) {
+                pixelBuffer[-index] = y;
+            } else {
+                pixelBuffer.splice(index + 1, 0, y);
+            }
             if (drawAcc >= 1) {
-                const y = elements[i];
                 var sb;
                 if (mustVisit) {
                     sb = 100;
@@ -957,13 +966,15 @@ function drawElementsHSBMode(sketch, elements, elementsScale, minNumber, maxNumb
                     sb = 70;
                 }
                 var c;
-                if (y < 0) {
-                    c = sketch.color(360 - (((1 - yPartNeg) * -y)), sb, sb);
+                const dy = pixelBuffer[pixelBuffer.length - 1];
+                if (dy < 0) {
+                    c = sketch.color(360 - (((1 - yPartNeg) * -dy)), sb, sb);
                 } else {
-                    c = sketch.color(yPart * y * 360, sb, sb)
+                    c = sketch.color(yPart * dy * 360, sb, sb)
                 }
-                template.drawMode.doDraw(sketch, x++, y, c);
+                template.drawMode.doDraw(sketch, x++, dy, c);
                 drawAcc -= 1;
+                pixelBuffer.length = 0;
             }
         }
     }
@@ -1009,7 +1020,6 @@ function drawElementsColourCoded(sketch, elements, elementsScale, maxNumber, sor
     drawElementNumbers(sketch, elements, elementsScale, sortTask);
     stats(sketch, elements, sortTask, template);
 }
-
 function stats(sketch, elements, sortTask, template) {
     sketch.pop();
     sketch.stroke(50);
